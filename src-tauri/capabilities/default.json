@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Permissions for the tray app and its overlay windows",
-  "windows": ["main", "note", "peek", "capture-*"],
+  "windows": ["main", "note", "peek", "rec", "capture-*"],
   "permissions": [
     "core:default",
     "core:window:allow-close",

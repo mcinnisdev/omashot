@@ -10,6 +10,14 @@ export interface Frame {
   png_path: string;
 }
 
+export type ShotKind = "image" | "recording";
+export type Purpose = "fix" | "document";
+
+export interface KeyFrame {
+  file: string;
+  at_ms: number;
+}
+
 export interface Shot {
   id: string;
   file: string;
@@ -19,6 +27,9 @@ export interface Shot {
   width: number;
   height: number;
   captured_at: string;
+  kind: ShotKind;
+  duration_ms: number;
+  frames: KeyFrame[];
 }
 
 export interface Group {
@@ -35,6 +46,7 @@ export interface Session {
   started_at: string;
   root: string;
   current: number;
+  purpose: Purpose;
   groups: Group[];
 }
 

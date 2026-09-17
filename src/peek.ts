@@ -6,9 +6,15 @@ import type { AppState, Export } from "./types";
 const body = document.getElementById("body") as HTMLDivElement;
 const count = document.getElementById("count") as HTMLSpanElement;
 const bundleName = document.getElementById("bundle-name") as HTMLInputElement;
+const purpose = document.getElementById("purpose") as HTMLSelectElement;
 const exported = document.getElementById("exported") as HTMLDivElement;
 const exportedLabel = document.getElementById("exported-label") as HTMLElement;
 const exportedPath = document.getElementById("exported-path") as HTMLElement;
+
+function clock(ms: number) {
+  const s = Math.round(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
 
 function flash(btn: HTMLButtonElement, text: string) {
   const original = btn.textContent ?? "";
@@ -34,6 +40,8 @@ async function render() {
 
   bundleName.value = session?.name ?? "";
   bundleName.disabled = !session;
+  purpose.value = session?.purpose ?? "fix";
+  purpose.disabled = !session;
 
   const shots = session?.groups.reduce((n, g) => n + g.shots.length, 0) ?? 0;
   const used = session?.groups.filter((g) => g.shots.length > 0).length ?? 0;
@@ -111,17 +119,20 @@ async function render() {
       const row = document.createElement("div");
       row.className = "shot";
 
+      const isRec = s.kind === "recording";
       const left = document.createElement("div");
       const img = document.createElement("img");
       img.src = convertFileSrc(s.abs_path);
-      img.alt = `Screenshot ${g.index}.${i + 1}`;
+      img.alt = `${isRec ? "Recording" : "Screenshot"} ${g.index}.${i + 1}`;
       img.addEventListener("click", () =>
         void invoke("open_path", { path: s.abs_path }),
       );
 
       const meta = document.createElement("div");
       meta.className = "meta";
-      meta.textContent = `${g.index}.${i + 1}  ${s.width}x${s.height}`;
+      meta.textContent = isRec
+        ? `${g.index}.${i + 1}  ${clock(s.duration_ms)}  ${s.width}x${s.height}`
+        : `${g.index}.${i + 1}  ${s.width}x${s.height}`;
       left.append(img, meta);
 
       const middle = document.createElement("div");
@@ -130,7 +141,7 @@ async function render() {
       const title = document.createElement("input");
       title.className = "shot-title";
       title.value = s.title;
-      title.placeholder = `Shot ${i + 1}`;
+      title.placeholder = `${isRec ? "Recording" : "Shot"} ${i + 1}`;
       title.setAttribute("aria-label", `Name for screenshot ${g.index}.${i + 1}`);
 
       const text = document.createElement("textarea");
@@ -230,6 +241,10 @@ bundleName.addEventListener("change", async () => {
 });
 bundleName.addEventListener("keydown", (e) => {
   if (e.key === "Enter") bundleName.blur();
+});
+
+purpose.addEventListener("change", () => {
+  void invoke("set_purpose", { purpose: purpose.value });
 });
 
 window.addEventListener("keydown", (e) => {

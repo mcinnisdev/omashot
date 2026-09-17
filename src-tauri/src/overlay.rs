@@ -6,6 +6,7 @@ use tauri::{
 
 pub const NOTE: &str = "note";
 pub const PEEK: &str = "peek";
+pub const REC: &str = "rec";
 
 fn capture_label(monitor_id: &str) -> String {
     format!("capture-{monitor_id}")
@@ -14,13 +15,14 @@ fn capture_label(monitor_id: &str) -> String {
 /// Opens one borderless, always-on-top window per monitor, each sized and
 /// positioned to cover that monitor exactly. The window shows the frozen
 /// frame, so no transparency is needed and this behaves the same on X11,
-/// Wayland, Windows and macOS.
-pub fn open_capture(app: &AppHandle, frames: &[Frame]) -> Result<()> {
+/// Wayland, Windows and macOS. `mode` is "shot" or "record" and decides
+/// what the overlay does with the selection.
+pub fn open_capture(app: &AppHandle, frames: &[Frame], mode: &str) -> Result<()> {
     close_capture(app);
 
     for frame in frames {
         let label = capture_label(&frame.monitor_id);
-        let url = format!("capture.html?m={}", frame.monitor_id);
+        let url = format!("capture.html?m={}&mode={mode}", frame.monitor_id);
 
         let win = WebviewWindowBuilder::new(app, &label, WebviewUrl::App(url.into()))
             .title("QACut capture")
@@ -117,6 +119,31 @@ pub fn toggle_peek(app: &AppHandle) -> Result<bool> {
 
 pub fn close_peek(app: &AppHandle) {
     if let Some(w) = app.get_webview_window(PEEK) {
+        let _ = w.close();
+    }
+}
+
+/// The small "REC 0:12" badge shown while a recording runs. It ignores the
+/// mouse so it never gets in the way of what is being demonstrated.
+pub fn open_rec_badge(app: &AppHandle, x: f64, y: f64) -> Result<()> {
+    close_rec_badge(app);
+    let win = WebviewWindowBuilder::new(app, REC, WebviewUrl::App("rec.html".into()))
+        .title("QACut recording")
+        .inner_size(232.0, 34.0)
+        .position(x, y)
+        .decorations(false)
+        .resizable(false)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .shadow(false)
+        .focused(false)
+        .build()?;
+    let _ = win.set_ignore_cursor_events(true);
+    Ok(())
+}
+
+pub fn close_rec_badge(app: &AppHandle) {
+    if let Some(w) = app.get_webview_window(REC) {
         let _ = w.close();
     }
 }

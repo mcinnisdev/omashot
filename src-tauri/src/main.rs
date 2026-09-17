@@ -8,7 +8,7 @@ mod overlay;
 use capture::Frame;
 use export::Export;
 use image::RgbaImage;
-use model::{Session, Shot};
+use model::{Purpose, Session, Shot, ShotKind};
 use serde::Serialize;
 use std::str::FromStr;
 use std::sync::Mutex;
@@ -25,6 +25,7 @@ const HK_CAPTURE: &str = "CommandOrControl+Shift+2";
 const HK_GROUP: &str = "CommandOrControl+Shift+G";
 const HK_PEEK: &str = "CommandOrControl+Shift+Q";
 const HK_FINISH: &str = "CommandOrControl+Shift+Enter";
+const HK_RECORD: &str = "CommandOrControl+Shift+R";
 
 #[derive(Default)]
 struct Inner {
@@ -36,6 +37,8 @@ struct Inner {
     capturing: bool,
     /// The shot awaiting a note: (group index, shot id).
     pending: Option<(usize, String)>,
+    /// A recording in progress and the shot it will fill in.
+    recording: Option<(capture::Recording, usize, String)>,
     /// True when the session has changed since it was last written out, so
     /// "New bundle" knows whether there is anything to save first.
     dirty: bool,
@@ -73,14 +76,28 @@ fn ensure_session<'a>(app: &AppHandle, inner: &'a mut Inner) -> Result<&'a mut S
 }
 
 /// The instruction handed to an agent alongside the folder path.
-fn agent_prompt(root: &str) -> String {
-    [
-        &format!("Work through the QA bundle at {root}. "),
-        "Start with bundle.md: each group is a page or area, its quoted master note ",
-        "applies to every screenshot under it, and each screenshot's note says what is ",
-        "wrong. Open each screenshot it references before changing anything.",
-    ]
-    .concat()
+fn agent_prompt(root: &str, purpose: Purpose) -> String {
+    match purpose {
+        Purpose::Fix => [
+            &format!("Work through the QA bundle at {root}. "),
+            "Start with bundle.md: each group is a page or area, its quoted master note ",
+            "applies to every screenshot under it, and each screenshot's note says what is ",
+            "wrong. Open each screenshot, and the key frames of any recording, before ",
+            "changing anything.",
+        ]
+        .concat(),
+        Purpose::Document => [
+            &format!("Using the QA bundle at {root}, write a step-by-step process document "),
+            "for the workflow it shows. Read bundle.md first: each group is a stage, the ",
+            "quoted note under it describes that stage, and each screenshot or recording ",
+            "is one step with the reviewer's note saying what is happening. Open every ",
+            "screenshot and every recording's key frames before writing. Write the steps ",
+            "in second person, embed each image and GIF where it belongs using its ",
+            "relative path, and keep the file names so the document can live next to ",
+            "the folder.",
+        ]
+        .concat(),
+    }
 }
 
 // ---------------------------------------------------------------- triggers
@@ -98,12 +115,29 @@ fn off_main(app: &AppHandle, f: fn(&AppHandle)) {
 }
 
 fn trigger_capture(app: &AppHandle) {
+    open_overlay(app, "shot");
+}
+
+/// Toggles: starts a recording via the overlay, or stops the one running.
+fn trigger_record(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let active = state.lock().unwrap().recording.is_some();
+    if active {
+        finish_recording(app);
+    } else {
+        open_overlay(app, "record");
+    }
+}
+
+/// Freezes every monitor and opens the selection overlay in `mode`.
+fn open_overlay(app: &AppHandle, mode: &str) {
     let state: State<Shared> = app.state();
 
-    // Don't stack overlays if one is already up or on its way.
+    // Don't stack overlays if one is already up or on its way, and don't
+    // start a still capture while a recording is running.
     {
         let mut inner = state.lock().unwrap();
-        if inner.capturing || !inner.frames.is_empty() {
+        if inner.capturing || !inner.frames.is_empty() || inner.recording.is_some() {
             return;
         }
         inner.capturing = true;
@@ -131,10 +165,49 @@ fn trigger_capture(app: &AppHandle) {
         inner.frames = frames;
     }
 
-    if let Err(e) = overlay::open_capture(app, &meta) {
+    if let Err(e) = overlay::open_capture(app, &meta, mode) {
         eprintln!("qacut: could not open overlay: {e}");
         let mut inner = state.lock().unwrap();
         inner.frames.clear();
+    }
+}
+
+/// Stops the running recording, files what it produced, and asks for a note.
+fn finish_recording(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let Some((rec, group, id)) = state.lock().unwrap().recording.take() else {
+        return;
+    };
+    overlay::close_rec_badge(app);
+
+    match rec.stop() {
+        Ok(done) => {
+            let mut inner = state.lock().unwrap();
+            if let Some(session) = inner.session.as_mut() {
+                if let Some(shot) = session.shot_mut(group, &id) {
+                    shot.width = done.width;
+                    shot.height = done.height;
+                    shot.duration_ms = done.duration_ms;
+                    shot.frames = done.frames;
+                }
+            }
+            inner.pending = Some((group, id));
+            inner.dirty = true;
+        }
+        Err(e) => {
+            eprintln!("qacut: recording failed: {e}");
+            let mut inner = state.lock().unwrap();
+            if let Some(session) = inner.session.as_mut() {
+                session.remove_shot(group, &id);
+            }
+            let _ = app.emit("session-changed", ());
+            return;
+        }
+    }
+
+    let _ = app.emit("session-changed", ());
+    if let Err(e) = overlay::open_note(app, "recording", None) {
+        eprintln!("qacut: could not open note box: {e}");
     }
 }
 
@@ -212,8 +285,15 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
                 .map_err(|e| e.to_string())?;
         }
         "prompt" => {
+            let purpose = state
+                .lock()
+                .unwrap()
+                .session
+                .as_ref()
+                .map(|s| s.purpose)
+                .unwrap_or(Purpose::Fix);
             app.clipboard()
-                .write_text(agent_prompt(&result.root))
+                .write_text(agent_prompt(&result.root, purpose))
                 .map_err(|e| e.to_string())?;
         }
         "open" => {
@@ -230,6 +310,10 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
 
     let _ = app.emit("session-changed", ());
     Ok(result)
+}
+
+fn shot_id(group: usize) -> String {
+    format!("{group}-{}", chrono::Local::now().timestamp_micros())
 }
 
 // ---------------------------------------------------------------- commands
@@ -273,12 +357,12 @@ async fn commit_selection(
             .ok_or_else(|| "that monitor is no longer frozen".to_string())?;
 
         let session = ensure_session(&app, &mut inner)?;
-        let (group, file, abs) = session.reserve_shot();
+        let (group, file, abs) = session.reserve_shot("png");
 
         let (pw, ph) = capture::crop_selection(&frame, &image, x, y, width, height, &abs)
             .map_err(|e| e.to_string())?;
 
-        let id = format!("{group}-{}", chrono::Local::now().timestamp_micros());
+        let id = shot_id(group);
         session.current().shots.push(Shot {
             id: id.clone(),
             file,
@@ -288,6 +372,9 @@ async fn commit_selection(
             width: pw,
             height: ph,
             captured_at: chrono::Local::now().to_rfc3339(),
+            kind: ShotKind::Image,
+            duration_ms: 0,
+            frames: Vec::new(),
         });
 
         inner.pending = Some((group, id));
@@ -305,6 +392,90 @@ async fn commit_selection(
     capture::clear_scratch();
     let _ = app.emit("session-changed", ());
     overlay::open_note(&app, "shot", Some(anchor)).map_err(|e| e.to_string())
+}
+
+/// The overlay, in record mode, hands over the region to record. The shot
+/// is filed straight away with placeholder size and filled in on stop.
+#[tauri::command]
+async fn start_recording(
+    app: AppHandle,
+    state: State<'_, Shared>,
+    monitor: String,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+) -> Result<(), String> {
+    overlay::close_capture(&app);
+
+    let badge_at = {
+        let mut inner = state.lock().unwrap();
+        if inner.recording.is_some() {
+            return Err("already recording".into());
+        }
+
+        let frame = inner
+            .frames
+            .iter()
+            .find(|(f, _)| f.monitor_id == monitor)
+            .map(|(f, _)| f.clone())
+            .ok_or_else(|| "that monitor is no longer frozen".to_string())?;
+        inner.frames.clear();
+
+        let session = ensure_session(&app, &mut inner)?;
+        let (group, file, abs) = session.reserve_shot("gif");
+        let frames_dir = abs.with_file_name(format!(
+            "{}-frames",
+            abs.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default()
+        ));
+
+        let rec = capture::start_recording(
+            app.clone(),
+            &frame,
+            x,
+            y,
+            width,
+            height,
+            abs.clone(),
+            frames_dir,
+        )
+        .map_err(|e| e.to_string())?;
+
+        let id = shot_id(group);
+        session.current().shots.push(Shot {
+            id: id.clone(),
+            file,
+            abs_path: abs.to_string_lossy().to_string(),
+            title: String::new(),
+            note: String::new(),
+            width: 0,
+            height: 0,
+            captured_at: chrono::Local::now().to_rfc3339(),
+            kind: ShotKind::Recording,
+            duration_ms: 0,
+            frames: Vec::new(),
+        });
+        inner.recording = Some((rec, group, id));
+        inner.dirty = true;
+
+        // Badge just above the region, or just below if that is off-screen.
+        let bx = (frame.x as f64 + x).min(frame.x as f64 + frame.width as f64 - 240.0);
+        let above = frame.y as f64 + y - 42.0;
+        let by = if above >= frame.y as f64 { above } else { frame.y as f64 + y + height + 8.0 };
+        (bx.max(frame.x as f64), by)
+    };
+
+    capture::clear_scratch();
+    let _ = app.emit("session-changed", ());
+    if let Err(e) = overlay::open_rec_badge(&app, badge_at.0, badge_at.1) {
+        eprintln!("qacut: could not show recording badge: {e}");
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn stop_recording(app: AppHandle) {
+    finish_recording(&app);
 }
 
 #[tauri::command]
@@ -441,6 +612,19 @@ async fn new_bundle(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn set_purpose(app: AppHandle, state: State<Shared>, purpose: String) -> Result<(), String> {
+    let p = Purpose::parse(&purpose).ok_or("unknown purpose")?;
+    {
+        let mut inner = state.lock().unwrap();
+        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        session.purpose = p;
+        inner.dirty = true;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
+#[tauri::command]
 fn set_shot_note(
     app: AppHandle,
     state: State<Shared>,
@@ -551,6 +735,8 @@ fn main() {
                         off_main(&app, trigger_peek);
                     } else if matches(HK_FINISH) {
                         off_main(&app, trigger_finish);
+                    } else if matches(HK_RECORD) {
+                        off_main(&app, trigger_record);
                     }
                 })
                 .build(),
@@ -558,6 +744,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             frame_for,
             commit_selection,
+            start_recording,
+            stop_recording,
             cancel_capture,
             save_note,
             discard_pending,
@@ -567,6 +755,7 @@ fn main() {
             set_current_group,
             rename_bundle,
             new_bundle,
+            set_purpose,
             set_shot_note,
             set_group_note,
             delete_shot,
@@ -579,7 +768,7 @@ fn main() {
         .setup(|app| {
             let handle = app.handle().clone();
 
-            for spec in [HK_CAPTURE, HK_GROUP, HK_PEEK, HK_FINISH] {
+            for spec in [HK_CAPTURE, HK_RECORD, HK_GROUP, HK_PEEK, HK_FINISH] {
                 match Shortcut::from_str(spec) {
                     Ok(sc) => {
                         if let Err(e) = handle.global_shortcut().register(sc) {
@@ -591,6 +780,7 @@ fn main() {
             }
 
             let capture_i = MenuItem::with_id(app, "capture", "Capture region", true, Some(HK_CAPTURE))?;
+            let record_i = MenuItem::with_id(app, "record", "Record region / stop", true, Some(HK_RECORD))?;
             let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, Some(HK_GROUP))?;
             let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, Some(HK_PEEK))?;
             let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, Some(HK_FINISH))?;
@@ -599,7 +789,7 @@ fn main() {
             let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
             let menu = Menu::with_items(
                 app,
-                &[&capture_i, &group_i, &peek_i, &finish_i, &new_i, &folder_i, &quit_i],
+                &[&capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i, &folder_i, &quit_i],
             )?;
 
             // A trimmed copy of the mark rather than the app icon, whose
@@ -613,6 +803,7 @@ fn main() {
                 .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id().as_ref() {
                     "capture" => off_main(app, trigger_capture),
+                    "record" => off_main(app, trigger_record),
                     "group" => off_main(app, trigger_group),
                     "peek" => off_main(app, trigger_peek),
                     "finish" => off_main(app, trigger_finish),
@@ -623,6 +814,12 @@ fn main() {
                         let _ = app.opener().open_path(dir.to_string_lossy().to_string(), None::<&str>);
                     }
                     "quit" => {
+                        // Let a running recording write its trailer first.
+                        let state: State<Shared> = app.state();
+                        let rec = state.lock().unwrap().recording.take();
+                        if let Some((rec, _, _)) = rec {
+                            let _ = rec.stop();
+                        }
                         capture::clear_scratch();
                         app.exit(0);
                     }

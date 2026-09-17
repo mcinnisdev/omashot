@@ -18,6 +18,7 @@ export default defineConfig({
         capture: resolve(__dirname, "capture.html"),
         note: resolve(__dirname, "note.html"),
         peek: resolve(__dirname, "peek.html"),
+        rec: resolve(__dirname, "rec.html"),
       },
     },
   },

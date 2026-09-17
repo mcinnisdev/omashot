@@ -1,7 +1,10 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import type { Frame } from "./types";
 
-const monitor = new URLSearchParams(location.search).get("m") ?? "0";
+const params = new URLSearchParams(location.search);
+const monitor = params.get("m") ?? "0";
+// "shot" crops the frozen frame; "record" starts recording the live region.
+const recording = params.get("mode") === "record";
 
 const frameEl = document.getElementById("frame") as HTMLImageElement;
 const scrim = document.getElementById("scrim") as HTMLDivElement;
@@ -20,6 +23,10 @@ let ax = 0;
 let ay = 0;
 
 async function boot() {
+  if (recording) {
+    hint.innerHTML =
+      "<b>Drag</b> the region to record <kbd>Esc</kbd> cancel";
+  }
   const frame = await invoke<Frame | null>("frame_for", { monitor });
   if (!frame) {
     await cancel();
@@ -75,7 +82,7 @@ async function commit(r: {
 }) {
   if (sent) return;
   sent = true;
-  await invoke("commit_selection", {
+  await invoke(recording ? "start_recording" : "commit_selection", {
     monitor,
     x: r.x,
     y: r.y,

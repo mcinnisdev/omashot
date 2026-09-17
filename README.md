@@ -11,6 +11,7 @@ Tauri 2 (Rust backend, vanilla TS frontend). Windows, macOS and Linux.
 | Key | Does |
 | --- | --- |
 | `Ctrl/Cmd + Shift + 2` | Freeze the screen, drag a region, then type a note |
+| `Ctrl/Cmd + Shift + R` | Drag a region to record it; press again to stop, then type a note |
 | `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |
 | `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
@@ -26,6 +27,18 @@ The two workflows from the brief map to this:
 - **Full pass.** Capture and note repeatedly on the settings page, group
   hotkey to wrap that group up with a master note, carry on in the next one,
   finish hotkey at the end.
+
+Recordings are for showing a process rather than a fault. The region is
+grabbed at ten frames a second with the cursor drawn on as a ring, scaled to
+at most 720 px wide and streamed into a looping GIF, so stopping is instant.
+Every two seconds a still is saved beside it (thinned to twelve at most).
+Agents cannot play a GIF, so `bundle.md` links those stills in order under the
+recording; a human reading the resulting document just sees the GIF.
+
+A bundle has a purpose, chosen in the bundle window: **Fix issues** (the
+default) or **Write process doc**. It only changes the prompt that "Copy agent
+prompt" produces, so one bundle of shots and recordings can be handed off
+either way.
 
 A bundle starts on its own at the first capture. Finishing writes it out but
 does not close it: keep capturing, finish again, and the files are rewritten.
@@ -50,6 +63,8 @@ the bundle a name in the bundle window and a slug is appended, so
     01.png  02.png  03.png
   02-billing/
     01.png
+    02.gif             a recording
+    02-frames/         its key frames, 01.png 02.png ...
 ```
 
 `bundle.md` is the agent-facing file. It opens with a short note on how to
@@ -133,12 +148,14 @@ remove button fills solid on hover.
 
 ## Changing things
 
-- Hotkeys: the four `HK_*` constants at the top of `src-tauri/src/main.rs`.
+- Hotkeys: the five `HK_*` constants at the top of `src-tauri/src/main.rs`.
   Anything the Tauri shortcut parser accepts works.
 - Output location: `base_dir()` in the same file.
 - Markdown shape: `render_markdown()` in `src-tauri/src/export.rs`. This is
   the function to edit if you want the bundle to match a prompt format you
-  already use. The agent prompt is `agent_prompt()` in `main.rs`.
+  already use. The two agent prompts are in `agent_prompt()` in `main.rs`.
+- Recording rate, width and key-frame interval: the constants at the top of
+  the recording section in `src-tauri/src/capture.rs`.
 
 ## Layout
 

@@ -1,4 +1,4 @@
-use crate::model::{slug, Session};
+use crate::model::{slug, Session, ShotKind};
 use anyhow::Result;
 use serde::Serialize;
 use std::fmt::Write as _;
@@ -88,8 +88,9 @@ pub fn render_markdown(session: &Session) -> String {
         "How to read this: each group is one page or area of the product. ",
         "The quoted text under a group heading is the reviewer's note for the whole group. ",
         "Each numbered item is a screenshot of one region, followed by the reviewer's note ",
-        "on what is wrong there. Open the image before acting on the note.
-"
+        "on what is wrong there. Open the image before acting on the note. ",
+        "A recording is an animated GIF; the key frames listed under it are stills at ",
+        "regular intervals, so read those in order if you cannot play it.\n"
     ));
 
     for g in groups {
@@ -126,13 +127,35 @@ pub fn render_markdown(session: &Session) -> String {
                 let _ = writeln!(md, "{}", shot.note.trim());
             }
             let _ = writeln!(md);
-            let _ = writeln!(
-                md,
-                "_{} × {} px, captured {}_",
-                shot.width,
-                shot.height,
-                shot.captured_at.get(11..19).unwrap_or(&shot.captured_at)
-            );
+            let when = shot.captured_at.get(11..19).unwrap_or(&shot.captured_at);
+            if shot.kind == ShotKind::Recording {
+                let secs = (shot.duration_ms as f64 / 1000.0).round() as u64;
+                let _ = write!(
+                    md,
+                    "_Recording, {secs} s, {} × {} px, captured {when}._",
+                    shot.width, shot.height
+                );
+                if !shot.frames.is_empty() {
+                    let _ = write!(md, " Key frames:");
+                    for (k, f) in shot.frames.iter().enumerate() {
+                        let sep = if k == 0 { " " } else { ", " };
+                        let _ = write!(
+                            md,
+                            "{sep}[{} s]({}/{})",
+                            (f.at_ms as f64 / 1000.0).round() as u64,
+                            g.dir,
+                            f.file
+                        );
+                    }
+                }
+                let _ = writeln!(md);
+            } else {
+                let _ = writeln!(
+                    md,
+                    "_{} × {} px, captured {when}_",
+                    shot.width, shot.height
+                );
+            }
         }
     }
 
@@ -142,7 +165,7 @@ pub fn render_markdown(session: &Session) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::Shot;
+    use crate::model::{KeyFrame, Shot};
 
     #[test]
     fn markdown_has_the_agent_facing_shape() {
@@ -162,6 +185,25 @@ mod tests {
             width: 640,
             height: 200,
             captured_at: "2026-09-17T14:56:50+00:00".into(),
+            kind: ShotKind::Image,
+            duration_ms: 0,
+            frames: Vec::new(),
+        });
+        s.current().shots.push(Shot {
+            id: "b".into(),
+            file: "02.gif".into(),
+            abs_path: String::new(),
+            title: String::new(),
+            note: "Open the menu, pick Export".into(),
+            width: 720,
+            height: 400,
+            captured_at: "2026-09-17T14:57:10+00:00".into(),
+            kind: ShotKind::Recording,
+            duration_ms: 12400,
+            frames: vec![
+                KeyFrame { file: "02-frames/01.png".into(), at_ms: 0 },
+                KeyFrame { file: "02-frames/02.png".into(), at_ms: 2010 },
+            ],
         });
 
         let md = render_markdown(&s);
@@ -175,6 +217,8 @@ mod tests {
         assert!(md.contains("![1.1](01/01.png)"));
         assert!(md.contains("Save button is clipped"));
         assert!(md.contains("_640 × 200 px, captured 14:56:50_"));
+        assert!(md.contains("![1.2](01/02.gif)"));
+        assert!(md.contains("_Recording, 12 s, 720 × 400 px, captured 14:57:10._ Key frames: [0 s](01/02-frames/01.png), [2 s](01/02-frames/02.png)"));
         std::fs::remove_dir_all(base).unwrap();
     }
 }

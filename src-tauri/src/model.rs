@@ -20,7 +20,43 @@ pub fn slug(title: &str) -> String {
     out.trim_matches('-').to_string()
 }
 
-/// A single captured region plus the note the user typed for it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ShotKind {
+    Image,
+    Recording,
+}
+
+/// One still saved beside a recording so it can be read without playing.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct KeyFrame {
+    /// Relative to the group directory, e.g. "03-frames/02.png".
+    pub file: String,
+    pub at_ms: u64,
+}
+
+/// What the bundle is for. Changes the prompt handed to the agent.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Purpose {
+    /// Screenshots of things that are wrong; the agent fixes them.
+    Fix,
+    /// Screenshots and recordings of a workflow; the agent writes it up.
+    Document,
+}
+
+impl Purpose {
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "fix" => Some(Purpose::Fix),
+            "document" => Some(Purpose::Document),
+            _ => None,
+        }
+    }
+}
+
+/// A single captured region (still or recording) plus the note the user
+/// typed for it.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Shot {
     pub id: String,
@@ -34,6 +70,23 @@ pub struct Shot {
     pub width: u32,
     pub height: u32,
     pub captured_at: String,
+    pub kind: ShotKind,
+    /// Recording only: length in milliseconds.
+    pub duration_ms: u64,
+    /// Recording only: stills at regular intervals, oldest first.
+    pub frames: Vec<KeyFrame>,
+}
+
+impl Shot {
+    /// The directory a recording's key frames live in, next to the GIF.
+    pub fn frames_dir(&self) -> Option<PathBuf> {
+        if self.kind != ShotKind::Recording {
+            return None;
+        }
+        let p = Path::new(&self.abs_path);
+        let stem = p.file_stem()?.to_string_lossy().to_string();
+        Some(p.with_file_name(format!("{stem}-frames")))
+    }
 }
 
 /// A run of shots that share a heading and a master note.
@@ -85,6 +138,7 @@ pub struct Session {
     /// Index of the group new shots go into. Usually the newest, but the
     /// user can point it back at an earlier group.
     pub current: usize,
+    pub purpose: Purpose,
     pub groups: Vec<Group>,
 }
 
@@ -105,6 +159,7 @@ impl Session {
             started_at: now.to_rfc3339(),
             root,
             current: 1,
+            purpose: Purpose::Fix,
             groups: vec![first],
         })
     }
@@ -199,19 +254,19 @@ impl Session {
         Ok(index)
     }
 
-    /// Reserves the next `NN.png` in the current group and returns
+    /// Reserves the next `NN.<ext>` in the current group and returns
     /// (group index, file name, absolute path). Numbers only ever go up, so
     /// deleting a shot never lets a later one overwrite an existing file.
-    pub fn reserve_shot(&mut self) -> (usize, String, PathBuf) {
+    pub fn reserve_shot(&mut self, ext: &str) -> (usize, String, PathBuf) {
         let root = self.root.clone();
         let g = self.current();
         let highest = g
             .shots
             .iter()
-            .filter_map(|s| s.file.trim_end_matches(".png").parse::<usize>().ok())
+            .filter_map(|s| s.file.split('.').next()?.parse::<usize>().ok())
             .max()
             .unwrap_or(0);
-        let file = format!("{:02}.png", highest + 1);
+        let file = format!("{:02}.{ext}", highest + 1);
         let abs = root.join(&g.dir).join(&file);
         (g.index, file, abs)
     }
@@ -235,6 +290,9 @@ impl Session {
         if let Some(pos) = g.shots.iter().position(|s| s.id == shot_id) {
             let shot = g.shots.remove(pos);
             let _ = std::fs::remove_file(&shot.abs_path);
+            if let Some(dir) = shot.frames_dir() {
+                let _ = std::fs::remove_dir_all(dir);
+            }
         }
     }
 }
@@ -253,6 +311,9 @@ mod tests {
             width: 1,
             height: 1,
             captured_at: String::new(),
+            kind: ShotKind::Image,
+            duration_ms: 0,
+            frames: Vec::new(),
         }
     }
 
@@ -278,13 +339,13 @@ mod tests {
         let base = temp_base("numbers");
         let mut s = Session::start(&base).unwrap();
         for _ in 0..3 {
-            let (_, file, abs) = s.reserve_shot();
+            let (_, file, abs) = s.reserve_shot("png");
             std::fs::write(&abs, b"png").unwrap();
             s.current().shots.push(shot(&file, &abs));
         }
         s.remove_shot(1, "02.png");
-        let (_, next, _) = s.reserve_shot();
-        assert_eq!(next, "04.png");
+        let (_, next, _) = s.reserve_shot("gif");
+        assert_eq!(next, "04.gif");
         std::fs::remove_dir_all(base).unwrap();
     }
 
@@ -292,7 +353,7 @@ mod tests {
     fn rename_moves_the_folder_and_updates_paths() {
         let base = temp_base("rename");
         let mut s = Session::start(&base).unwrap();
-        let (_, file, abs) = s.reserve_shot();
+        let (_, file, abs) = s.reserve_shot("png");
         std::fs::write(&abs, b"png").unwrap();
         s.current().shots.push(shot(&file, &abs));
 
@@ -317,8 +378,49 @@ mod tests {
         assert_eq!(s.groups[0].master_note, "Whole page");
         assert_eq!(s.current().index, 2);
         assert!(s.set_current(1));
-        assert_eq!(s.reserve_shot().0, 1);
+        assert_eq!(s.reserve_shot("png").0, 1);
         assert!(!s.set_current(9));
+        std::fs::remove_dir_all(base).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod recording_tests {
+    use super::*;
+
+    #[test]
+    fn removing_a_recording_takes_its_frames_too() {
+        let base = std::env::temp_dir().join(format!(
+            "qacut-test-rec-{}",
+            chrono::Local::now().timestamp_micros()
+        ));
+        std::fs::create_dir_all(&base).unwrap();
+        let mut s = Session::start(&base).unwrap();
+        let (_, file, abs) = s.reserve_shot("gif");
+        std::fs::write(&abs, b"gif").unwrap();
+        let mut sh = Shot {
+            id: "r".into(),
+            file,
+            abs_path: abs.to_string_lossy().to_string(),
+            title: String::new(),
+            note: String::new(),
+            width: 1,
+            height: 1,
+            captured_at: String::new(),
+            kind: ShotKind::Recording,
+            duration_ms: 1000,
+            frames: Vec::new(),
+        };
+        let dir = sh.frames_dir().unwrap();
+        assert!(dir.ends_with("01-frames"));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("01.png"), b"png").unwrap();
+        sh.frames.push(KeyFrame { file: "01-frames/01.png".into(), at_ms: 0 });
+        s.current().shots.push(sh);
+
+        s.remove_shot(1, "r");
+        assert!(!abs.exists());
+        assert!(!dir.exists());
         std::fs::remove_dir_all(base).unwrap();
     }
 }

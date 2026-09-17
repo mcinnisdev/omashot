@@ -19,8 +19,12 @@
         <button class="btn" id="close">Close</button>
       </div>
       <div class="peek-tools">
-        <button class="btn" id="copy-path">Copy folder path</button>
+        <select class="btn" id="purpose" aria-label="What this bundle is for">
+          <option value="fix">Fix issues</option>
+          <option value="document">Write process doc</option>
+        </select>
         <button class="btn" id="copy-prompt">Copy agent prompt</button>
+        <button class="btn" id="copy-path">Copy folder path</button>
         <button class="btn" id="copy-md">Copy markdown</button>
         <button class="btn" id="open-folder">Open folder</button>
         <span class="spacer"></span>
@@ -33,6 +37,7 @@
       <div class="peek-body" id="body"></div>
       <div class="peek-foot">
         <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>2</kbd> capture</span>
+        <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> record / stop</span>
         <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> new group</span>
         <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> show bundle</span>
         <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd> finish</span>

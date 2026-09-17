@@ -358,6 +358,15 @@ body.peek {
 .peek-tools .spacer {
   flex: 1;
 }
+select.btn {
+  appearance: none;
+  padding-right: 24px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 13px) 50%, calc(100% - 9px) 50%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+}
 
 .btn {
   font-size: 12px;
@@ -599,4 +608,57 @@ textarea.master:focus {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+/* ------------------------------------------------------ recording badge */
+
+body.rec {
+  background: transparent;
+}
+
+.rec-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--base);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.rec-pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--signal);
+  animation: rec-blink 1s steps(1) infinite;
+}
+@keyframes rec-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.rec-pill .label {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--signal);
+}
+
+.rec-pill .time {
+  font-family: var(--mono);
+  min-width: 34px;
+}
+
+.rec-pill .stop {
+  color: var(--faint);
+  font-size: 11px;
+}
+.rec-pill .stop kbd {
+  font-size: 10px;
+  padding: 0 4px;
 }

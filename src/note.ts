@@ -4,6 +4,7 @@ import type { Session } from "./types";
 
 const mode = new URLSearchParams(location.search).get("mode") ?? "shot";
 const isGroup = mode === "group";
+const isRecording = mode === "recording";
 
 const label = document.getElementById("head-label") as HTMLSpanElement;
 const groupTitle = document.getElementById("group-title") as HTMLInputElement;
@@ -25,6 +26,10 @@ async function boot() {
     groupHint.hidden = false;
     note.placeholder = "Master note, e.g. problems on the settings page";
     secondary.textContent = "Cancel";
+  } else if (isRecording) {
+    label.textContent = "Recording";
+    note.placeholder = "What is happening in this recording?";
+    secondary.textContent = "Discard recording";
   } else {
     label.textContent = "Note";
     secondary.textContent = "Discard shot";
@@ -40,7 +45,7 @@ async function boot() {
 
   groupTitle.value = g.title;
   groupTitle.placeholder = `Group ${g.index}`;
-  shotTitle.placeholder = `Shot ${g.shots.length}`;
+  shotTitle.placeholder = `${isRecording ? "Recording" : "Shot"} ${g.shots.length}`;
 
   if (isGroup) {
     const name = g.title.trim() || `Group ${g.index}`;

@@ -119,6 +119,54 @@ body.capture {
   pointer-events: none;
 }
 
+/* Adjust phase (recordings): the box can be moved and its edges dragged. */
+body.capture.adjust {
+  cursor: default;
+}
+#sel.adjust {
+  pointer-events: auto;
+  cursor: move;
+}
+#sel .handle {
+  display: none;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--signal);
+  border: 1px solid var(--base);
+  border-radius: 2px;
+}
+#sel.adjust .handle {
+  display: block;
+}
+.handle[data-edges="n"] { top: -6px; left: 50%; margin-left: -5px; cursor: ns-resize; }
+.handle[data-edges="s"] { bottom: -6px; left: 50%; margin-left: -5px; cursor: ns-resize; }
+.handle[data-edges="e"] { right: -6px; top: 50%; margin-top: -5px; cursor: ew-resize; }
+.handle[data-edges="w"] { left: -6px; top: 50%; margin-top: -5px; cursor: ew-resize; }
+.handle[data-edges="ne"] { top: -6px; right: -6px; cursor: nesw-resize; }
+.handle[data-edges="sw"] { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.handle[data-edges="nw"] { top: -6px; left: -6px; cursor: nwse-resize; }
+.handle[data-edges="se"] { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
+#tools {
+  position: fixed;
+  display: none;
+  gap: 7px;
+  padding: 6px;
+  background: rgba(14, 17, 20, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+#tools .btn.primary {
+  color: var(--base);
+  background: var(--signal);
+  border-color: var(--signal);
+  font-weight: 600;
+}
+#tools .btn.primary:hover {
+  filter: brightness(1.1);
+}
+
 #dims {
   position: fixed;
   display: none;
@@ -722,6 +770,13 @@ body.rec {
   border-radius: 50%;
   background: var(--signal);
   animation: rec-blink 1s steps(1) infinite;
+}
+.rec-pill.arming .dot {
+  animation: none;
+  background: var(--muted);
+}
+.rec-pill.arming .label {
+  color: var(--muted);
 }
 @keyframes rec-blink {
   50% {

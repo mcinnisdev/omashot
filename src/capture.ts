@@ -3,7 +3,9 @@ import type { Frame } from "./types";
 
 const params = new URLSearchParams(location.search);
 const monitor = params.get("m") ?? "0";
-// "shot" crops the frozen frame; "record" starts recording the live region.
+// "shot" crops the frozen frame the moment the drag ends. "record" lets the
+// selection be adjusted first, then starts recording the live region after
+// a countdown.
 const recording = params.get("mode") === "record";
 
 const frameEl = document.getElementById("frame") as HTMLImageElement;
@@ -13,20 +15,35 @@ const guideH = document.getElementById("guide-h") as HTMLDivElement;
 const sel = document.getElementById("sel") as HTMLDivElement;
 const dims = document.getElementById("dims") as HTMLDivElement;
 const hint = document.getElementById("hint") as HTMLDivElement;
+const tools = document.getElementById("tools") as HTMLDivElement;
+const toolRecord = document.getElementById("tool-record") as HTMLButtonElement;
+const toolCancel = document.getElementById("tool-cancel") as HTMLButtonElement;
 
 // Ignore accidental click-drags; anything smaller than this is a misfire.
 const MIN_EDGE = 8;
 
-let dragging = false;
+type Rect = { x: number; y: number; width: number; height: number };
+type Drag =
+  | { kind: "new"; ax: number; ay: number }
+  | { kind: "move"; ax: number; ay: number; from: Rect }
+  | { kind: "resize"; ax: number; ay: number; from: Rect; edges: string };
+
+type Phase = "idle" | "drag" | "adjust";
+
+let phase: Phase = "idle";
+let drag: Drag | null = null;
+let current: Rect | null = null;
 let sent = false;
-let ax = 0;
-let ay = 0;
+
+const HINTS = {
+  shot: "<b>Drag</b> to select the region <kbd>Esc</kbd> cancel",
+  record: "<b>Drag</b> the region to record <kbd>Esc</kbd> cancel",
+  adjust:
+    "<b>Drag</b> the box or its edges to adjust <kbd>Enter</kbd> record <kbd>Esc</kbd> cancel",
+};
 
 async function boot() {
-  if (recording) {
-    hint.innerHTML =
-      "<b>Drag</b> the region to record <kbd>Esc</kbd> cancel";
-  }
+  hint.innerHTML = recording ? HINTS.record : HINTS.shot;
   const frame = await invoke<Frame | null>("frame_for", { monitor });
   if (!frame) {
     await cancel();
@@ -35,7 +52,11 @@ async function boot() {
   frameEl.src = convertFileSrc(frame.png_path);
 }
 
-function rect(bx: number, by: number) {
+function clamp(v: number, lo: number, hi: number) {
+  return Math.min(Math.max(v, lo), hi);
+}
+
+function fromCorners(ax: number, ay: number, bx: number, by: number): Rect {
   return {
     x: Math.min(ax, bx),
     y: Math.min(ay, by),
@@ -44,7 +65,7 @@ function rect(bx: number, by: number) {
   };
 }
 
-function paint(r: { x: number; y: number; width: number; height: number }) {
+function paint(r: Rect) {
   sel.style.display = "block";
   sel.style.left = `${r.x}px`;
   sel.style.top = `${r.y}px`;
@@ -58,14 +79,37 @@ function paint(r: { x: number; y: number; width: number; height: number }) {
   const below = r.y < 28;
   dims.style.left = `${Math.min(r.x, window.innerWidth - 90)}px`;
   dims.style.top = below ? `${r.y + r.height + 6}px` : `${r.y - 24}px`;
+
+  if (phase === "adjust") placeTools(r);
 }
 
-function reset() {
-  dragging = false;
-  sel.style.display = "none";
-  dims.style.display = "none";
-  scrim.style.display = "block";
-  hint.style.display = "flex";
+function placeTools(r: Rect) {
+  tools.style.display = "flex";
+  const w = tools.offsetWidth;
+  const h = tools.offsetHeight;
+  const left = clamp(r.x + r.width - w, 8, window.innerWidth - w - 8);
+  const fitsBelow = r.y + r.height + 10 + h < window.innerHeight - 8;
+  const top = fitsBelow ? r.y + r.height + 10 : Math.max(8, r.y - h - 10);
+  tools.style.left = `${left}px`;
+  tools.style.top = `${top}px`;
+}
+
+function setPhase(p: Phase) {
+  phase = p;
+  document.body.classList.toggle("adjust", p === "adjust");
+  sel.classList.toggle("adjust", p === "adjust");
+  const idle = p === "idle";
+  scrim.style.display = idle ? "block" : "none";
+  guideV.style.display = idle ? "block" : "none";
+  guideH.style.display = idle ? "block" : "none";
+  hint.style.display = p === "drag" ? "none" : "flex";
+  if (idle) {
+    sel.style.display = "none";
+    dims.style.display = "none";
+    hint.innerHTML = recording ? HINTS.record : HINTS.shot;
+  }
+  if (p === "adjust") hint.innerHTML = HINTS.adjust;
+  if (p !== "adjust") tools.style.display = "none";
 }
 
 async function cancel() {
@@ -74,12 +118,7 @@ async function cancel() {
   await invoke("cancel_capture");
 }
 
-async function commit(r: {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}) {
+async function send(r: Rect) {
   if (sent) return;
   sent = true;
   try {
@@ -96,44 +135,115 @@ async function commit(r: {
   }
 }
 
-window.addEventListener("mousemove", (e) => {
-  if (!dragging) {
-    guideV.style.left = `${e.clientX}px`;
-    guideH.style.top = `${e.clientY}px`;
-    return;
+/// Applies a move or resize to the rectangle the drag started from.
+function apply(d: Drag, cx: number, cy: number): Rect {
+  const dx = cx - d.ax;
+  const dy = cy - d.ay;
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  if (d.kind === "new") return fromCorners(d.ax, d.ay, cx, cy);
+
+  if (d.kind === "move") {
+    return {
+      x: clamp(d.from.x + dx, 0, W - d.from.width),
+      y: clamp(d.from.y + dy, 0, H - d.from.height),
+      width: d.from.width,
+      height: d.from.height,
+    };
   }
-  paint(rect(e.clientX, e.clientY));
-});
+
+  let { x, y, width, height } = d.from;
+  const right = x + width;
+  const bottom = y + height;
+  if (d.edges.includes("w")) {
+    x = clamp(d.from.x + dx, 0, right - MIN_EDGE);
+    width = right - x;
+  }
+  if (d.edges.includes("e")) {
+    width = clamp(d.from.width + dx, MIN_EDGE, W - x);
+  }
+  if (d.edges.includes("n")) {
+    y = clamp(d.from.y + dy, 0, bottom - MIN_EDGE);
+    height = bottom - y;
+  }
+  if (d.edges.includes("s")) {
+    height = clamp(d.from.height + dy, MIN_EDGE, H - y);
+  }
+  return { x, y, width, height };
+}
 
 window.addEventListener("mousedown", (e) => {
-  if (e.button !== 0) return;
-  dragging = true;
-  ax = e.clientX;
-  ay = e.clientY;
-  scrim.style.display = "none";
-  hint.style.display = "none";
-  guideV.style.display = "none";
-  guideH.style.display = "none";
-  paint(rect(ax, ay));
+  if (e.button !== 0 || sent) return;
+  const target = e.target as HTMLElement;
+  if (tools.contains(target)) return;
+
+  if (phase === "adjust" && current) {
+    const handle = target.closest(".handle") as HTMLElement | null;
+    if (handle) {
+      drag = {
+        kind: "resize",
+        ax: e.clientX,
+        ay: e.clientY,
+        from: current,
+        edges: handle.dataset.edges ?? "",
+      };
+      return;
+    }
+    if (sel.contains(target)) {
+      drag = { kind: "move", ax: e.clientX, ay: e.clientY, from: current };
+      return;
+    }
+  }
+
+  drag = { kind: "new", ax: e.clientX, ay: e.clientY };
+  setPhase("drag");
+  paint(apply(drag, e.clientX, e.clientY));
+});
+
+window.addEventListener("mousemove", (e) => {
+  if (!drag) {
+    if (phase === "idle") {
+      guideV.style.left = `${e.clientX}px`;
+      guideH.style.top = `${e.clientY}px`;
+    }
+    return;
+  }
+  paint(apply(drag, e.clientX, e.clientY));
 });
 
 window.addEventListener("mouseup", async (e) => {
-  if (!dragging) return;
-  dragging = false;
-  const r = rect(e.clientX, e.clientY);
-  if (r.width < MIN_EDGE || r.height < MIN_EDGE) {
-    guideV.style.display = "block";
-    guideH.style.display = "block";
-    reset();
-    return;
+  if (!drag) return;
+  const d = drag;
+  drag = null;
+  const r = apply(d, e.clientX, e.clientY);
+
+  if (d.kind === "new") {
+    if (r.width < MIN_EDGE || r.height < MIN_EDGE) {
+      current = null;
+      setPhase("idle");
+      return;
+    }
+    if (!recording) {
+      await send(r);
+      return;
+    }
   }
-  await commit(r);
+
+  current = r;
+  setPhase("adjust");
+  paint(r);
 });
 
 window.addEventListener("keydown", async (e) => {
   if (e.key === "Escape") {
     e.preventDefault();
     await cancel();
+    return;
+  }
+  if (e.key === "Enter" && phase === "adjust" && current) {
+    e.preventDefault();
+    await send(current);
   }
 });
 
@@ -142,5 +252,10 @@ window.addEventListener("contextmenu", async (e) => {
   e.preventDefault();
   await cancel();
 });
+
+toolRecord.addEventListener("click", () => {
+  if (current) void send(current);
+});
+toolCancel.addEventListener("click", () => void cancel());
 
 boot();

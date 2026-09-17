@@ -11,7 +11,7 @@ Tauri 2 (Rust backend, vanilla TS frontend). Windows, macOS and Linux.
 | Key | Does |
 | --- | --- |
 | `Ctrl/Cmd + Shift + 2` | Freeze the screen, drag a region, then type a note |
-| `Ctrl/Cmd + Shift + R` | Drag a region to record it; press again to stop, then type a note |
+| `Ctrl/Cmd + Shift + R` | Drag a region, adjust it, Record; press again to stop, then type a note |
 | `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |
 | `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
@@ -28,7 +28,10 @@ The two workflows from the brief map to this:
   hotkey to wrap that group up with a master note, carry on in the next one,
   finish hotkey at the end.
 
-Recordings are for showing a process rather than a fault. The region is
+Recordings are for showing a process rather than a fault. After the drag the
+box can be moved and its edges pulled; Record (or `Enter`) then starts a
+three-second countdown, shown in the badge, so windows and the mouse can be
+put in place. The hotkey cancels during the countdown. The region is
 grabbed at ten frames a second with the cursor drawn on as a ring, scaled to
 at most 720 px wide and streamed into a looping GIF, so stopping is instant.
 Every two seconds a still is saved beside it (thinned to twelve at most).

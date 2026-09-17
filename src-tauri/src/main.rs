@@ -11,7 +11,8 @@ use image::RgbaImage;
 use model::{Purpose, Session, Shot, ShotKind};
 use serde::Serialize;
 use std::str::FromStr;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -27,6 +28,10 @@ const HK_PEEK: &str = "CommandOrControl+Shift+Q";
 const HK_FINISH: &str = "CommandOrControl+Shift+Enter";
 const HK_RECORD: &str = "CommandOrControl+Shift+R";
 
+/// Time between confirming a recording region and the first frame, so the
+/// user can get windows and the mouse into place.
+const RECORD_COUNTDOWN_MS: u64 = 3000;
+
 #[derive(Default)]
 struct Inner {
     session: Option<Session>,
@@ -39,6 +44,8 @@ struct Inner {
     pending: Option<(usize, String)>,
     /// A recording in progress and the shot it will fill in.
     recording: Option<(capture::Recording, usize, String)>,
+    /// Set while the pre-recording countdown runs; storing true cancels it.
+    countdown: Option<Arc<AtomicBool>>,
     /// True when the session has changed since it was last written out, so
     /// "New bundle" knows whether there is anything to save first.
     dirty: bool,
@@ -159,11 +166,17 @@ fn trigger_capture(app: &AppHandle) {
     open_overlay(app, "shot");
 }
 
-/// Toggles: starts a recording via the overlay, or stops the one running.
+/// Toggles: starts a recording via the overlay, cancels a countdown, or
+/// stops the recording that is running.
 fn trigger_record(app: &AppHandle) {
     let state: State<Shared> = app.state();
-    let active = state.lock().unwrap().recording.is_some();
-    if active {
+    let (countdown, active) = {
+        let inner = state.lock().unwrap();
+        (inner.countdown.clone(), inner.recording.is_some())
+    };
+    if let Some(flag) = countdown {
+        flag.store(true, Ordering::SeqCst);
+    } else if active {
         finish_recording(app);
     } else {
         open_overlay(app, "record");
@@ -442,8 +455,9 @@ async fn commit_selection(
     overlay::open_note(&app, "shot", Some(anchor)).map_err(|e| e.to_string())
 }
 
-/// The overlay, in record mode, hands over the region to record. The shot
-/// is filed straight away with placeholder size and filled in on stop.
+/// The overlay, in record mode, hands over the region to record. A short
+/// countdown runs first (the badge shows it, the record hotkey cancels it),
+/// then the shot is filed with placeholder size and filled in on stop.
 #[tauri::command]
 async fn start_recording(
     app: AppHandle,
@@ -456,12 +470,11 @@ async fn start_recording(
 ) -> Result<(), String> {
     overlay::close_capture(&app);
 
-    let badge_at = {
+    let (frame, cancel) = {
         let mut inner = state.lock().unwrap();
-        if inner.recording.is_some() {
+        if inner.recording.is_some() || inner.countdown.is_some() {
             return Err("already recording".into());
         }
-
         let frame = inner
             .frames
             .iter()
@@ -469,7 +482,35 @@ async fn start_recording(
             .map(|(f, _)| f.clone())
             .ok_or_else(|| "that monitor is no longer frozen".to_string())?;
         inner.frames.clear();
+        let cancel = Arc::new(AtomicBool::new(false));
+        inner.countdown = Some(cancel.clone());
+        (frame, cancel)
+    };
+    capture::clear_scratch();
 
+    // Badge just above the region, or just below if that is off-screen.
+    let bx = (frame.x as f64 + x)
+        .min(frame.x as f64 + frame.width as f64 - 240.0)
+        .max(frame.x as f64);
+    let above = frame.y as f64 + y - 42.0;
+    let by = if above >= frame.y as f64 { above } else { frame.y as f64 + y + height + 8.0 };
+    if let Err(e) = overlay::open_rec_badge(&app, bx, by, RECORD_COUNTDOWN_MS) {
+        eprintln!("qacut: could not show recording badge: {e}");
+    }
+
+    let started = std::time::Instant::now();
+    while started.elapsed().as_millis() < RECORD_COUNTDOWN_MS as u128 {
+        if cancel.load(Ordering::SeqCst) {
+            state.lock().unwrap().countdown = None;
+            overlay::close_rec_badge(&app);
+            return Ok(());
+        }
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+
+    {
+        let mut inner = state.lock().unwrap();
+        inner.countdown = None;
         let session = ensure_session(&app, &mut inner)?;
         let (group, file, abs) = session.reserve_shot("gif");
         let frames_dir = abs.with_file_name(format!(
@@ -505,19 +546,10 @@ async fn start_recording(
         });
         inner.recording = Some((rec, group, id));
         inner.dirty = true;
-
-        // Badge just above the region, or just below if that is off-screen.
-        let bx = (frame.x as f64 + x).min(frame.x as f64 + frame.width as f64 - 240.0);
-        let above = frame.y as f64 + y - 42.0;
-        let by = if above >= frame.y as f64 { above } else { frame.y as f64 + y + height + 8.0 };
-        (bx.max(frame.x as f64), by)
-    };
-
-    capture::clear_scratch();
-    let _ = app.emit("session-changed", ());
-    if let Err(e) = overlay::open_rec_badge(&app, badge_at.0, badge_at.1) {
-        eprintln!("qacut: could not show recording badge: {e}");
     }
+
+    let _ = app.emit("session-changed", ());
+    let _ = app.emit("recording-started", ());
     Ok(())
 }
 

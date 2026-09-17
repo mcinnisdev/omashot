@@ -123,11 +123,12 @@ pub fn close_peek(app: &AppHandle) {
     }
 }
 
-/// The small "REC 0:12" badge shown while a recording runs. It ignores the
-/// mouse so it never gets in the way of what is being demonstrated.
-pub fn open_rec_badge(app: &AppHandle, x: f64, y: f64) -> Result<()> {
+/// The small badge shown while a recording counts down and then runs. It
+/// ignores the mouse so it never gets in the way of what is being shown.
+pub fn open_rec_badge(app: &AppHandle, x: f64, y: f64, countdown_ms: u64) -> Result<()> {
     close_rec_badge(app);
-    let win = WebviewWindowBuilder::new(app, REC, WebviewUrl::App("rec.html".into()))
+    let url = format!("rec.html?countdown={countdown_ms}");
+    let win = WebviewWindowBuilder::new(app, REC, WebviewUrl::App(url.into()))
         .title("QACut recording")
         .inner_size(232.0, 34.0)
         .position(x, y)

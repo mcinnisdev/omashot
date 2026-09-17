@@ -526,6 +526,12 @@ async fn stop_recording(app: AppHandle) {
     finish_recording(&app);
 }
 
+/// Lets a window that is about to close report why something failed.
+#[tauri::command]
+fn log_error(message: String) {
+    eprintln!("qacut: {message}");
+}
+
 #[tauri::command]
 async fn cancel_capture(app: AppHandle, state: State<'_, Shared>) -> Result<(), String> {
     overlay::close_capture(&app);
@@ -837,6 +843,7 @@ fn main() {
             commit_selection,
             start_recording,
             stop_recording,
+            log_error,
             cancel_capture,
             save_note,
             discard_pending,

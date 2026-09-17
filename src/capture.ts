@@ -82,13 +82,18 @@ async function commit(r: {
 }) {
   if (sent) return;
   sent = true;
-  await invoke(recording ? "start_recording" : "commit_selection", {
-    monitor,
-    x: r.x,
-    y: r.y,
-    width: r.width,
-    height: r.height,
-  });
+  try {
+    await invoke(recording ? "start_recording" : "commit_selection", {
+      monitor,
+      x: r.x,
+      y: r.y,
+      width: r.width,
+      height: r.height,
+    });
+  } catch (err) {
+    // The overlay is already closing; make sure the reason is not lost.
+    await invoke("log_error", { message: `selection failed: ${String(err)}` });
+  }
 }
 
 window.addEventListener("mousemove", (e) => {

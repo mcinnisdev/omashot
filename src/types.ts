@@ -11,7 +11,7 @@ export interface Frame {
 }
 
 export type ShotKind = "image" | "recording";
-export type Purpose = "fix" | "document";
+export type Purpose = "fix" | "document" | "custom";
 
 export interface KeyFrame {
   file: string;
@@ -61,4 +61,5 @@ export interface AppState {
   session: Session | null;
   last_export: Export | null;
   dirty: boolean;
+  custom_prompt: string;
 }

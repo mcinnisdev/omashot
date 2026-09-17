@@ -22,6 +22,7 @@
         <select class="btn" id="purpose" aria-label="What this bundle is for">
           <option value="fix">Fix issues</option>
           <option value="document">Write process doc</option>
+          <option value="custom">Custom prompt</option>
         </select>
         <button class="btn" id="copy-prompt">Copy agent prompt</button>
         <button class="btn" id="copy-path">Copy folder path</button>
@@ -29,6 +30,12 @@
         <button class="btn" id="open-folder">Open folder</button>
         <span class="spacer"></span>
         <button class="btn" id="new-bundle">New bundle</button>
+      </div>
+      <div class="custom" id="custom" hidden>
+        <textarea
+          id="custom-prompt"
+          placeholder="Your own instructions for the agent. {root} becomes the bundle folder path and {name} the bundle name. Saved to ~/QACut/custom-prompt.txt and reused for every bundle."
+        ></textarea>
       </div>
       <div class="exported" id="exported">
         <span id="exported-label">Bundle written to</span>

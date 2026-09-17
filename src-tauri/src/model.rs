@@ -43,6 +43,8 @@ pub enum Purpose {
     Fix,
     /// Screenshots and recordings of a workflow; the agent writes it up.
     Document,
+    /// The user's own prompt template, kept in `~/QACut/custom-prompt.txt`.
+    Custom,
 }
 
 impl Purpose {
@@ -50,6 +52,7 @@ impl Purpose {
         match s {
             "fix" => Some(Purpose::Fix),
             "document" => Some(Purpose::Document),
+            "custom" => Some(Purpose::Custom),
             _ => None,
         }
     }

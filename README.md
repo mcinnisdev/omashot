@@ -36,9 +36,13 @@ Agents cannot play a GIF, so `bundle.md` links those stills in order under the
 recording; a human reading the resulting document just sees the GIF.
 
 A bundle has a purpose, chosen in the bundle window: **Fix issues** (the
-default) or **Write process doc**. It only changes the prompt that "Copy agent
-prompt" produces, so one bundle of shots and recordings can be handed off
-either way.
+default), **Write process doc**, or **Custom prompt**. It only changes the
+prompt that "Copy agent prompt" produces, so one bundle of shots and
+recordings can be handed off any way you like. The custom template is
+written in the bundle window and kept in `~/QACut/custom-prompt.txt` for
+every bundle after that; `{root}` becomes the folder path and `{name}` the
+bundle name, and a template that never mentions `{root}` gets the path
+appended so the agent can always find the folder.
 
 A bundle starts on its own at the first capture. Finishing writes it out but
 does not close it: keep capturing, finish again, and the files are rewritten.

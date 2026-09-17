@@ -51,6 +51,7 @@ struct AppState {
     session: Option<Session>,
     last_export: Option<Export>,
     dirty: bool,
+    custom_prompt: String,
 }
 
 type Shared = Mutex<Inner>;
@@ -75,9 +76,33 @@ fn ensure_session<'a>(app: &AppHandle, inner: &'a mut Inner) -> Result<&'a mut S
     Ok(inner.session.as_mut().expect("just ensured"))
 }
 
+/// The user's own prompt template lives next to the bundles so it is easy
+/// to find and edit by hand.
+fn custom_prompt_path(app: &AppHandle) -> std::path::PathBuf {
+    base_dir(app).join("custom-prompt.txt")
+}
+
+fn load_custom_prompt(app: &AppHandle) -> String {
+    std::fs::read_to_string(custom_prompt_path(app)).unwrap_or_default()
+}
+
+/// Fills `{root}` and `{name}` in a custom template. A template that never
+/// mentions the folder gets it appended, so the agent can always find it.
+fn fill_custom_prompt(template: &str, root: &str, name: &str) -> String {
+    let mut out = template.trim().replace("{root}", root).replace("{name}", name);
+    if !template.contains("{root}") {
+        if !out.is_empty() {
+            out.push_str("\n\n");
+        }
+        out.push_str(&format!("The bundle is at {root}. Start with bundle.md."));
+    }
+    out
+}
+
 /// The instruction handed to an agent alongside the folder path.
-fn agent_prompt(root: &str, purpose: Purpose) -> String {
+fn agent_prompt(root: &str, name: &str, purpose: Purpose, custom: &str) -> String {
     match purpose {
+        Purpose::Custom => fill_custom_prompt(custom, root, name),
         Purpose::Fix => [
             &format!("Work through the QA bundle at {root}. "),
             "Start with bundle.md: each group is a page or area, its quoted master note ",
@@ -285,15 +310,19 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
                 .map_err(|e| e.to_string())?;
         }
         "prompt" => {
-            let purpose = state
+            let (purpose, name) = state
                 .lock()
                 .unwrap()
                 .session
                 .as_ref()
-                .map(|s| s.purpose)
-                .unwrap_or(Purpose::Fix);
+                .map(|s| (s.purpose, s.title()))
+                .unwrap_or((Purpose::Fix, String::new()));
+            let custom = load_custom_prompt(app);
+            if purpose == Purpose::Custom && custom.trim().is_empty() {
+                return Err("write a custom prompt first".into());
+            }
             app.clipboard()
-                .write_text(agent_prompt(&result.root, purpose))
+                .write_text(agent_prompt(&result.root, &name, purpose, &custom))
                 .map_err(|e| e.to_string())?;
         }
         "open" => {
@@ -566,13 +595,25 @@ fn get_session(state: State<Shared>) -> Option<Session> {
 }
 
 #[tauri::command]
-fn get_state(state: State<Shared>) -> AppState {
+fn get_state(app: AppHandle, state: State<Shared>) -> AppState {
     let inner = state.lock().unwrap();
     AppState {
         session: inner.session.clone(),
         last_export: inner.last_export.clone(),
         dirty: inner.dirty,
+        custom_prompt: load_custom_prompt(&app),
     }
+}
+
+/// Saves the user's prompt template. Not part of the session: it is meant to
+/// be written once and reused across bundles.
+#[tauri::command]
+fn set_custom_prompt(app: AppHandle, text: String) -> Result<(), String> {
+    let path = custom_prompt_path(&app);
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&path, text).map_err(|e| e.to_string())
 }
 
 /// Points new captures at an existing group.
@@ -756,6 +797,7 @@ fn main() {
             rename_bundle,
             new_bundle,
             set_purpose,
+            set_custom_prompt,
             set_shot_note,
             set_group_note,
             delete_shot,
@@ -845,4 +887,24 @@ fn main() {
                 }
             }
         });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn custom_prompt_fills_placeholders_and_always_names_the_folder() {
+        let filled = fill_custom_prompt("Review {name} at {root}.", "C:/b", "Sprint 4");
+        assert_eq!(filled, "Review Sprint 4 at C:/b.");
+
+        let appended = fill_custom_prompt("Fix everything you see.", "C:/b", "x");
+        assert!(appended.starts_with("Fix everything you see."));
+        assert!(appended.ends_with("The bundle is at C:/b. Start with bundle.md."));
+
+        assert_eq!(
+            fill_custom_prompt("", "C:/b", "x"),
+            "The bundle is at C:/b. Start with bundle.md."
+        );
+    }
 }

@@ -7,6 +7,8 @@ const body = document.getElementById("body") as HTMLDivElement;
 const count = document.getElementById("count") as HTMLSpanElement;
 const bundleName = document.getElementById("bundle-name") as HTMLInputElement;
 const purpose = document.getElementById("purpose") as HTMLSelectElement;
+const custom = document.getElementById("custom") as HTMLDivElement;
+const customPrompt = document.getElementById("custom-prompt") as HTMLTextAreaElement;
 const exported = document.getElementById("exported") as HTMLDivElement;
 const exportedLabel = document.getElementById("exported-label") as HTMLElement;
 const exportedPath = document.getElementById("exported-path") as HTMLElement;
@@ -42,6 +44,8 @@ async function render() {
   bundleName.disabled = !session;
   purpose.value = session?.purpose ?? "fix";
   purpose.disabled = !session;
+  custom.hidden = purpose.value !== "custom";
+  customPrompt.value = state.custom_prompt;
 
   const shots = session?.groups.reduce((n, g) => n + g.shots.length, 0) ?? 0;
   const used = session?.groups.filter((g) => g.shots.length > 0).length ?? 0;
@@ -243,8 +247,14 @@ bundleName.addEventListener("keydown", (e) => {
   if (e.key === "Enter") bundleName.blur();
 });
 
-purpose.addEventListener("change", () => {
-  void invoke("set_purpose", { purpose: purpose.value });
+purpose.addEventListener("change", async () => {
+  await invoke("set_purpose", { purpose: purpose.value });
+  custom.hidden = purpose.value !== "custom";
+  if (!custom.hidden) customPrompt.focus();
+});
+
+customPrompt.addEventListener("change", () => {
+  void invoke("set_custom_prompt", { text: customPrompt.value });
 });
 
 window.addEventListener("keydown", (e) => {

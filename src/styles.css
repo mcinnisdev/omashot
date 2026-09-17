@@ -386,6 +386,33 @@ select.btn {
   outline-offset: 2px;
 }
 
+.custom {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--raised);
+}
+.custom textarea {
+  width: 100%;
+  min-height: 84px;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 8px 10px;
+  resize: vertical;
+  user-select: text;
+}
+.custom textarea::placeholder {
+  color: var(--faint);
+}
+.custom textarea:focus {
+  outline: none;
+  border-color: var(--signal);
+}
+
 .exported {
   display: none;
   align-items: center;

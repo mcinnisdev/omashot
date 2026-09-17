@@ -9,15 +9,12 @@
     <div class="note-wrap">
       <div class="note-head">
         <span id="head-label">Note</span>
-        <span class="where" id="head-where"></span>
+        <input class="inline" id="group-title" aria-label="Group name" />
+        <span class="sep" id="sep">/</span>
+        <input class="inline" id="shot-title" aria-label="Shot name" />
       </div>
       <div class="note-body">
-        <input
-          class="field"
-          id="title"
-          placeholder="Group name, e.g. Settings page"
-          hidden
-        />
+        <p class="hint" id="group-hint" hidden></p>
         <textarea class="field" id="note" placeholder="What's wrong here?"></textarea>
       </div>
       <div class="note-foot">

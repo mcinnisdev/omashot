@@ -124,17 +124,30 @@ async function render() {
       meta.textContent = `${g.index}.${i + 1}  ${s.width}x${s.height}`;
       left.append(img, meta);
 
+      const middle = document.createElement("div");
+      middle.className = "shot-fields";
+
+      const title = document.createElement("input");
+      title.className = "shot-title";
+      title.value = s.title;
+      title.placeholder = `Shot ${i + 1}`;
+      title.setAttribute("aria-label", `Name for screenshot ${g.index}.${i + 1}`);
+
       const text = document.createElement("textarea");
       text.value = s.note;
       text.placeholder = "No note";
       text.setAttribute("aria-label", `Note for screenshot ${g.index}.${i + 1}`);
-      text.addEventListener("change", () =>
+
+      const saveShot = () =>
         void invoke("set_shot_note", {
           group: g.index,
           shot: s.id,
           note: text.value,
-        }),
-      );
+          title: title.value,
+        });
+      title.addEventListener("change", saveShot);
+      text.addEventListener("change", saveShot);
+      middle.append(title, text);
 
       const del = document.createElement("button");
       del.className = "remove";
@@ -146,7 +159,7 @@ async function render() {
         await render();
       });
 
-      row.append(left, text, del);
+      row.append(left, middle, del);
       wrap.append(row);
     });
 

@@ -14,6 +14,7 @@ export interface Shot {
   id: string;
   file: string;
   abs_path: string;
+  title: string;
   note: string;
   width: number;
   height: number;

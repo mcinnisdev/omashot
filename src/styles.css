@@ -181,10 +181,39 @@ body.note {
   background: var(--sunken);
 }
 
-.note-head .where {
+.note-head .inline {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--line);
+  padding: 0 2px;
+  user-select: text;
+}
+.note-head .inline::placeholder {
   color: var(--signal);
   font-family: var(--mono);
   font-size: 11px;
+}
+.note-head .inline:hover {
+  border-bottom-color: var(--muted);
+}
+.note-head .inline:focus {
+  outline: none;
+  border-bottom-style: solid;
+  border-bottom-color: var(--signal);
+}
+.note-head .sep {
+  color: var(--faint);
+}
+
+.note-body .hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
 }
 
 .note-body {
@@ -480,6 +509,35 @@ textarea.master:focus {
   font-size: 10.5px;
   color: var(--faint);
   margin-top: 5px;
+}
+
+.shot-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.shot-title {
+  width: 100%;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 2px 0;
+  user-select: text;
+}
+.shot-title::placeholder {
+  color: var(--faint);
+  font-weight: 450;
+}
+.shot-title:hover {
+  border-bottom-color: var(--line);
+}
+.shot-title:focus {
+  outline: none;
+  border-bottom-color: var(--signal);
 }
 
 .shot textarea {

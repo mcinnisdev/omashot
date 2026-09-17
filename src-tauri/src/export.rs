@@ -84,10 +84,13 @@ pub fn render_markdown(session: &Session) -> String {
         session.started_at.get(..10).unwrap_or(&session.started_at)
     );
     let _ = writeln!(md);
-    let _ = writeln!(
-        md,
-        "How to read this: each group is one page or area of the product. The quoted          text under a group heading is the reviewer's note for the whole group. Each          numbered item is a screenshot of one region, followed by the reviewer's note          on what is wrong there. Open the image before acting on the note."
-    );
+    md.push_str(concat!(
+        "How to read this: each group is one page or area of the product. ",
+        "The quoted text under a group heading is the reviewer's note for the whole group. ",
+        "Each numbered item is a screenshot of one region, followed by the reviewer's note ",
+        "on what is wrong there. Open the image before acting on the note.
+"
+    ));
 
     for g in groups {
         let _ = writeln!(md);
@@ -109,7 +112,11 @@ pub fn render_markdown(session: &Session) -> String {
             let rel = format!("{}/{}", g.dir, shot.file);
             let label = format!("{}.{}", g.index, i + 1);
             let _ = writeln!(md);
-            let _ = writeln!(md, "### {label}");
+            if shot.title.trim().is_empty() {
+                let _ = writeln!(md, "### {label}");
+            } else {
+                let _ = writeln!(md, "### {label} {}", shot.title.trim());
+            }
             let _ = writeln!(md);
             let _ = writeln!(md, "![{label}]({rel})");
             let _ = writeln!(md);
@@ -145,11 +152,12 @@ mod tests {
         ));
         let mut s = Session::start(&base).unwrap();
         s.name = "Settings review".into();
-        s.begin_group("Settings page", "Everything on this page").unwrap();
+        s.close_group("Settings page", "Everything on this page").unwrap();
         s.current().shots.push(Shot {
             id: "a".into(),
             file: "01.png".into(),
             abs_path: String::new(),
+            title: "Save button".into(),
             note: "Save button is clipped".into(),
             width: 640,
             height: 200,
@@ -159,8 +167,10 @@ mod tests {
         let md = render_markdown(&s);
         assert!(md.starts_with("# QA bundle: Settings review
 "));
-        assert!(md.contains("How to read this"));
+        assert!(md.contains("How to read this: each group is one page or area of the product. The quoted"));
+        assert!(!md.contains("  "), "no double spaces from string continuation");
         assert!(md.contains("## 1. Settings page"));
+        assert!(md.contains("### 1.1 Save button"));
         assert!(md.contains("> Everything on this page"));
         assert!(md.contains("![1.1](01/01.png)"));
         assert!(md.contains("Save button is clipped"));

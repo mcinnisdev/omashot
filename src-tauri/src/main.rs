@@ -74,12 +74,13 @@ fn ensure_session<'a>(app: &AppHandle, inner: &'a mut Inner) -> Result<&'a mut S
 
 /// The instruction handed to an agent alongside the folder path.
 fn agent_prompt(root: &str) -> String {
-    format!(
-        "Work through the QA bundle at {root}. Start with bundle.md: each group is a page \
-         or area, its quoted master note applies to every screenshot under it, and each \
-         screenshot's note says what is wrong. Open each screenshot it references before \
-         changing anything."
-    )
+    [
+        &format!("Work through the QA bundle at {root}. "),
+        "Start with bundle.md: each group is a page or area, its quoted master note ",
+        "applies to every screenshot under it, and each screenshot's note says what is ",
+        "wrong. Open each screenshot it references before changing anything.",
+    ]
+    .concat()
 }
 
 // ---------------------------------------------------------------- triggers
@@ -282,6 +283,7 @@ async fn commit_selection(
             id: id.clone(),
             file,
             abs_path: abs.to_string_lossy().to_string(),
+            title: String::new(),
             note: String::new(),
             width: pw,
             height: ph,
@@ -316,9 +318,16 @@ async fn cancel_capture(app: AppHandle, state: State<'_, Shared>) -> Result<(), 
     Ok(())
 }
 
-/// Commits the note for the shot that is waiting. An empty note is fine.
+/// Commits the note for the shot that is waiting, plus the shot and group
+/// names typed into the note box header. Empty values are fine.
 #[tauri::command]
-async fn save_note(app: AppHandle, state: State<'_, Shared>, note: String) -> Result<(), String> {
+async fn save_note(
+    app: AppHandle,
+    state: State<'_, Shared>,
+    note: String,
+    title: String,
+    group_title: String,
+) -> Result<(), String> {
     {
         let mut inner = state.lock().unwrap();
         let Some((group, id)) = inner.pending.take() else {
@@ -327,6 +336,10 @@ async fn save_note(app: AppHandle, state: State<'_, Shared>, note: String) -> Re
         if let Some(session) = inner.session.as_mut() {
             if let Some(shot) = session.shot_mut(group, &id) {
                 shot.note = note.trim().to_string();
+                shot.title = title.trim().to_string();
+            }
+            if let Some(g) = session.group_mut(group) {
+                g.title = group_title.trim().to_string();
             }
         }
         inner.dirty = true;
@@ -353,8 +366,10 @@ async fn discard_pending(app: AppHandle, state: State<'_, Shared>) -> Result<(),
     Ok(())
 }
 
+/// Wraps up the current group with its name and master note and, if it has
+/// shots, opens the next one.
 #[tauri::command]
-async fn save_group(
+async fn close_group(
     app: AppHandle,
     state: State<'_, Shared>,
     title: String,
@@ -364,7 +379,7 @@ async fn save_group(
         let mut inner = state.lock().unwrap();
         let session = ensure_session(&app, &mut inner)?;
         let index = session
-            .begin_group(&title, &master_note)
+            .close_group(&title, &master_note)
             .map_err(|e| e.to_string())?;
         inner.dirty = true;
         index
@@ -426,12 +441,20 @@ async fn new_bundle(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn set_shot_note(app: AppHandle, state: State<Shared>, group: usize, shot: String, note: String) {
+fn set_shot_note(
+    app: AppHandle,
+    state: State<Shared>,
+    group: usize,
+    shot: String,
+    note: String,
+    title: String,
+) {
     {
         let mut inner = state.lock().unwrap();
         if let Some(session) = inner.session.as_mut() {
             if let Some(s) = session.shot_mut(group, &shot) {
                 s.note = note.trim().to_string();
+                s.title = title.trim().to_string();
             }
         }
         inner.dirty = true;
@@ -538,7 +561,7 @@ fn main() {
             cancel_capture,
             save_note,
             discard_pending,
-            save_group,
+            close_group,
             get_session,
             get_state,
             set_current_group,
@@ -568,7 +591,7 @@ fn main() {
             }
 
             let capture_i = MenuItem::with_id(app, "capture", "Capture region", true, Some(HK_CAPTURE))?;
-            let group_i = MenuItem::with_id(app, "group", "New group", true, Some(HK_GROUP))?;
+            let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, Some(HK_GROUP))?;
             let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, Some(HK_PEEK))?;
             let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, Some(HK_FINISH))?;
             let new_i = MenuItem::with_id(app, "new", "New bundle", true, None::<&str>)?;

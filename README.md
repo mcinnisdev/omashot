@@ -11,21 +11,21 @@ Tauri 2 (Rust backend, vanilla TS frontend). Windows, macOS and Linux.
 | Key | Does |
 | --- | --- |
 | `Ctrl/Cmd + Shift + 2` | Freeze the screen, drag a region, then type a note |
-| `Ctrl/Cmd + Shift + G` | Start a new group and give it a name and master note |
+| `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |
 | `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
 
 Inside the note box: `Enter` saves, `Shift + Enter` adds a line, `Esc` keeps
-the screenshot with no note. Inside the capture overlay: `Esc` or right-click
-cancels.
+the screenshot with no note. The header reads "Group 1 / Shot 1"; click either
+and type to name it. Inside the capture overlay: `Esc` or right-click cancels.
 
 The two workflows from the brief map to this:
 
 - **One detail.** Capture hotkey, drag, type, Enter, finish hotkey. Five
   actions, one of them a mouse drag.
 - **Full pass.** Capture and note repeatedly on the settings page, group
-  hotkey to open the next group with its master note, carry on, finish hotkey
-  at the end.
+  hotkey to wrap that group up with a master note, carry on in the next one,
+  finish hotkey at the end.
 
 A bundle starts on its own at the first capture. Finishing writes it out but
 does not close it: keep capturing, finish again, and the files are rewritten.
@@ -54,7 +54,8 @@ the bundle a name in the bundle window and a slug is appended, so
 
 `bundle.md` is the agent-facing file. It opens with a short note on how to
 read it, then group headings carry the master note as a blockquote, and each
-shot is a heading with its image, its note, and its pixel size underneath.
+shot is a numbered heading (with its name, if you gave it one) followed by
+its image, its note, and its pixel size.
 Image links are relative to the file, so the folder can be moved or handed to
 a CLI as-is.
 

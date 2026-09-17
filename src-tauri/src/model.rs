@@ -28,6 +28,8 @@ pub struct Shot {
     pub file: String,
     /// Absolute path, handed to the webview via convertFileSrc for thumbnails.
     pub abs_path: String,
+    /// Optional short name; the number is the handle when this is empty.
+    pub title: String,
     pub note: String,
     pub width: u32,
     pub height: u32,
@@ -177,24 +179,22 @@ impl Session {
         self.groups.iter().map(|g| g.shots.len()).sum()
     }
 
-    /// Starts a new group. If the current group was never used, this just
-    /// titles it in place instead of leaving an empty group behind.
-    pub fn begin_group(&mut self, title: &str, master_note: &str) -> std::io::Result<usize> {
-        if self.current().is_empty() {
-            let g = self.current();
-            g.title = title.trim().to_string();
-            g.master_note = master_note.trim().to_string();
+    /// Wraps up the current group: stores its title and master note, then,
+    /// if it holds any shots, opens a fresh untitled group for what comes
+    /// next. A group with no shots is just titled in place. Returns the
+    /// index of the group new captures now go into.
+    pub fn close_group(&mut self, title: &str, master_note: &str) -> std::io::Result<usize> {
+        let g = self.current();
+        g.title = title.trim().to_string();
+        g.master_note = master_note.trim().to_string();
+        if g.shots.is_empty() {
             return Ok(g.index);
         }
 
         let next = Group::new(self.groups.len() + 1);
         std::fs::create_dir_all(self.root.join(&next.dir))?;
         let index = next.index;
-        self.groups.push(Group {
-            title: title.trim().to_string(),
-            master_note: master_note.trim().to_string(),
-            ..next
-        });
+        self.groups.push(next);
         self.current = index;
         Ok(index)
     }
@@ -248,6 +248,7 @@ mod tests {
             id: file.to_string(),
             file: file.to_string(),
             abs_path: abs.to_string_lossy().to_string(),
+            title: String::new(),
             note: String::new(),
             width: 1,
             height: 1,
@@ -310,8 +311,10 @@ mod tests {
         let base = temp_base("current");
         let mut s = Session::start(&base).unwrap();
         s.current().shots.push(shot("01.png", Path::new("")));
-        let second = s.begin_group("Billing", "").unwrap();
+        let second = s.close_group("Billing", "Whole page").unwrap();
         assert_eq!(second, 2);
+        assert_eq!(s.groups[0].title, "Billing");
+        assert_eq!(s.groups[0].master_note, "Whole page");
         assert_eq!(s.current().index, 2);
         assert!(s.set_current(1));
         assert_eq!(s.reserve_shot().0, 1);

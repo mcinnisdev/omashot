@@ -183,10 +183,10 @@ fn open_overlay(app: &AppHandle, mode: &str) {
         }
         inner.capturing = true;
     }
-    // The note box goes, since its pending shot must be resolved first. The
-    // bundle window stays: it sits under the overlay, can itself be captured,
-    // and updates live once the shot lands.
+    // Get out of the way: the user's screenshots should not have QACut in
+    // them. Anything open comes back when they ask for it.
     overlay::close_note(app);
+    overlay::close_peek(app);
 
     let frames = match capture::freeze_all(&capture::scratch_dir()) {
         Ok(f) => f,
@@ -255,6 +255,7 @@ fn finish_recording(app: &AppHandle) {
 }
 
 fn trigger_group(app: &AppHandle) {
+    overlay::close_peek(app);
     if let Err(e) = overlay::open_note(app, "group", None) {
         eprintln!("qacut: could not open group prompt: {e}");
     }

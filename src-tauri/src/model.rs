@@ -142,6 +142,8 @@ pub struct Session {
     /// user can point it back at an earlier group.
     pub current: usize,
     pub purpose: Purpose,
+    /// Whether the brand kit in `~/QACut/brand/` is copied into this bundle.
+    pub include_brand: bool,
     pub groups: Vec<Group>,
 }
 
@@ -163,6 +165,7 @@ impl Session {
             root,
             current: 1,
             purpose: Purpose::Fix,
+            include_brand: true,
             groups: vec![first],
         })
     }

@@ -9,6 +9,12 @@ const bundleName = document.getElementById("bundle-name") as HTMLInputElement;
 const purpose = document.getElementById("purpose") as HTMLSelectElement;
 const custom = document.getElementById("custom") as HTMLDivElement;
 const customPrompt = document.getElementById("custom-prompt") as HTMLTextAreaElement;
+const brandToggle = document.getElementById("brand-toggle") as HTMLButtonElement;
+const brand = document.getElementById("brand") as HTMLDivElement;
+const brandInclude = document.getElementById("brand-include") as HTMLInputElement;
+const brandFiles = document.getElementById("brand-files") as HTMLSpanElement;
+const brandOpen = document.getElementById("brand-open") as HTMLButtonElement;
+const brandNotes = document.getElementById("brand-notes") as HTMLTextAreaElement;
 const exported = document.getElementById("exported") as HTMLDivElement;
 const exportedLabel = document.getElementById("exported-label") as HTMLElement;
 const exportedPath = document.getElementById("exported-path") as HTMLElement;
@@ -46,6 +52,15 @@ async function render() {
   purpose.disabled = !session;
   custom.hidden = purpose.value !== "custom";
   customPrompt.value = state.custom_prompt;
+
+  brandInclude.checked = session?.include_brand ?? true;
+  brandInclude.disabled = !session;
+  brandNotes.value = state.brand.notes;
+  const n = state.brand.files.length;
+  const hasKit = n > 0 || state.brand.notes.trim() !== "";
+  brandFiles.textContent =
+    n === 0 ? "no files yet" : `${n} file${n === 1 ? "" : "s"}`;
+  brandToggle.classList.toggle("on", hasKit && brandInclude.checked);
 
   const shots = session?.groups.reduce((n, g) => n + g.shots.length, 0) ?? 0;
   const used = session?.groups.filter((g) => g.shots.length > 0).length ?? 0;
@@ -255,6 +270,19 @@ purpose.addEventListener("change", async () => {
 
 customPrompt.addEventListener("change", () => {
   void invoke("set_custom_prompt", { text: customPrompt.value });
+});
+
+brandToggle.addEventListener("click", () => {
+  brand.hidden = !brand.hidden;
+  if (!brand.hidden) brandNotes.focus();
+});
+brandInclude.addEventListener("change", () => {
+  void invoke("set_include_brand", { include: brandInclude.checked });
+});
+brandOpen.addEventListener("click", () => void invoke("open_brand_folder"));
+brandNotes.addEventListener("change", async () => {
+  await invoke("set_brand_notes", { text: brandNotes.value });
+  await render();
 });
 
 window.addEventListener("keydown", (e) => {

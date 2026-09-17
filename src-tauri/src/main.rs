@@ -6,7 +6,7 @@ mod model;
 mod overlay;
 
 use capture::Frame;
-use export::Export;
+use export::{BrandKit, Export};
 use image::RgbaImage;
 use model::{Purpose, Session, Shot, ShotKind};
 use serde::Serialize;
@@ -52,6 +52,7 @@ struct AppState {
     last_export: Option<Export>,
     dirty: bool,
     custom_prompt: String,
+    brand: BrandKit,
 }
 
 type Shared = Mutex<Inner>;
@@ -86,6 +87,16 @@ fn load_custom_prompt(app: &AppHandle) -> String {
     std::fs::read_to_string(custom_prompt_path(app)).unwrap_or_default()
 }
 
+/// Logo, colours, fonts, style guides, voice notes: whatever the user drops
+/// here is copied into each bundle so the agent's output matches the brand.
+fn brand_dir(app: &AppHandle) -> std::path::PathBuf {
+    base_dir(app).join("brand")
+}
+
+/// The sentence added to the built-in prompts when a brand kit rides along.
+const BRAND_LINE: &str = " The brand/ folder holds the business's brand kit and voice notes; match \
+                          them in anything you produce.";
+
 /// Fills `{root}` and `{name}` in a custom template. A template that never
 /// mentions the folder gets it appended, so the agent can always find it.
 fn fill_custom_prompt(template: &str, root: &str, name: &str) -> String {
@@ -100,9 +111,9 @@ fn fill_custom_prompt(template: &str, root: &str, name: &str) -> String {
 }
 
 /// The instruction handed to an agent alongside the folder path.
-fn agent_prompt(root: &str, name: &str, purpose: Purpose, custom: &str) -> String {
-    match purpose {
-        Purpose::Custom => fill_custom_prompt(custom, root, name),
+fn agent_prompt(root: &str, name: &str, purpose: Purpose, custom: &str, brand: bool) -> String {
+    let base = match purpose {
+        Purpose::Custom => return fill_custom_prompt(custom, root, name),
         Purpose::Fix => [
             &format!("Work through the QA bundle at {root}. "),
             "Start with bundle.md: each group is a page or area, its quoted master note ",
@@ -122,6 +133,11 @@ fn agent_prompt(root: &str, name: &str, purpose: Purpose, custom: &str) -> Strin
             "the folder.",
         ]
         .concat(),
+    };
+    if brand {
+        base + BRAND_LINE
+    } else {
+        base
     }
 }
 
@@ -277,7 +293,7 @@ fn do_new_bundle(app: &AppHandle) -> Result<(), String> {
             if session.shot_count() == 0 {
                 let _ = std::fs::remove_dir_all(&session.root);
             } else if dirty {
-                export::write_bundle(session).map_err(|e| e.to_string())?;
+                export::write_bundle(session, &brand_dir(app)).map_err(|e| e.to_string())?;
             }
         }
         inner.session = None;
@@ -297,7 +313,7 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
             .session
             .as_mut()
             .ok_or_else(|| "nothing captured yet".to_string())?;
-        let ex = export::write_bundle(session).map_err(|e| e.to_string())?;
+        let ex = export::write_bundle(session, &brand_dir(app)).map_err(|e| e.to_string())?;
         inner.dirty = false;
         inner.last_export = Some(ex.clone());
         ex
@@ -310,19 +326,20 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
                 .map_err(|e| e.to_string())?;
         }
         "prompt" => {
-            let (purpose, name) = state
+            let (purpose, name, include_brand) = state
                 .lock()
                 .unwrap()
                 .session
                 .as_ref()
-                .map(|s| (s.purpose, s.title()))
-                .unwrap_or((Purpose::Fix, String::new()));
+                .map(|s| (s.purpose, s.title(), s.include_brand))
+                .unwrap_or((Purpose::Fix, String::new(), false));
             let custom = load_custom_prompt(app);
             if purpose == Purpose::Custom && custom.trim().is_empty() {
                 return Err("write a custom prompt first".into());
             }
+            let brand = include_brand && !BrandKit::load(&brand_dir(app)).is_empty();
             app.clipboard()
-                .write_text(agent_prompt(&result.root, &name, purpose, &custom))
+                .write_text(agent_prompt(&result.root, &name, purpose, &custom, brand))
                 .map_err(|e| e.to_string())?;
         }
         "open" => {
@@ -602,7 +619,38 @@ fn get_state(app: AppHandle, state: State<Shared>) -> AppState {
         last_export: inner.last_export.clone(),
         dirty: inner.dirty,
         custom_prompt: load_custom_prompt(&app),
+        brand: BrandKit::load(&brand_dir(&app)),
     }
+}
+
+/// Saves the voice notes that get inlined into bundle.md.
+#[tauri::command]
+fn set_brand_notes(app: AppHandle, text: String) -> Result<(), String> {
+    let dir = brand_dir(&app);
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    std::fs::write(dir.join(export::BRAND_NOTES), text).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn set_include_brand(app: AppHandle, state: State<Shared>, include: bool) -> Result<(), String> {
+    {
+        let mut inner = state.lock().unwrap();
+        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        session.include_brand = include;
+        inner.dirty = true;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
+/// Creates the brand folder if needed and opens it, so files can be dropped in.
+#[tauri::command]
+fn open_brand_folder(app: AppHandle) -> Result<(), String> {
+    let dir = brand_dir(&app);
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    app.opener()
+        .open_path(dir.to_string_lossy().to_string(), None::<&str>)
+        .map_err(|e| e.to_string())
 }
 
 /// Saves the user's prompt template. Not part of the session: it is meant to
@@ -798,6 +846,9 @@ fn main() {
             new_bundle,
             set_purpose,
             set_custom_prompt,
+            set_brand_notes,
+            set_include_brand,
+            open_brand_folder,
             set_shot_note,
             set_group_note,
             delete_shot,

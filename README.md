@@ -44,6 +44,21 @@ every bundle after that; `{root}` becomes the folder path and `{name}` the
 bundle name, and a template that never mentions `{root}` gets the path
 appended so the agent can always find the folder.
 
+## Brand kit
+
+Anything the agent produces from a bundle, a process document especially,
+should sound and look like the business. Put whatever describes it in
+`~/QACut/brand/`: logo, colour swatches, fonts, a style guide, a document
+whose voice to imitate. "Brand kit" in the bundle window opens that folder
+and takes voice notes (tone, audience, terminology, things never to say),
+which are saved as `brand/brand.md`.
+
+On finish, the folder is copied into the bundle as `brand/`, so the bundle
+stays self-contained, and `bundle.md` gets a "Brand kit" section near the
+top that inlines the notes and lists the files. The built-in prompts add a
+line telling the agent to match it. Untick "Include in this bundle" for a
+bundle where it does not apply; the copy is removed on the next finish.
+
 A bundle starts on its own at the first capture. Finishing writes it out but
 does not close it: keep capturing, finish again, and the files are rewritten.
 Only **New bundle** (tray menu or bundle window) ends one and starts the next,
@@ -69,6 +84,7 @@ the bundle a name in the bundle window and a slug is appended, so
     01.png
     02.gif             a recording
     02-frames/         its key frames, 01.png 02.png ...
+  brand/               copy of ~/QACut/brand, if included
 ```
 
 `bundle.md` is the agent-facing file. It opens with a short note on how to

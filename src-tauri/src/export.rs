@@ -2,6 +2,59 @@ use crate::model::{slug, Session, ShotKind};
 use anyhow::Result;
 use serde::Serialize;
 use std::fmt::Write as _;
+use std::path::Path;
+
+/// Notes file inside the brand folder that is inlined into bundle.md.
+pub const BRAND_NOTES: &str = "brand.md";
+
+/// What the user keeps in `~/QACut/brand/`: voice notes plus any files.
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct BrandKit {
+    pub notes: String,
+    /// Paths relative to the brand folder, sorted, `brand.md` excluded.
+    pub files: Vec<String>,
+}
+
+impl BrandKit {
+    pub fn load(dir: &Path) -> BrandKit {
+        let notes = std::fs::read_to_string(dir.join(BRAND_NOTES)).unwrap_or_default();
+        let mut files = Vec::new();
+        list_files(dir, dir, &mut files);
+        files.retain(|f| f != BRAND_NOTES);
+        files.sort();
+        BrandKit { notes, files }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.notes.trim().is_empty() && self.files.is_empty()
+    }
+}
+
+fn list_files(base: &Path, dir: &Path, out: &mut Vec<String>) {
+    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            list_files(base, &path, out);
+        } else if let Ok(rel) = path.strip_prefix(base) {
+            out.push(rel.to_string_lossy().replace('\\', "/"));
+        }
+    }
+}
+
+fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(to)?;
+    for entry in std::fs::read_dir(from)?.flatten() {
+        let src = entry.path();
+        let dst = to.join(entry.file_name());
+        if src.is_dir() {
+            copy_dir(&src, &dst)?;
+        } else {
+            std::fs::copy(&src, &dst)?;
+        }
+    }
+    Ok(())
+}
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Export {
@@ -11,10 +64,23 @@ pub struct Export {
     pub shots: usize,
 }
 
-/// Renames group directories to include their titles, then writes
-/// `bundle.md` and `manifest.json`. Safe to call more than once: a group
-/// whose directory already carries its slug is left alone.
-pub fn write_bundle(session: &mut Session) -> Result<Export> {
+/// Renames group directories to include their titles, copies the brand kit
+/// in (or out) as the session asks, then writes `bundle.md` and
+/// `manifest.json`. Safe to call more than once: a group whose directory
+/// already carries its slug is left alone.
+pub fn write_bundle(session: &mut Session, brand_src: &Path) -> Result<Export> {
+    // 0. Brand kit: a fresh copy every time so removed files do not linger.
+    let brand_dst = session.root.join("brand");
+    let kit = BrandKit::load(brand_src);
+    let brand = if session.include_brand && !kit.is_empty() {
+        let _ = std::fs::remove_dir_all(&brand_dst);
+        copy_dir(brand_src, &brand_dst)?;
+        Some(kit)
+    } else {
+        let _ = std::fs::remove_dir_all(&brand_dst);
+        None
+    };
+
     // 1. Give each group directory a readable name.
     for i in 0..session.groups.len() {
         let (index, title, current) = {
@@ -51,7 +117,7 @@ pub fn write_bundle(session: &mut Session) -> Result<Export> {
         }
     }
 
-    let markdown = render_markdown(session);
+    let markdown = render_markdown(session, brand.as_ref());
     std::fs::write(session.root.join("bundle.md"), &markdown)?;
     std::fs::write(
         session.root.join("manifest.json"),
@@ -68,7 +134,7 @@ pub fn write_bundle(session: &mut Session) -> Result<Export> {
 
 /// The agent-facing view of the bundle. Image links are relative to the
 /// session root so the folder can be moved or handed to a CLI as-is.
-pub fn render_markdown(session: &Session) -> String {
+pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
     let mut md = String::new();
 
     let _ = writeln!(md, "# QA bundle: {}", session.title());
@@ -92,6 +158,29 @@ pub fn render_markdown(session: &Session) -> String {
         "A recording is an animated GIF; the key frames listed under it are stills at ",
         "regular intervals, so read those in order if you cannot play it.\n"
     ));
+
+    if let Some(kit) = brand {
+        let _ = writeln!(md);
+        let _ = writeln!(md, "## Brand kit");
+        let _ = writeln!(md);
+        let _ = writeln!(
+            md,
+            "The `brand/` folder describes the business this bundle is for. Match its \
+             voice and visual identity in anything you produce."
+        );
+        if !kit.notes.trim().is_empty() {
+            let _ = writeln!(md);
+            let _ = writeln!(md, "{}", kit.notes.trim());
+        }
+        if !kit.files.is_empty() {
+            let _ = writeln!(md);
+            let _ = writeln!(md, "Files:");
+            let _ = writeln!(md);
+            for f in &kit.files {
+                let _ = writeln!(md, "- `brand/{f}`");
+            }
+        }
+    }
 
     for g in groups {
         let _ = writeln!(md);
@@ -206,9 +295,9 @@ mod tests {
             ],
         });
 
-        let md = render_markdown(&s);
-        assert!(md.starts_with("# QA bundle: Settings review
-"));
+        let md = render_markdown(&s, None);
+        assert!(md.starts_with("# QA bundle: Settings review\n"));
+        assert!(!md.contains("## Brand kit"));
         assert!(md.contains("How to read this: each group is one page or area of the product. The quoted"));
         assert!(!md.contains("  "), "no double spaces from string continuation");
         assert!(md.contains("## 1. Settings page"));
@@ -219,6 +308,48 @@ mod tests {
         assert!(md.contains("_640 × 200 px, captured 14:56:50_"));
         assert!(md.contains("![1.2](01/02.gif)"));
         assert!(md.contains("_Recording, 12 s, 720 × 400 px, captured 14:57:10._ Key frames: [0 s](01/02-frames/01.png), [2 s](01/02-frames/02.png)"));
+        std::fs::remove_dir_all(base).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod brand_tests {
+    use super::*;
+
+    #[test]
+    fn brand_kit_is_copied_in_and_described() {
+        let base = std::env::temp_dir().join(format!(
+            "qacut-test-brand-{}",
+            chrono::Local::now().timestamp_micros()
+        ));
+        let brand = base.join("brand");
+        std::fs::create_dir_all(brand.join("fonts")).unwrap();
+        std::fs::write(brand.join(BRAND_NOTES), "Plain, warm, never salesy.").unwrap();
+        std::fs::write(brand.join("logo.png"), b"png").unwrap();
+        std::fs::write(brand.join("fonts/Inter.ttf"), b"ttf").unwrap();
+
+        let mut s = Session::start(&base.join("bundles")).unwrap();
+        let ex = write_bundle(&mut s, &brand).unwrap();
+        assert!(s.root.join("brand/logo.png").exists());
+        assert!(s.root.join("brand/fonts/Inter.ttf").exists());
+        assert!(ex.markdown.contains("## Brand kit"));
+        assert!(ex.markdown.contains("Plain, warm, never salesy."));
+        assert!(ex.markdown.contains("- `brand/fonts/Inter.ttf`"));
+        assert!(ex.markdown.contains("- `brand/logo.png`"));
+        assert!(!ex.markdown.contains("brand/brand.md"));
+
+        // Opting out removes the copy again.
+        s.include_brand = false;
+        let ex = write_bundle(&mut s, &brand).unwrap();
+        assert!(!s.root.join("brand").exists());
+        assert!(!ex.markdown.contains("## Brand kit"));
+
+        // An empty kit is never copied even when included.
+        s.include_brand = true;
+        let ex = write_bundle(&mut s, &base.join("nowhere")).unwrap();
+        assert!(!s.root.join("brand").exists());
+        assert!(!ex.markdown.contains("## Brand kit"));
+
         std::fs::remove_dir_all(base).unwrap();
     }
 }

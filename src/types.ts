@@ -47,7 +47,13 @@ export interface Session {
   root: string;
   current: number;
   purpose: Purpose;
+  include_brand: boolean;
   groups: Group[];
+}
+
+export interface BrandKit {
+  notes: string;
+  files: string[];
 }
 
 export interface Export {
@@ -62,4 +68,5 @@ export interface AppState {
   last_export: Export | null;
   dirty: boolean;
   custom_prompt: string;
+  brand: BrandKit;
 }

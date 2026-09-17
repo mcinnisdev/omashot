@@ -28,8 +28,23 @@
         <button class="btn" id="copy-path">Copy folder path</button>
         <button class="btn" id="copy-md">Copy markdown</button>
         <button class="btn" id="open-folder">Open folder</button>
+        <button class="btn" id="brand-toggle">Brand kit</button>
         <span class="spacer"></span>
         <button class="btn" id="new-bundle">New bundle</button>
+      </div>
+      <div class="brand" id="brand" hidden>
+        <div class="brand-row">
+          <label class="check">
+            <input type="checkbox" id="brand-include" />
+            Include in this bundle
+          </label>
+          <span class="brand-files" id="brand-files"></span>
+          <button class="btn" id="brand-open">Open brand folder</button>
+        </div>
+        <textarea
+          id="brand-notes"
+          placeholder="Voice and style notes for the agent: tone, audience, words to use and avoid, how the business refers to itself. Drop logos, colours, fonts and style guides into the brand folder; everything there is copied into the bundle."
+        ></textarea>
       </div>
       <div class="custom" id="custom" hidden>
         <textarea

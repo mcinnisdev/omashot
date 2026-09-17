@@ -413,6 +413,65 @@ select.btn {
   border-color: var(--signal);
 }
 
+.btn.on {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.brand {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--raised);
+}
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.brand-row .check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  cursor: pointer;
+}
+.brand-row .check input {
+  accent-color: var(--signal);
+  margin: 0;
+}
+.brand-row .brand-files {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+}
+.brand-row .btn {
+  margin-left: auto;
+}
+.brand textarea {
+  width: 100%;
+  min-height: 84px;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 8px 10px;
+  resize: vertical;
+  user-select: text;
+}
+.brand textarea::placeholder {
+  color: var(--faint);
+}
+.brand textarea:focus {
+  outline: none;
+  border-color: var(--signal);
+}
+
 .exported {
   display: none;
   align-items: center;

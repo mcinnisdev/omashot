@@ -796,6 +796,29 @@ fn set_group_note(
     let _ = app.emit("session-changed", ());
 }
 
+/// Reorders within a group or moves to another; the folder is laid out to
+/// match on the next finish.
+#[tauri::command]
+fn move_shot(
+    app: AppHandle,
+    state: State<Shared>,
+    group: usize,
+    shot: String,
+    to_group: usize,
+    to_index: usize,
+) -> Result<(), String> {
+    {
+        let mut inner = state.lock().unwrap();
+        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        if !session.move_shot(group, &shot, to_group, to_index) {
+            return Err("no such shot or group".into());
+        }
+        inner.dirty = true;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
 #[tauri::command]
 fn delete_shot(app: AppHandle, state: State<Shared>, group: usize, shot: String) {
     {
@@ -893,6 +916,7 @@ fn main() {
             set_shot_note,
             set_group_note,
             delete_shot,
+            move_shot,
             finish,
             copy_text,
             open_path,

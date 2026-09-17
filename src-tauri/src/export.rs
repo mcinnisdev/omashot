@@ -2,7 +2,7 @@ use crate::model::{slug, Session, ShotKind};
 use anyhow::Result;
 use serde::Serialize;
 use std::fmt::Write as _;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Notes file inside the brand folder that is inlined into bundle.md.
 pub const BRAND_NOTES: &str = "brand.md";
@@ -105,17 +105,21 @@ pub fn write_bundle(session: &mut Session, brand_src: &Path) -> Result<Export> {
             std::fs::create_dir_all(&to)?;
         }
 
-        let root = session.root.clone();
-        let g = &mut session.groups[i];
-        g.dir = desired.clone();
-        for shot in &mut g.shots {
-            shot.abs_path = root
-                .join(&desired)
-                .join(&shot.file)
-                .to_string_lossy()
-                .to_string();
+        // Files that lived in the old directory now live in the new one.
+        // A shot moved here from another group still points at that
+        // group's directory; the layout pass below brings it over.
+        for g in &mut session.groups {
+            for shot in &mut g.shots {
+                if let Ok(rest) = Path::new(&shot.abs_path).strip_prefix(&from) {
+                    shot.abs_path = to.join(rest).to_string_lossy().to_string();
+                }
+            }
         }
+        session.groups[i].dir = desired;
     }
+
+    // 2. Files follow reading order.
+    normalize_layout(session)?;
 
     let markdown = render_markdown(session, brand.as_ref());
     std::fs::write(session.root.join("bundle.md"), &markdown)?;
@@ -130,6 +134,71 @@ pub fn write_bundle(session: &mut Session, brand_src: &Path) -> Result<Export> {
         groups: session.groups.iter().filter(|g| !g.is_empty()).count(),
         shots: session.shot_count(),
     })
+}
+
+fn ext_of(file: &str) -> String {
+    Path::new(file)
+        .extension()
+        .map(|e| e.to_string_lossy().to_string())
+        .unwrap_or_else(|| "png".into())
+}
+
+/// Lays the folder out to match the session after reorders and moves:
+/// every shot ends up in its group's directory as `NN.ext` in reading
+/// order, with a recording's stills beside it as `NN-frames/`. Two passes
+/// through temporary names, so shots swapping numbers never overwrite each
+/// other. Paths in the session are updated to match.
+fn normalize_layout(session: &mut Session) -> std::io::Result<()> {
+    let root = session.root.clone();
+
+    // Pass 1: everything to a temporary, collision-free name in its group.
+    for g in &mut session.groups {
+        let dir = root.join(&g.dir);
+        std::fs::create_dir_all(&dir)?;
+        for shot in &mut g.shots {
+            let tmp = dir.join(format!("tmp-{}.{}", shot.id, ext_of(&shot.file)));
+            move_shot_files(shot, &tmp)?;
+        }
+    }
+
+    // Pass 2: final names in reading order.
+    for g in &mut session.groups {
+        let dir = root.join(&g.dir);
+        for (i, shot) in g.shots.iter_mut().enumerate() {
+            let name = format!("{:02}.{}", i + 1, ext_of(&shot.file));
+            move_shot_files(shot, &dir.join(&name))?;
+            shot.file = name;
+            let stem = format!("{:02}-frames", i + 1);
+            for f in &mut shot.frames {
+                let base = Path::new(&f.file)
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_default();
+                f.file = format!("{stem}/{base}");
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Renames a shot's file, and its key-frame directory if it has one, to
+/// `dest`, then points the shot at it.
+fn move_shot_files(shot: &mut crate::model::Shot, dest: &Path) -> std::io::Result<()> {
+    let cur = PathBuf::from(&shot.abs_path);
+    if cur == dest {
+        return Ok(());
+    }
+    let old_frames = shot.frames_dir();
+    if cur.exists() {
+        std::fs::rename(&cur, dest)?;
+    }
+    shot.abs_path = dest.to_string_lossy().to_string();
+    if let (Some(from), Some(to)) = (old_frames, shot.frames_dir()) {
+        if from.exists() && from != to {
+            std::fs::rename(&from, &to)?;
+        }
+    }
+    Ok(())
 }
 
 /// The agent-facing view of the bundle. Image links are relative to the
@@ -349,6 +418,95 @@ mod brand_tests {
         let ex = write_bundle(&mut s, &base.join("nowhere")).unwrap();
         assert!(!s.root.join("brand").exists());
         assert!(!ex.markdown.contains("## Brand kit"));
+
+        std::fs::remove_dir_all(base).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod layout_tests {
+    use super::*;
+    use crate::model::{KeyFrame, Shot, ShotKind};
+
+    fn file_shot(s: &mut Session, id: &str, ext: &str, kind: ShotKind) {
+        let (_, file, abs) = s.reserve_shot(ext);
+        std::fs::write(&abs, id.as_bytes()).unwrap();
+        let mut sh = Shot {
+            id: id.into(),
+            file,
+            abs_path: abs.to_string_lossy().to_string(),
+            title: String::new(),
+            note: String::new(),
+            width: 1,
+            height: 1,
+            captured_at: String::new(),
+            kind,
+            duration_ms: 0,
+            frames: Vec::new(),
+        };
+        if kind == ShotKind::Recording {
+            let dir = sh.frames_dir().unwrap();
+            std::fs::create_dir_all(&dir).unwrap();
+            std::fs::write(dir.join("01.png"), b"f").unwrap();
+            let rel = format!(
+                "{}/01.png",
+                dir.file_name().unwrap().to_string_lossy()
+            );
+            sh.frames.push(KeyFrame { file: rel, at_ms: 0 });
+        }
+        s.current().shots.push(sh);
+    }
+
+    #[test]
+    fn export_lays_files_out_in_reading_order_after_moves() {
+        let base = std::env::temp_dir().join(format!(
+            "qacut-test-layout-{}",
+            chrono::Local::now().timestamp_micros()
+        ));
+        std::fs::create_dir_all(&base).unwrap();
+        let mut s = Session::start(&base.join("b")).unwrap();
+        file_shot(&mut s, "a", "png", ShotKind::Image);
+        file_shot(&mut s, "b", "png", ShotKind::Image);
+        file_shot(&mut s, "rec", "gif", ShotKind::Recording);
+        s.close_group("First", "").unwrap();
+        file_shot(&mut s, "d", "png", ShotKind::Image);
+
+        // Reverse group 1 and pull d in front of everything there.
+        assert!(s.move_shot(1, "rec", 1, 0));
+        assert!(s.move_shot(1, "b", 1, 0));
+        assert!(s.move_shot(2, "d", 1, 0));
+
+        let ex = write_bundle(&mut s, &base.join("nobrand")).unwrap();
+
+        // Reading order is d, b, rec, a; files say so and hold the right bytes.
+        let g = &s.groups[0];
+        let names: Vec<_> = g.shots.iter().map(|x| x.file.as_str()).collect();
+        assert_eq!(names, ["01.png", "02.png", "03.gif", "04.png"]);
+        let dir = s.root.join("01-first");
+        assert_eq!(std::fs::read(dir.join("01.png")).unwrap(), b"d");
+        assert_eq!(std::fs::read(dir.join("02.png")).unwrap(), b"b");
+        assert_eq!(std::fs::read(dir.join("03.gif")).unwrap(), b"rec");
+        assert_eq!(std::fs::read(dir.join("04.png")).unwrap(), b"a");
+        assert!(dir.join("03-frames/01.png").exists());
+        assert_eq!(g.shots[2].frames[0].file, "03-frames/01.png");
+        assert!(ex.markdown.contains("![1.3](01-first/03.gif)"));
+        assert!(ex.markdown.contains("[0 s](01-first/03-frames/01.png)"));
+
+        // The old group-2 file is gone from its old home and nothing is left over.
+        let leftovers: Vec<_> = std::fs::read_dir(s.root.join("02"))
+            .unwrap()
+            .flatten()
+            .collect();
+        assert!(leftovers.is_empty());
+        assert!(std::fs::read_dir(&dir).unwrap().flatten().all(|e| {
+            !e.file_name().to_string_lossy().starts_with("tmp-")
+        }));
+
+        // Exporting again is a no-op on disk.
+        let before: Vec<_> = s.groups[0].shots.iter().map(|x| x.abs_path.clone()).collect();
+        write_bundle(&mut s, &base.join("nobrand")).unwrap();
+        let after: Vec<_> = s.groups[0].shots.iter().map(|x| x.abs_path.clone()).collect();
+        assert_eq!(before, after);
 
         std::fs::remove_dir_all(base).unwrap();
     }

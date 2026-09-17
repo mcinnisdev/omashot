@@ -24,6 +24,18 @@ function clock(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
+// Drag state for reordering shots. The DOM is rebuilt after every move, so
+// nothing here has to survive a render.
+let dragging: { group: number; shot: string } | null = null;
+
+async function moveShot(group: number, shot: string, toGroup: number, toIndex: number) {
+  try {
+    await invoke("move_shot", { group, shot, toGroup, toIndex });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 function flash(btn: HTMLButtonElement, text: string) {
   const original = btn.textContent ?? "";
   btn.textContent = text;
@@ -86,6 +98,23 @@ async function render() {
     const wrap = document.createElement("div");
     wrap.className = "group";
 
+    // Dropping on the group itself appends to it.
+    wrap.addEventListener("dragover", (e) => {
+      if (!dragging) return;
+      e.preventDefault();
+      wrap.classList.add("drop-into");
+    });
+    wrap.addEventListener("dragleave", () => wrap.classList.remove("drop-into"));
+    wrap.addEventListener("drop", (e) => {
+      if (!dragging) return;
+      e.preventDefault();
+      e.stopPropagation();
+      wrap.classList.remove("drop-into");
+      const d = dragging;
+      dragging = null;
+      void moveShot(d.group, d.shot, g.index, g.shots.length);
+    });
+
     const head = document.createElement("div");
     head.className = "group-head";
 
@@ -136,6 +165,40 @@ async function render() {
     g.shots.forEach((s, i) => {
       const row = document.createElement("div");
       row.className = "shot";
+      row.draggable = true;
+
+      row.addEventListener("dragstart", (e) => {
+        dragging = { group: g.index, shot: s.id };
+        row.classList.add("dragging");
+        e.dataTransfer?.setData("text/plain", s.id);
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+      });
+      row.addEventListener("dragend", () => {
+        row.classList.remove("dragging");
+        dragging = null;
+        document
+          .querySelectorAll(".drop-before, .drop-into")
+          .forEach((el) => el.classList.remove("drop-before", "drop-into"));
+      });
+      // Dropping on a shot places the dragged one before it.
+      row.addEventListener("dragover", (e) => {
+        if (!dragging || dragging.shot === s.id) return;
+        e.preventDefault();
+        e.stopPropagation();
+        row.classList.add("drop-before");
+      });
+      row.addEventListener("dragleave", () => row.classList.remove("drop-before"));
+      row.addEventListener("drop", (e) => {
+        if (!dragging || dragging.shot === s.id) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const d = dragging;
+        dragging = null;
+        // Leaving a slot earlier in the same group shifts the target up one.
+        const before = g.shots.findIndex((x) => x.id === d.shot);
+        const idx = d.group === g.index && before !== -1 && before < i ? i - 1 : i;
+        void moveShot(d.group, d.shot, g.index, idx);
+      });
 
       const isRec = s.kind === "recording";
       const left = document.createElement("div");
@@ -178,6 +241,25 @@ async function render() {
       text.addEventListener("change", saveShot);
       middle.append(title, text);
 
+      const side = document.createElement("div");
+      side.className = "shot-side";
+
+      const up = document.createElement("button");
+      up.className = "order";
+      up.textContent = "\u25b2";
+      up.title = "Move up";
+      up.setAttribute("aria-label", `Move ${g.index}.${i + 1} up`);
+      up.disabled = i === 0;
+      up.addEventListener("click", () => void moveShot(g.index, s.id, g.index, i - 1));
+
+      const down = document.createElement("button");
+      down.className = "order";
+      down.textContent = "\u25bc";
+      down.title = "Move down";
+      down.setAttribute("aria-label", `Move ${g.index}.${i + 1} down`);
+      down.disabled = i === g.shots.length - 1;
+      down.addEventListener("click", () => void moveShot(g.index, s.id, g.index, i + 1));
+
       const del = document.createElement("button");
       del.className = "remove";
       del.textContent = "\u00d7";
@@ -188,7 +270,8 @@ async function render() {
         await render();
       });
 
-      row.append(left, middle, del);
+      side.append(up, down, del);
+      row.append(left, middle, side);
       wrap.append(row);
     });
 

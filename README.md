@@ -70,6 +70,10 @@ than left as an empty folder.
 
 New shots go into the most recent group by default. To add to an earlier
 group, open the bundle window and press **Capture here** on that group.
+Shots can be reordered there too: drag one onto another to place it before
+it, onto a group heading to append it there, or use the arrow buttons. The
+folder is laid out to match on the next finish, so `01.png` is always
+step 1, whatever order things were captured in.
 
 ## Output
 

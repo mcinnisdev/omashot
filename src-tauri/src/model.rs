@@ -288,6 +288,25 @@ impl Session {
             .find(|s| s.id == shot_id)
     }
 
+    /// Moves a shot to `to` at position `to_index` (clamped to the end).
+    /// Only the session changes; files stay where they are until export
+    /// lays the folder out to match, so paths the bundle window is showing
+    /// stay valid.
+    pub fn move_shot(&mut self, from: usize, shot_id: &str, to: usize, to_index: usize) -> bool {
+        if !self.groups.iter().any(|g| g.index == to) {
+            return false;
+        }
+        let Some(src) = self.group_mut(from) else { return false };
+        let Some(pos) = src.shots.iter().position(|s| s.id == shot_id) else {
+            return false;
+        };
+        let shot = src.shots.remove(pos);
+        let dst = self.group_mut(to).expect("checked above");
+        let idx = to_index.min(dst.shots.len());
+        dst.shots.insert(idx, shot);
+        true
+    }
+
     /// Removes a shot and deletes its file. Remaining files keep their
     /// original names; numbering gaps are harmless and renaming mid-session
     /// would invalidate paths the peek window is already showing.
@@ -386,6 +405,31 @@ mod tests {
         assert!(s.set_current(1));
         assert_eq!(s.reserve_shot("png").0, 1);
         assert!(!s.set_current(9));
+        std::fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn shots_move_within_and_between_groups() {
+        let base = temp_base("move");
+        let mut s = Session::start(&base).unwrap();
+        for f in ["a", "b", "c"] {
+            s.current().shots.push(shot(f, Path::new("")));
+        }
+        s.close_group("One", "").unwrap();
+        s.current().shots.push(shot("d", Path::new("")));
+
+        // c to the front of group 1.
+        assert!(s.move_shot(1, "c", 1, 0));
+        let ids: Vec<_> = s.groups[0].shots.iter().map(|x| x.id.as_str()).collect();
+        assert_eq!(ids, ["c", "a", "b"]);
+
+        // a into group 2, after d (index past the end clamps).
+        assert!(s.move_shot(1, "a", 2, 99));
+        let ids: Vec<_> = s.groups[1].shots.iter().map(|x| x.id.as_str()).collect();
+        assert_eq!(ids, ["d", "a"]);
+
+        assert!(!s.move_shot(1, "nope", 2, 0));
+        assert!(!s.move_shot(1, "b", 7, 0));
         std::fs::remove_dir_all(base).unwrap();
     }
 }

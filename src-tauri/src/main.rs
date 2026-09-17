@@ -30,6 +30,9 @@ struct Inner {
     session: Option<Session>,
     /// Frozen monitor frames, held only while the capture overlay is up.
     frames: Vec<(Frame, RgbaImage)>,
+    /// True from the moment a capture is requested until its frames are
+    /// stored, so a key-repeat cannot start a second grab mid-way.
+    capturing: bool,
     /// The shot awaiting a note: (group index, shot id).
     pending: Option<(usize, String)>,
     /// Set once a bundle has been written, so the next capture starts fresh.
@@ -60,16 +63,29 @@ fn ensure_session<'a>(app: &AppHandle, inner: &'a mut Inner) -> Result<&'a mut S
 }
 
 // ---------------------------------------------------------------- triggers
+//
+// Hotkey and tray callbacks arrive on the main thread, inside a WndProc. If a
+// window is built there, wry pumps a nested message loop while it waits for
+// the WebView2 controller, and any queued window close that lands during that
+// pump can deadlock the app. So every trigger runs on a worker thread; window
+// creation is then queued to the event loop and handled at the top level like
+// any other Tauri window.
+
+fn off_main(app: &AppHandle, f: fn(&AppHandle)) {
+    let app = app.clone();
+    tauri::async_runtime::spawn_blocking(move || f(&app));
+}
 
 fn trigger_capture(app: &AppHandle) {
     let state: State<Shared> = app.state();
 
-    // Don't stack overlays if one is already up.
+    // Don't stack overlays if one is already up or on its way.
     {
-        let inner = state.lock().unwrap();
-        if !inner.frames.is_empty() {
+        let mut inner = state.lock().unwrap();
+        if inner.capturing || !inner.frames.is_empty() {
             return;
         }
+        inner.capturing = true;
     }
     overlay::close_note(app);
     overlay::close_peek(app);
@@ -78,6 +94,7 @@ fn trigger_capture(app: &AppHandle) {
         Ok(f) => f,
         Err(e) => {
             eprintln!("qacut: capture failed: {e}");
+            state.lock().unwrap().capturing = false;
             return;
         }
     };
@@ -85,6 +102,7 @@ fn trigger_capture(app: &AppHandle) {
     let meta: Vec<Frame> = frames.iter().map(|(f, _)| f.clone()).collect();
     {
         let mut inner = state.lock().unwrap();
+        inner.capturing = false;
         if let Err(e) = ensure_session(app, &mut inner) {
             eprintln!("qacut: could not start session: {e}");
             return;
@@ -399,13 +417,13 @@ fn main() {
                     };
 
                     if matches(HK_CAPTURE) {
-                        trigger_capture(&app);
+                        off_main(&app, trigger_capture);
                     } else if matches(HK_GROUP) {
-                        trigger_group(&app);
+                        off_main(&app, trigger_group);
                     } else if matches(HK_PEEK) {
-                        trigger_peek(&app);
+                        off_main(&app, trigger_peek);
                     } else if matches(HK_FINISH) {
-                        trigger_finish(&app);
+                        off_main(&app, trigger_finish);
                     }
                 })
                 .build(),
@@ -463,10 +481,10 @@ fn main() {
                 .menu(&menu)
                 .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id().as_ref() {
-                    "capture" => trigger_capture(app),
-                    "group" => trigger_group(app),
-                    "peek" => trigger_peek(app),
-                    "finish" => trigger_finish(app),
+                    "capture" => off_main(app, trigger_capture),
+                    "group" => off_main(app, trigger_group),
+                    "peek" => off_main(app, trigger_peek),
+                    "finish" => off_main(app, trigger_finish),
                     "folder" => {
                         let dir = base_dir(app);
                         let _ = std::fs::create_dir_all(&dir);

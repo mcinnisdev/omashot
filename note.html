@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Note</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="note">
+    <div class="note-wrap">
+      <div class="note-head">
+        <span id="head-label">Note</span>
+        <span class="where" id="head-where"></span>
+      </div>
+      <div class="note-body">
+        <input
+          class="field"
+          id="title"
+          placeholder="Group name, e.g. Settings page"
+          hidden
+        />
+        <textarea class="field" id="note" placeholder="What's wrong here?"></textarea>
+      </div>
+      <div class="note-foot">
+        <span class="keys">
+          <kbd>Enter</kbd> save
+          <kbd>Shift</kbd>+<kbd>Enter</kbd> new line
+        </span>
+        <button class="linkish" id="secondary">Discard shot</button>
+      </div>
+    </div>
+    <script type="module" src="/src/note.ts"></script>
+  </body>
+</html>

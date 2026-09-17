@@ -457,7 +457,7 @@ body.peek {
   font-size: 12px;
   color: var(--muted);
   background: var(--raised);
-  border: 1px solid var(--line);
+  border: 1px solid var(--signal);
   border-right: none;
   border-radius: 6px 0 0 6px;
   padding: 5px 24px 5px 10px;
@@ -479,15 +479,16 @@ body.peek {
   border-radius: 0 6px 6px 0;
 }
 
+/* Outline rather than fill: dark text on coral has too little contrast. */
 .btn.primary {
-  color: var(--base);
-  background: var(--signal);
+  color: var(--signal);
+  background: var(--sunken);
   border-color: var(--signal);
   font-weight: 600;
 }
 .btn.primary:hover {
-  color: var(--base);
-  filter: brightness(1.1);
+  color: var(--text);
+  background: var(--signal-dim);
 }
 
 .quiet {

@@ -72,6 +72,9 @@ async function render() {
   brandFiles.textContent =
     n === 0 ? "no files yet" : `${n} file${n === 1 ? "" : "s"}`;
   brandToggle.classList.toggle("on", hasKit && brandInclude.checked);
+  brandToggle.title = hasKit
+    ? `${n} file${n === 1 ? "" : "s"} in the brand folder`
+    : "No brand kit yet";
 
   const shots = session?.groups.reduce((n, g) => n + g.shots.length, 0) ?? 0;
   const used = session?.groups.filter((g) => g.shots.length > 0).length ?? 0;

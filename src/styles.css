@@ -358,24 +358,50 @@ body.peek {
   background: var(--raised);
 }
 
-.peek-head h1 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 550;
-  letter-spacing: -0.005em;
-}
-
 .peek-head .count {
   font-family: var(--mono);
   font-size: 11.5px;
   color: var(--muted);
+  white-space: nowrap;
+  margin-right: 6px;
+}
+
+.btn.ghost {
+  background: none;
+  border-color: transparent;
+  color: var(--muted);
+}
+.btn.ghost:hover {
+  border-color: var(--line);
+  color: var(--text);
+}
+.btn.ghost.on {
+  color: var(--signal);
+}
+
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--muted);
+  border-radius: 6px;
+}
+.icon-btn:hover {
+  color: var(--text);
+  background: var(--sunken);
+}
+.icon-btn:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
 }
 
 .peek-head .bundle-name {
   flex: 1;
   min-width: 120px;
-  font-size: 14px;
-  font-weight: 550;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text);
   background: none;
   border: none;
@@ -398,22 +424,85 @@ body.peek {
 .peek-tools {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 16px;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--line);
-  background: var(--raised);
+  background: var(--sunken);
 }
-.peek-tools .spacer {
-  flex: 1;
+
+.tools-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-right: 2px;
 }
-select.btn {
+
+.tools-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--line);
+  margin: 0 2px;
+}
+
+/* Purpose and the primary action read as one control. */
+.segmented {
+  display: flex;
+}
+.segmented select {
   appearance: none;
-  padding-right: 24px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  padding: 5px 24px 5px 10px;
+  cursor: pointer;
   background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
     linear-gradient(135deg, var(--muted) 50%, transparent 50%);
   background-position: calc(100% - 13px) 50%, calc(100% - 9px) 50%;
   background-size: 4px 4px, 4px 4px;
   background-repeat: no-repeat;
+}
+.segmented select:hover {
+  color: var(--text);
+}
+.segmented select:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: -1px;
+}
+.segmented .btn {
+  border-radius: 0 6px 6px 0;
+}
+
+.btn.primary {
+  color: var(--base);
+  background: var(--signal);
+  border-color: var(--signal);
+  font-weight: 600;
+}
+.btn.primary:hover {
+  color: var(--base);
+  filter: brightness(1.1);
+}
+
+.quiet {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 5px 6px;
+  border-radius: 5px;
+}
+.quiet:hover {
+  color: var(--text);
+  background: var(--raised);
+}
+.quiet:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
 }
 
 .btn {

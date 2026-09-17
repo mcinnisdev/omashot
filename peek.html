@@ -7,8 +7,9 @@
   </head>
   <body class="peek">
     <div class="peek-wrap">
+      <!-- Row one is the bundle itself: what it is called, what is in it,
+           and the two things that change its setup. -->
       <div class="peek-head" data-tauri-drag-region>
-        <h1 data-tauri-drag-region>Bundle</h1>
         <input
           class="bundle-name"
           id="bundle-name"
@@ -16,21 +17,28 @@
           aria-label="Bundle name"
         />
         <span class="count" id="count" data-tauri-drag-region></span>
-        <button class="btn" id="close">Close</button>
+        <button class="btn ghost" id="brand-toggle">Brand kit</button>
+        <button class="btn ghost" id="new-bundle">New bundle</button>
+        <button class="icon-btn" id="close" title="Close (Esc)" aria-label="Close">
+          &times;
+        </button>
       </div>
+      <!-- Row two is the hand-off: one primary action with its purpose
+           attached, and the quieter ways to get at the same files. -->
       <div class="peek-tools">
-        <select class="btn" id="purpose" aria-label="What this bundle is for">
-          <option value="fix">Fix issues</option>
-          <option value="document">Write process doc</option>
-          <option value="custom">Custom prompt</option>
-        </select>
-        <button class="btn" id="copy-prompt">Copy agent prompt</button>
-        <button class="btn" id="copy-path">Copy folder path</button>
-        <button class="btn" id="copy-md">Copy markdown</button>
-        <button class="btn" id="open-folder">Open folder</button>
-        <button class="btn" id="brand-toggle">Brand kit</button>
-        <span class="spacer"></span>
-        <button class="btn" id="new-bundle">New bundle</button>
+        <span class="tools-label">Hand off</span>
+        <div class="segmented">
+          <select id="purpose" aria-label="What this bundle is for">
+            <option value="fix">Fix issues</option>
+            <option value="document">Write process doc</option>
+            <option value="custom">Custom prompt</option>
+          </select>
+          <button class="btn primary" id="copy-prompt">Copy agent prompt</button>
+        </div>
+        <span class="tools-sep"></span>
+        <button class="quiet" id="copy-path">Copy path</button>
+        <button class="quiet" id="copy-md">Copy markdown</button>
+        <button class="quiet" id="open-folder">Open folder</button>
       </div>
       <div class="brand" id="brand" hidden>
         <div class="brand-row">

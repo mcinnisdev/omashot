@@ -920,6 +920,10 @@ fn main() {
                 })
                 .build(app)?;
 
+            // The brand folder exists from the start so there is somewhere
+            // obvious to drop files before the first bundle window opens.
+            let _ = std::fs::create_dir_all(brand_dir(&handle));
+
             // No visible window on launch. The tray is the app.
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);

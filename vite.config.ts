@@ -6,6 +6,9 @@ export default defineConfig({
   server: {
     port: 1420,
     strictPort: true,
+    // Cargo writes into src-tauri/target while Vite is running; watching it
+    // trips EBUSY on Windows and floods the watcher everywhere else.
+    watch: { ignored: ["**/src-tauri/**"] },
   },
   build: {
     target: "es2021",

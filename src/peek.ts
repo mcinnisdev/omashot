@@ -46,15 +46,14 @@ async function render() {
   const session = state.session;
   body.replaceChildren();
 
+  // Name, purpose and brand can be set before the first capture; the
+  // backend starts a session on demand.
   bundleName.value = session?.name ?? "";
-  bundleName.disabled = !session;
   purpose.value = session?.purpose ?? "fix";
-  purpose.disabled = !session;
   custom.hidden = purpose.value !== "custom";
   customPrompt.value = state.custom_prompt;
 
   brandInclude.checked = session?.include_brand ?? true;
-  brandInclude.disabled = !session;
   brandNotes.value = state.brand.notes;
   const n = state.brand.files.length;
   const hasKit = n > 0 || state.brand.notes.trim() !== "";

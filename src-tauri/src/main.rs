@@ -183,8 +183,10 @@ fn open_overlay(app: &AppHandle, mode: &str) {
         }
         inner.capturing = true;
     }
+    // The note box goes, since its pending shot must be resolved first. The
+    // bundle window stays: it sits under the overlay, can itself be captured,
+    // and updates live once the shot lands.
     overlay::close_note(app);
-    overlay::close_peek(app);
 
     let frames = match capture::freeze_all(&capture::scratch_dir()) {
         Ok(f) => f,
@@ -253,7 +255,6 @@ fn finish_recording(app: &AppHandle) {
 }
 
 fn trigger_group(app: &AppHandle) {
-    overlay::close_peek(app);
     if let Err(e) = overlay::open_note(app, "group", None) {
         eprintln!("qacut: could not open group prompt: {e}");
     }
@@ -635,7 +636,7 @@ fn set_brand_notes(app: AppHandle, text: String) -> Result<(), String> {
 fn set_include_brand(app: AppHandle, state: State<Shared>, include: bool) -> Result<(), String> {
     {
         let mut inner = state.lock().unwrap();
-        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        let session = ensure_session(&app, &mut inner)?;
         session.include_brand = include;
         inner.dirty = true;
     }
@@ -683,7 +684,7 @@ fn set_current_group(app: AppHandle, state: State<Shared>, group: usize) -> Resu
 fn rename_bundle(app: AppHandle, state: State<Shared>, name: String) -> Result<(), String> {
     {
         let mut inner = state.lock().unwrap();
-        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        let session = ensure_session(&app, &mut inner)?;
         session.rename(&name).map_err(|e| e.to_string())?;
         let root = session.root.to_string_lossy().to_string();
         if let Some(ex) = inner.last_export.as_mut() {
@@ -705,7 +706,7 @@ fn set_purpose(app: AppHandle, state: State<Shared>, purpose: String) -> Result<
     let p = Purpose::parse(&purpose).ok_or("unknown purpose")?;
     {
         let mut inner = state.lock().unwrap();
-        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        let session = ensure_session(&app, &mut inner)?;
         session.purpose = p;
         inner.dirty = true;
     }

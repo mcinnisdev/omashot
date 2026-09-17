@@ -159,6 +159,10 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
 }
 
 // ---------------------------------------------------------------- commands
+//
+// Any command that opens or closes a window is `async`. Sync commands run on
+// the main thread, and on Windows creating a window from there deadlocks
+// (the builder waits on the event loop it is blocking).
 
 /// The capture overlay asks for the frame belonging to its monitor.
 #[tauri::command]
@@ -173,9 +177,9 @@ fn frame_for(state: State<Shared>, monitor: String) -> Option<Frame> {
 
 /// Crops the selection, files it in the current group, and opens the note box.
 #[tauri::command]
-fn commit_selection(
+async fn commit_selection(
     app: AppHandle,
-    state: State<Shared>,
+    state: State<'_, Shared>,
     monitor: String,
     x: f64,
     y: f64,
@@ -228,18 +232,19 @@ fn commit_selection(
 }
 
 #[tauri::command]
-fn cancel_capture(app: AppHandle, state: State<Shared>) {
+async fn cancel_capture(app: AppHandle, state: State<'_, Shared>) -> Result<(), String> {
     overlay::close_capture(&app);
     {
         let mut inner = state.lock().unwrap();
         inner.frames.clear();
     }
     capture::clear_scratch();
+    Ok(())
 }
 
 /// Commits the note for the shot that is waiting. An empty note is fine.
 #[tauri::command]
-fn save_note(app: AppHandle, state: State<Shared>, note: String) -> Result<(), String> {
+async fn save_note(app: AppHandle, state: State<'_, Shared>, note: String) -> Result<(), String> {
     {
         let mut inner = state.lock().unwrap();
         let Some((group, id)) = inner.pending.take() else {
@@ -258,7 +263,7 @@ fn save_note(app: AppHandle, state: State<Shared>, note: String) -> Result<(), S
 
 /// Discards the shot the note box was attached to, file and all.
 #[tauri::command]
-fn discard_pending(app: AppHandle, state: State<Shared>) {
+async fn discard_pending(app: AppHandle, state: State<'_, Shared>) -> Result<(), String> {
     {
         let mut inner = state.lock().unwrap();
         if let Some((group, id)) = inner.pending.take() {
@@ -269,12 +274,13 @@ fn discard_pending(app: AppHandle, state: State<Shared>) {
     }
     overlay::close_note(&app);
     let _ = app.emit("session-changed", ());
+    Ok(())
 }
 
 #[tauri::command]
-fn save_group(
+async fn save_group(
     app: AppHandle,
-    state: State<Shared>,
+    state: State<'_, Shared>,
     title: String,
     master_note: String,
 ) -> Result<usize, String> {
@@ -362,12 +368,12 @@ fn open_path(app: AppHandle, path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn start_capture(app: AppHandle) {
+async fn start_capture(app: AppHandle) {
     trigger_capture(&app);
 }
 
 #[tauri::command]
-fn start_group(app: AppHandle) {
+async fn start_group(app: AppHandle) {
     trigger_group(&app);
 }
 

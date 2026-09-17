@@ -8,17 +8,26 @@
   <body class="peek">
     <div class="peek-wrap">
       <div class="peek-head" data-tauri-drag-region>
-        <h1 data-tauri-drag-region>Current bundle</h1>
+        <h1 data-tauri-drag-region>Bundle</h1>
+        <input
+          class="bundle-name"
+          id="bundle-name"
+          placeholder="Name this bundle"
+          aria-label="Bundle name"
+        />
         <span class="count" id="count" data-tauri-drag-region></span>
-        <div class="peek-actions">
-          <button class="btn" id="copy-path">Copy folder path</button>
-          <button class="btn" id="copy-md">Copy markdown</button>
-          <button class="btn" id="open-folder">Open folder</button>
-          <button class="btn" id="close">Close</button>
-        </div>
+        <button class="btn" id="close">Close</button>
+      </div>
+      <div class="peek-tools">
+        <button class="btn" id="copy-path">Copy folder path</button>
+        <button class="btn" id="copy-prompt">Copy agent prompt</button>
+        <button class="btn" id="copy-md">Copy markdown</button>
+        <button class="btn" id="open-folder">Open folder</button>
+        <span class="spacer"></span>
+        <button class="btn" id="new-bundle">New bundle</button>
       </div>
       <div class="exported" id="exported">
-        <span>Bundle written to</span>
+        <span id="exported-label">Bundle written to</span>
         <code id="exported-path"></code>
       </div>
       <div class="peek-body" id="body"></div>

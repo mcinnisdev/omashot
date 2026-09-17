@@ -9,6 +9,7 @@ use capture::Frame;
 use export::Export;
 use image::RgbaImage;
 use model::{Session, Shot};
+use serde::Serialize;
 use std::str::FromStr;
 use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem};
@@ -35,9 +36,18 @@ struct Inner {
     capturing: bool,
     /// The shot awaiting a note: (group index, shot id).
     pending: Option<(usize, String)>,
-    /// Set once a bundle has been written, so the next capture starts fresh.
-    exported: bool,
+    /// True when the session has changed since it was last written out, so
+    /// "New bundle" knows whether there is anything to save first.
+    dirty: bool,
     last_export: Option<Export>,
+}
+
+/// Everything the bundle window needs in one call.
+#[derive(Clone, Serialize)]
+struct AppState {
+    session: Option<Session>,
+    last_export: Option<Export>,
+    dirty: bool,
 }
 
 type Shared = Mutex<Inner>;
@@ -49,17 +59,27 @@ fn base_dir(app: &AppHandle) -> std::path::PathBuf {
         .join("QACut")
 }
 
-/// Returns the live session, starting one if there is none or if the previous
-/// one has already been exported.
+/// Returns the live session, starting one if there is none. A session only
+/// ends when the user explicitly starts a new bundle; finishing writes it out
+/// but leaves it open so more shots can be added and it can be written again.
 fn ensure_session<'a>(app: &AppHandle, inner: &'a mut Inner) -> Result<&'a mut Session, String> {
-    let needs_new = inner.session.is_none() || inner.exported;
-    if needs_new {
+    if inner.session.is_none() {
         let s = Session::start(&base_dir(app)).map_err(|e| e.to_string())?;
         inner.session = Some(s);
-        inner.exported = false;
         inner.last_export = None;
+        inner.dirty = false;
     }
     Ok(inner.session.as_mut().expect("just ensured"))
+}
+
+/// The instruction handed to an agent alongside the folder path.
+fn agent_prompt(root: &str) -> String {
+    format!(
+        "Work through the QA bundle at {root}. Start with bundle.md: each group is a page \
+         or area, its quoted master note applies to every screenshot under it, and each \
+         screenshot's note says what is wrong. Open each screenshot it references before \
+         changing anything."
+    )
 }
 
 // ---------------------------------------------------------------- triggers
@@ -140,6 +160,36 @@ fn trigger_finish(app: &AppHandle) {
     }
 }
 
+fn trigger_new_bundle(app: &AppHandle) {
+    if let Err(e) = do_new_bundle(app) {
+        eprintln!("qacut: new bundle failed: {e}");
+    }
+}
+
+/// Closes the current session. Unsaved work is written out first; a session
+/// with no shots is deleted rather than left as an empty folder.
+fn do_new_bundle(app: &AppHandle) -> Result<(), String> {
+    overlay::close_note(app);
+    let state: State<Shared> = app.state();
+    {
+        let mut inner = state.lock().unwrap();
+        let dirty = inner.dirty;
+        if let Some(session) = inner.session.as_mut() {
+            if session.shot_count() == 0 {
+                let _ = std::fs::remove_dir_all(&session.root);
+            } else if dirty {
+                export::write_bundle(session).map_err(|e| e.to_string())?;
+            }
+        }
+        inner.session = None;
+        inner.pending = None;
+        inner.last_export = None;
+        inner.dirty = false;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
 fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
     let state: State<Shared> = app.state();
     let result = {
@@ -149,7 +199,7 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
             .as_mut()
             .ok_or_else(|| "nothing captured yet".to_string())?;
         let ex = export::write_bundle(session).map_err(|e| e.to_string())?;
-        inner.exported = true;
+        inner.dirty = false;
         inner.last_export = Some(ex.clone());
         ex
     };
@@ -158,6 +208,11 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
         "markdown" => {
             app.clipboard()
                 .write_text(result.markdown.clone())
+                .map_err(|e| e.to_string())?;
+        }
+        "prompt" => {
+            app.clipboard()
+                .write_text(agent_prompt(&result.root))
                 .map_err(|e| e.to_string())?;
         }
         "open" => {
@@ -235,6 +290,7 @@ async fn commit_selection(
 
         inner.pending = Some((group, id));
         inner.frames.clear();
+        inner.dirty = true;
 
         // Anchor the note box just under the selection, nudged back on screen.
         let nx = frame.x as f64 + x;
@@ -273,6 +329,7 @@ async fn save_note(app: AppHandle, state: State<'_, Shared>, note: String) -> Re
                 shot.note = note.trim().to_string();
             }
         }
+        inner.dirty = true;
     }
     overlay::close_note(&app);
     let _ = app.emit("session-changed", ());
@@ -288,6 +345,7 @@ async fn discard_pending(app: AppHandle, state: State<'_, Shared>) -> Result<(),
             if let Some(session) = inner.session.as_mut() {
                 session.remove_shot(group, &id);
             }
+            inner.dirty = true;
         }
     }
     overlay::close_note(&app);
@@ -305,9 +363,11 @@ async fn save_group(
     let index = {
         let mut inner = state.lock().unwrap();
         let session = ensure_session(&app, &mut inner)?;
-        session
+        let index = session
             .begin_group(&title, &master_note)
-            .map_err(|e| e.to_string())?
+            .map_err(|e| e.to_string())?;
+        inner.dirty = true;
+        index
     };
     overlay::close_note(&app);
     let _ = app.emit("session-changed", ());
@@ -320,8 +380,49 @@ fn get_session(state: State<Shared>) -> Option<Session> {
 }
 
 #[tauri::command]
-fn get_last_export(state: State<Shared>) -> Option<Export> {
-    state.lock().unwrap().last_export.clone()
+fn get_state(state: State<Shared>) -> AppState {
+    let inner = state.lock().unwrap();
+    AppState {
+        session: inner.session.clone(),
+        last_export: inner.last_export.clone(),
+        dirty: inner.dirty,
+    }
+}
+
+/// Points new captures at an existing group.
+#[tauri::command]
+fn set_current_group(app: AppHandle, state: State<Shared>, group: usize) -> Result<(), String> {
+    {
+        let mut inner = state.lock().unwrap();
+        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        if !session.set_current(group) {
+            return Err("no such group".into());
+        }
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
+/// Labels the bundle and renames its folder to match.
+#[tauri::command]
+fn rename_bundle(app: AppHandle, state: State<Shared>, name: String) -> Result<(), String> {
+    {
+        let mut inner = state.lock().unwrap();
+        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        session.rename(&name).map_err(|e| e.to_string())?;
+        let root = session.root.to_string_lossy().to_string();
+        if let Some(ex) = inner.last_export.as_mut() {
+            ex.root = root;
+        }
+        inner.dirty = true;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
+#[tauri::command]
+async fn new_bundle(app: AppHandle) -> Result<(), String> {
+    do_new_bundle(&app)
 }
 
 #[tauri::command]
@@ -333,6 +434,7 @@ fn set_shot_note(app: AppHandle, state: State<Shared>, group: usize, shot: Strin
                 s.note = note.trim().to_string();
             }
         }
+        inner.dirty = true;
     }
     let _ = app.emit("session-changed", ());
 }
@@ -353,6 +455,7 @@ fn set_group_note(
                 g.master_note = master_note.trim().to_string();
             }
         }
+        inner.dirty = true;
     }
     let _ = app.emit("session-changed", ());
 }
@@ -364,12 +467,13 @@ fn delete_shot(app: AppHandle, state: State<Shared>, group: usize, shot: String)
         if let Some(session) = inner.session.as_mut() {
             session.remove_shot(group, &shot);
         }
+        inner.dirty = true;
     }
     let _ = app.emit("session-changed", ());
 }
 
 #[tauri::command]
-fn finish(app: AppHandle, action: String) -> Result<Export, String> {
+async fn finish(app: AppHandle, action: String) -> Result<Export, String> {
     do_finish(&app, &action)
 }
 
@@ -436,7 +540,10 @@ fn main() {
             discard_pending,
             save_group,
             get_session,
-            get_last_export,
+            get_state,
+            set_current_group,
+            rename_bundle,
+            new_bundle,
             set_shot_note,
             set_group_note,
             delete_shot,
@@ -464,11 +571,12 @@ fn main() {
             let group_i = MenuItem::with_id(app, "group", "New group", true, Some(HK_GROUP))?;
             let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, Some(HK_PEEK))?;
             let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, Some(HK_FINISH))?;
+            let new_i = MenuItem::with_id(app, "new", "New bundle", true, None::<&str>)?;
             let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
             let menu = Menu::with_items(
                 app,
-                &[&capture_i, &group_i, &peek_i, &finish_i, &folder_i, &quit_i],
+                &[&capture_i, &group_i, &peek_i, &finish_i, &new_i, &folder_i, &quit_i],
             )?;
 
             // A trimmed copy of the mark rather than the app icon, whose
@@ -485,6 +593,7 @@ fn main() {
                     "group" => off_main(app, trigger_group),
                     "peek" => off_main(app, trigger_peek),
                     "finish" => off_main(app, trigger_finish),
+                    "new" => off_main(app, trigger_new_bundle),
                     "folder" => {
                         let dir = base_dir(app);
                         let _ = std::fs::create_dir_all(&dir);

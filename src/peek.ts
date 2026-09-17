@@ -1,11 +1,13 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import type { Export, Session } from "./types";
+import type { AppState, Export } from "./types";
 
 const body = document.getElementById("body") as HTMLDivElement;
 const count = document.getElementById("count") as HTMLSpanElement;
+const bundleName = document.getElementById("bundle-name") as HTMLInputElement;
 const exported = document.getElementById("exported") as HTMLDivElement;
+const exportedLabel = document.getElementById("exported-label") as HTMLElement;
 const exportedPath = document.getElementById("exported-path") as HTMLElement;
 
 function flash(btn: HTMLButtonElement, text: string) {
@@ -26,12 +28,22 @@ async function render() {
     return;
   }
 
-  const session = await invoke<Session | null>("get_session");
+  const state = await invoke<AppState>("get_state");
+  const session = state.session;
   body.replaceChildren();
+
+  bundleName.value = session?.name ?? "";
+  bundleName.disabled = !session;
 
   const shots = session?.groups.reduce((n, g) => n + g.shots.length, 0) ?? 0;
   const used = session?.groups.filter((g) => g.shots.length > 0).length ?? 0;
   count.textContent = session ? `${shots} in ${used || 1} groups` : "";
+
+  if (state.last_export) {
+    showExported(state.last_export, state.dirty);
+  } else {
+    exported.style.display = "none";
+  }
 
   if (!session || shots === 0) {
     const empty = document.createElement("div");
@@ -60,7 +72,23 @@ async function render() {
     nameInput.placeholder = `Group ${g.index}`;
     nameInput.setAttribute("aria-label", `Name for group ${g.index}`);
 
-    head.append(num, nameInput);
+    // Where the next capture lands. Clicking an earlier group points new
+    // shots back at it.
+    const target = document.createElement("button");
+    target.className = "target";
+    if (g.index === session.current) {
+      target.classList.add("active");
+      target.textContent = "Capturing here";
+      target.disabled = true;
+      wrap.classList.add("current");
+    } else {
+      target.textContent = "Capture here";
+      target.addEventListener("click", () =>
+        void invoke("set_current_group", { group: g.index }),
+      );
+    }
+
+    head.append(num, nameInput, target);
 
     const master = document.createElement("textarea");
     master.className = "master";
@@ -126,41 +154,75 @@ async function render() {
   }
 }
 
-function showExported(result: Export) {
+function showExported(result: Export, dirty: boolean) {
   exported.style.display = "flex";
+  exportedLabel.textContent = dirty
+    ? "Changed since it was last written to"
+    : "Bundle written to";
   exportedPath.textContent = result.root;
 }
 
-async function run(action: "path" | "markdown" | "open", btn: HTMLButtonElement) {
+type Action = "path" | "prompt" | "markdown" | "open";
+
+const flashText: Record<Action, string> = {
+  path: "Path copied",
+  prompt: "Prompt copied",
+  markdown: "Markdown copied",
+  open: "Opened",
+};
+
+// Every action writes the bundle first, so what gets copied or opened is
+// never stale.
+async function run(action: Action, btn: HTMLButtonElement) {
   try {
     const result = await invoke<Export>("finish", { action });
-    showExported(result);
-    if (action === "path") flash(btn, "Path copied");
-    if (action === "markdown") flash(btn, "Markdown copied");
+    showExported(result, false);
+    flash(btn, flashText[action]);
   } catch (err) {
     flash(btn, String(err));
   }
 }
 
 const copyPath = document.getElementById("copy-path") as HTMLButtonElement;
+const copyPrompt = document.getElementById("copy-prompt") as HTMLButtonElement;
 const copyMd = document.getElementById("copy-md") as HTMLButtonElement;
 const openFolder = document.getElementById("open-folder") as HTMLButtonElement;
+const newBundle = document.getElementById("new-bundle") as HTMLButtonElement;
 const close = document.getElementById("close") as HTMLButtonElement;
 
 copyPath.addEventListener("click", () => void run("path", copyPath));
+copyPrompt.addEventListener("click", () => void run("prompt", copyPrompt));
 copyMd.addEventListener("click", () => void run("markdown", copyMd));
 openFolder.addEventListener("click", () => void run("open", openFolder));
 close.addEventListener("click", () => void getCurrentWindow().close());
+
+newBundle.addEventListener("click", async () => {
+  try {
+    await invoke("new_bundle");
+    flash(newBundle, "Started fresh");
+  } catch (err) {
+    flash(newBundle, String(err));
+  }
+  await render();
+});
+
+bundleName.addEventListener("change", async () => {
+  try {
+    await invoke("rename_bundle", { name: bundleName.value });
+  } catch (err) {
+    bundleName.title = String(err);
+  }
+  bundleName.blur();
+  await render();
+});
+bundleName.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") bundleName.blur();
+});
 
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") void getCurrentWindow().close();
 });
 
 void listen("session-changed", () => void render());
-
-// If the window was opened by the finish hotkey, the export already happened.
-void invoke<Export | null>("get_last_export").then((last) => {
-  if (last) showExported(last);
-});
 
 void render();

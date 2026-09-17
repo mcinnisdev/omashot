@@ -27,15 +27,23 @@ The two workflows from the brief map to this:
   hotkey to open the next group with its master note, carry on, finish hotkey
   at the end.
 
-A session starts on its own at the first capture and ends at the first finish.
-There is nothing to open and nothing to save.
+A bundle starts on its own at the first capture. Finishing writes it out but
+does not close it: keep capturing, finish again, and the files are rewritten.
+Only **New bundle** (tray menu or bundle window) ends one and starts the next,
+saving any unwritten changes first. A bundle with no shots is deleted rather
+than left as an empty folder.
+
+New shots go into the most recent group by default. To add to an earlier
+group, open the bundle window and press **Capture here** on that group.
 
 ## Output
 
-Everything lands under `~/QACut/`:
+Everything lands under `~/QACut/`. The folder is named by timestamp; give
+the bundle a name in the bundle window and a slug is appended, so
+`2026-09-17_143022-settings-review`:
 
 ```
-~/QACut/2026-09-17_143022/
+~/QACut/2026-09-17_143022-settings-review/
   bundle.md            everything in reading order, images linked relatively
   manifest.json        the same data, structured
   01-settings-page/
@@ -44,18 +52,22 @@ Everything lands under `~/QACut/`:
     01.png
 ```
 
-`bundle.md` is the agent-facing file. Group headings carry the master note as
-a blockquote, each shot is a heading with its image and its note underneath.
+`bundle.md` is the agent-facing file. It opens with a short note on how to
+read it, then group headings carry the master note as a blockquote, and each
+shot is a heading with its image, its note, and its pixel size underneath.
 Image links are relative to the file, so the folder can be moved or handed to
 a CLI as-is.
 
 ## Handing it off
 
-**CLI.** Finish copies the folder path. Point an agent at it:
+**CLI.** Finish copies the folder path. **Copy agent prompt** in the bundle
+window copies a ready-made instruction with the path filled in:
 
 ```
 claude "Work through the QA bundle at /Users/nick/QACut/2026-09-17_143022.
-Start with bundle.md, then look at each screenshot it references."
+Start with bundle.md: each group is a page or area, its quoted master note
+applies to every screenshot under it, and each screenshot's note says what is
+wrong. Open each screenshot it references before changing anything."
 ```
 
 **Chat.** "Copy markdown" in the bundle window puts the full `bundle.md` text
@@ -125,7 +137,7 @@ remove button fills solid on hover.
 - Output location: `base_dir()` in the same file.
 - Markdown shape: `render_markdown()` in `src-tauri/src/export.rs`. This is
   the function to edit if you want the bundle to match a prompt format you
-  already use.
+  already use. The agent prompt is `agent_prompt()` in `main.rs`.
 
 ## Layout
 
@@ -158,7 +170,8 @@ assets/logo.png         source mark for `tauri icon`
   3. **Hotkey collisions.** A taken shortcut is logged at boot and skipped;
      the rest keep working.
 
-There is one unit test, on directory slugs: `cd src-tauri && cargo test`.
+Unit tests cover slugs, shot numbering, folder renames, group targeting and
+the markdown shape: `cd src-tauri && cargo test`.
 
 ## Known gaps
 

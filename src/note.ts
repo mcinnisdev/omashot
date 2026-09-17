@@ -28,7 +28,9 @@ async function boot() {
 
   const session = await invoke<Session | null>("get_session");
   if (!session) return;
-  const g = session.groups[session.groups.length - 1];
+  const g =
+    session.groups.find((x) => x.index === session.current) ??
+    session.groups[session.groups.length - 1];
   if (!g) return;
 
   const name = g.title.trim() || `Group ${g.index}`;

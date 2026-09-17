@@ -1,4 +1,4 @@
-use crate::model::Session;
+use crate::model::{slug, Session};
 use anyhow::Result;
 use serde::Serialize;
 use std::fmt::Write as _;
@@ -9,25 +9,6 @@ pub struct Export {
     pub markdown: String,
     pub groups: usize,
     pub shots: usize,
-}
-
-/// Turns a title into a directory-safe suffix: "Settings page" -> "settings-page".
-fn slug(title: &str) -> String {
-    let mut out = String::new();
-    let mut last_dash = true;
-    for ch in title.trim().to_lowercase().chars() {
-        if ch.is_ascii_alphanumeric() {
-            out.push(ch);
-            last_dash = false;
-        } else if !last_dash {
-            out.push('-');
-            last_dash = true;
-        }
-        if out.len() >= 40 {
-            break;
-        }
-    }
-    out.trim_matches('-').to_string()
 }
 
 /// Renames group directories to include their titles, then writes
@@ -90,16 +71,22 @@ pub fn write_bundle(session: &mut Session) -> Result<Export> {
 pub fn render_markdown(session: &Session) -> String {
     let mut md = String::new();
 
-    let _ = writeln!(md, "# QA bundle {}", session.id);
+    let _ = writeln!(md, "# QA bundle: {}", session.title());
     let _ = writeln!(md);
     let groups: Vec<_> = session.groups.iter().filter(|g| !g.is_empty()).collect();
     let _ = writeln!(
         md,
-        "{} screenshot{} across {} group{}. Image paths are relative to this file.",
+        "{} screenshot{} across {} group{}, captured {}. Image paths are relative to this file.",
         session.shot_count(),
         if session.shot_count() == 1 { "" } else { "s" },
         groups.len(),
-        if groups.len() == 1 { "" } else { "s" }
+        if groups.len() == 1 { "" } else { "s" },
+        session.started_at.get(..10).unwrap_or(&session.started_at)
+    );
+    let _ = writeln!(md);
+    let _ = writeln!(
+        md,
+        "How to read this: each group is one page or area of the product. The quoted          text under a group heading is the reviewer's note for the whole group. Each          numbered item is a screenshot of one region, followed by the reviewer's note          on what is wrong there. Open the image before acting on the note."
     );
 
     for g in groups {
@@ -131,6 +118,14 @@ pub fn render_markdown(session: &Session) -> String {
             } else {
                 let _ = writeln!(md, "{}", shot.note.trim());
             }
+            let _ = writeln!(md);
+            let _ = writeln!(
+                md,
+                "_{} × {} px, captured {}_",
+                shot.width,
+                shot.height,
+                shot.captured_at.get(11..19).unwrap_or(&shot.captured_at)
+            );
         }
     }
 
@@ -140,12 +135,36 @@ pub fn render_markdown(session: &Session) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::Shot;
 
     #[test]
-    fn slugs_are_directory_safe() {
-        assert_eq!(slug("Settings page"), "settings-page");
-        assert_eq!(slug("  Billing / Invoices!! "), "billing-invoices");
-        assert_eq!(slug(""), "");
-        assert_eq!(slug("---"), "");
+    fn markdown_has_the_agent_facing_shape() {
+        let base = std::env::temp_dir().join(format!(
+            "qacut-test-md-{}",
+            chrono::Local::now().timestamp_micros()
+        ));
+        let mut s = Session::start(&base).unwrap();
+        s.name = "Settings review".into();
+        s.begin_group("Settings page", "Everything on this page").unwrap();
+        s.current().shots.push(Shot {
+            id: "a".into(),
+            file: "01.png".into(),
+            abs_path: String::new(),
+            note: "Save button is clipped".into(),
+            width: 640,
+            height: 200,
+            captured_at: "2026-09-17T14:56:50+00:00".into(),
+        });
+
+        let md = render_markdown(&s);
+        assert!(md.starts_with("# QA bundle: Settings review
+"));
+        assert!(md.contains("How to read this"));
+        assert!(md.contains("## 1. Settings page"));
+        assert!(md.contains("> Everything on this page"));
+        assert!(md.contains("![1.1](01/01.png)"));
+        assert!(md.contains("Save button is clipped"));
+        assert!(md.contains("_640 × 200 px, captured 14:56:50_"));
+        std::fs::remove_dir_all(base).unwrap();
     }
 }

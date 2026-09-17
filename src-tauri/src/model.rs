@@ -1,6 +1,25 @@
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
+/// Turns a title into a directory-safe suffix: "Settings page" -> "settings-page".
+pub fn slug(title: &str) -> String {
+    let mut out = String::new();
+    let mut last_dash = true;
+    for ch in title.trim().to_lowercase().chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch);
+            last_dash = false;
+        } else if !last_dash {
+            out.push('-');
+            last_dash = true;
+        }
+        if out.len() >= 40 {
+            break;
+        }
+    }
+    out.trim_matches('-').to_string()
+}
+
 /// A single captured region plus the note the user typed for it.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Shot {
@@ -54,9 +73,16 @@ impl Group {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Session {
+    /// Timestamp the session started, also the folder name's prefix.
     pub id: String,
+    /// Optional label the user gave the bundle. Appended to the folder name
+    /// as a slug and used as the bundle title.
+    pub name: String,
     pub started_at: String,
     pub root: PathBuf,
+    /// Index of the group new shots go into. Usually the newest, but the
+    /// user can point it back at an earlier group.
+    pub current: usize,
     pub groups: Vec<Group>,
 }
 
@@ -73,14 +99,78 @@ impl Session {
 
         Ok(Session {
             id,
+            name: String::new(),
             started_at: now.to_rfc3339(),
             root,
+            current: 1,
             groups: vec![first],
         })
     }
 
+    /// What the bundle is called in headings: the user's label, else the id.
+    pub fn title(&self) -> String {
+        if self.name.trim().is_empty() {
+            self.id.clone()
+        } else {
+            self.name.trim().to_string()
+        }
+    }
+
+    /// The folder name the session should have for its current label.
+    fn dir_name(&self) -> String {
+        let s = slug(&self.name);
+        if s.is_empty() {
+            self.id.clone()
+        } else {
+            format!("{}-{s}", self.id)
+        }
+    }
+
+    /// Relabels the bundle and renames its folder on disk to match.
+    pub fn rename(&mut self, name: &str) -> std::io::Result<()> {
+        self.name = name.trim().to_string();
+        let desired = self.dir_name();
+        let Some(parent) = self.root.parent().map(Path::to_path_buf) else {
+            return Ok(());
+        };
+        let to = parent.join(&desired);
+        if to == self.root {
+            return Ok(());
+        }
+        std::fs::rename(&self.root, &to)?;
+        self.root = to;
+        for g in &mut self.groups {
+            for shot in &mut g.shots {
+                shot.abs_path = self
+                    .root
+                    .join(&g.dir)
+                    .join(&shot.file)
+                    .to_string_lossy()
+                    .to_string();
+            }
+        }
+        Ok(())
+    }
+
     pub fn current(&mut self) -> &mut Group {
-        self.groups.last_mut().expect("session always has a group")
+        let idx = self.current;
+        let pos = self
+            .groups
+            .iter()
+            .position(|g| g.index == idx)
+            .unwrap_or(self.groups.len() - 1);
+        &mut self.groups[pos]
+    }
+
+    /// Points new captures at an existing group. Returns false if there is
+    /// no such group.
+    pub fn set_current(&mut self, index: usize) -> bool {
+        if self.groups.iter().any(|g| g.index == index) {
+            self.current = index;
+            true
+        } else {
+            false
+        }
     }
 
     pub fn shot_count(&self) -> usize {
@@ -105,15 +195,23 @@ impl Session {
             master_note: master_note.trim().to_string(),
             ..next
         });
+        self.current = index;
         Ok(index)
     }
 
     /// Reserves the next `NN.png` in the current group and returns
-    /// (group index, file name, absolute path).
+    /// (group index, file name, absolute path). Numbers only ever go up, so
+    /// deleting a shot never lets a later one overwrite an existing file.
     pub fn reserve_shot(&mut self) -> (usize, String, PathBuf) {
         let root = self.root.clone();
         let g = self.current();
-        let file = format!("{:02}.png", g.shots.len() + 1);
+        let highest = g
+            .shots
+            .iter()
+            .filter_map(|s| s.file.trim_end_matches(".png").parse::<usize>().ok())
+            .max()
+            .unwrap_or(0);
+        let file = format!("{:02}.png", highest + 1);
         let abs = root.join(&g.dir).join(&file);
         (g.index, file, abs)
     }
@@ -138,5 +236,86 @@ impl Session {
             let shot = g.shots.remove(pos);
             let _ = std::fs::remove_file(&shot.abs_path);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn shot(file: &str, abs: &Path) -> Shot {
+        Shot {
+            id: file.to_string(),
+            file: file.to_string(),
+            abs_path: abs.to_string_lossy().to_string(),
+            note: String::new(),
+            width: 1,
+            height: 1,
+            captured_at: String::new(),
+        }
+    }
+
+    fn temp_base(tag: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "qacut-test-{tag}-{}",
+            chrono::Local::now().timestamp_micros()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn slugs_are_directory_safe() {
+        assert_eq!(slug("Settings page"), "settings-page");
+        assert_eq!(slug("  Billing / Invoices!! "), "billing-invoices");
+        assert_eq!(slug(""), "");
+        assert_eq!(slug("---"), "");
+    }
+
+    #[test]
+    fn shot_numbers_never_reuse_a_file() {
+        let base = temp_base("numbers");
+        let mut s = Session::start(&base).unwrap();
+        for _ in 0..3 {
+            let (_, file, abs) = s.reserve_shot();
+            std::fs::write(&abs, b"png").unwrap();
+            s.current().shots.push(shot(&file, &abs));
+        }
+        s.remove_shot(1, "02.png");
+        let (_, next, _) = s.reserve_shot();
+        assert_eq!(next, "04.png");
+        std::fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn rename_moves_the_folder_and_updates_paths() {
+        let base = temp_base("rename");
+        let mut s = Session::start(&base).unwrap();
+        let (_, file, abs) = s.reserve_shot();
+        std::fs::write(&abs, b"png").unwrap();
+        s.current().shots.push(shot(&file, &abs));
+
+        s.rename("Settings review").unwrap();
+        assert!(s.root.ends_with(format!("{}-settings-review", s.id)));
+        assert!(Path::new(&s.groups[0].shots[0].abs_path).exists());
+
+        // Clearing the label moves it back.
+        s.rename("").unwrap();
+        assert!(s.root.ends_with(&s.id));
+        std::fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn current_group_can_point_backwards() {
+        let base = temp_base("current");
+        let mut s = Session::start(&base).unwrap();
+        s.current().shots.push(shot("01.png", Path::new("")));
+        let second = s.begin_group("Billing", "").unwrap();
+        assert_eq!(second, 2);
+        assert_eq!(s.current().index, 2);
+        assert!(s.set_current(1));
+        assert_eq!(s.reserve_shot().0, 1);
+        assert!(!s.set_current(9));
+        std::fs::remove_dir_all(base).unwrap();
     }
 }

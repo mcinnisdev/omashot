@@ -30,8 +30,10 @@ export interface Group {
 
 export interface Session {
   id: string;
+  name: string;
   started_at: string;
   root: string;
+  current: number;
   groups: Group[];
 }
 
@@ -40,4 +42,10 @@ export interface Export {
   markdown: string;
   groups: number;
   shots: number;
+}
+
+export interface AppState {
+  session: Session | null;
+  last_export: Export | null;
+  dirty: boolean;
 }

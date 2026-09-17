@@ -294,10 +294,40 @@ body.peek {
   color: var(--muted);
 }
 
-.peek-actions {
-  margin-left: auto;
+.peek-head .bundle-name {
+  flex: 1;
+  min-width: 120px;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 2px 0;
+  user-select: text;
+}
+.peek-head .bundle-name::placeholder {
+  color: var(--faint);
+  font-weight: 450;
+}
+.peek-head .bundle-name:hover:not(:disabled) {
+  border-bottom-color: var(--line);
+}
+.peek-head .bundle-name:focus {
+  outline: none;
+  border-bottom-color: var(--signal);
+}
+
+.peek-tools {
   display: flex;
+  align-items: center;
   gap: 7px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--raised);
+}
+.peek-tools .spacer {
+  flex: 1;
 }
 
 .btn {
@@ -383,6 +413,26 @@ body.peek {
 .group-head input:focus {
   outline: none;
   border-bottom-color: var(--signal);
+}
+
+.target {
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 9px;
+  white-space: nowrap;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.target:hover {
+  color: var(--signal);
+  border-color: var(--signal);
+}
+.target.active {
+  color: var(--base);
+  background: var(--signal);
+  border-color: var(--signal);
+  cursor: default;
 }
 
 textarea.master {

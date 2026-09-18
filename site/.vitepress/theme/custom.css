@@ -368,6 +368,36 @@
   opacity: 0.9;
 }
 
+/* Feature chips under a card's visual. */
+.qc-chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0;
+}
+.qc-chips li {
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+  background: var(--vp-c-bg);
+}
+
+/* A second, smaller studio frame inside the Studio card. */
+.qc-stage.mini {
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #12303a, #1e2a4a);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+.qc-stage.mini .cursor,
+.qc-stage.mini .ripple {
+  animation-delay: -3s;
+}
+
 /* ------------------------------------------------------------- split */
 
 .qc-split {
@@ -704,4 +734,14 @@
   .qc-compare td:not(:first-child) {
     width: auto;
   }
+}
+
+.qc-card ul.qc-chips,
+.qc-card ul.qc-chips li {
+  list-style: none;
+  margin: 0;
+}
+.qc-card ul.qc-chips {
+  margin-top: 14px;
+  padding: 0;
 }

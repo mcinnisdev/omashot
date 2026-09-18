@@ -43,6 +43,19 @@ titleTemplate: Screen capture that hands off
 <span class="eyebrow">QACut Studio</span>
 <h3>Polished screen recordings</h3>
 <p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble. Trim, cut, export to MP4.</p>
+<div class="visual qc-stage mini" aria-hidden="true">
+<img class="logo" src="/logo.png" alt="" />
+<div class="title">Add a printer in Windows 11</div>
+<div class="win">
+<div class="bar"><i></i><i></i><i></i></div>
+<div class="side"><b></b><b></b><b></b><b></b><b></b></div>
+<div class="main"><b class="w1"></b><b class="w2"></b><b class="w3"></b><div class="field"></div><span class="btn">Add device</span></div>
+</div>
+<div class="ripple"></div>
+<svg class="cursor" viewBox="0 0 20 20"><path d="M0 0v16l4.2-3.4L7.2 19l3-1.3-2.9-6.3h5.1z" fill="#fff" stroke="rgba(0,0,0,.9)" stroke-width="1.3" stroke-linejoin="round"/></svg>
+<div class="keys">Ctrl+Shift+Z</div>
+<div class="cam"></div>
+</div>
 <div class="visual qc-timeline" aria-label="A studio timeline with zoom blocks, a cut, click and key markers">
 <div class="film"></div>
 <div class="cut" style="left: 44%; width: 9%"></div>
@@ -54,11 +67,14 @@ titleTemplate: Screen capture that hands off
 <div class="handle" style="left: 5%"></div><div class="handle" style="left: 93%"></div>
 <div class="head"></div>
 </div>
+<ul class="qc-chips">
+<li>Follow zoom</li><li>Click ripples</li><li>Key badges</li><li>Camera bubble</li><li>Narration</li><li>Title and logo</li><li>Trim and cut</li><li>MP4 export</li>
+</ul>
 </div>
 <div class="qc-card">
 <span class="eyebrow">QACut</span>
 <h3>Bundles for agents</h3>
-<p>Drag a region, say what's wrong, keep going. Finish, and you have a folder with a markdown file that reads top to bottom, every image linked, the prompt written for you.</p>
+<p>Drag a region, say what's wrong, keep going. Finish, and you have a folder an agent can work from, with the prompt written for you.</p>
 <pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
 <span></span>
 <span class="h">## 1. Settings page</span>
@@ -66,12 +82,10 @@ titleTemplate: Screen capture that hands off
 <span></span>
 <span class="h">### 1.1 Save button</span>
 <span class="l">![1.1](01-settings-page/01.png)</span>
-Clipped at 125% scaling; label wraps.
-<span></span>
-<span class="h">### 1.2</span>
-<span class="l">![1.2](01-settings-page/02.gif)</span>
-Toggle animates but the state never saves.
-<span class="m">Key frames: 0 s start · 3 s click at 412,188 · 9 s end</span></pre>
+Clipped at 125% scaling; label wraps.</pre>
+<ul class="qc-chips">
+<li>Markdown that explains itself</li><li>A still at every click</li><li>Brand kit included</li><li>ZIP for chat</li>
+</ul>
 </div>
 </div>
 </section>

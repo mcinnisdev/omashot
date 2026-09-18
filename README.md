@@ -1,10 +1,23 @@
 # QACut
 
-A tray-resident capture tool for QA passes. Grab a region, type what is wrong,
-keep going. Group the shots as you move between pages, then hand the whole
-bundle to an agent as a folder path or as markdown.
+Capture it, note it, hand it off. Two tools in one tray:
 
-Tauri 2 (Rust backend, vanilla TS frontend). Windows, macOS and Linux.
+- **QACut** grabs screenshots and clips, groups them with notes, and bundles
+  them into a folder an AI agent can work from, as a bug list or as the raw
+  material for a process document.
+- **QACut Studio** records the screen with the cursor as data, then renders a
+  polished walkthrough for people: smoothed cursor, zooms that follow the
+  work, click and keystroke effects, camera bubble, narration, title and
+  logo, exported to MP4.
+
+Free and open source under the [MIT License](LICENSE). Docs at
+[qacut.com](https://qacut.com), written with QACut itself.
+[Download the latest release](https://github.com/mcinnisdev/qacut/releases/latest)
+for Windows 10 (2004+) or 11, x64. The installers are unsigned for now, so
+SmartScreen warns on first run.
+
+Tauri 2 (Rust backend, vanilla TS frontend). The lightweight half runs on
+Windows, macOS and Linux; the Studio's capture is Windows only for now.
 
 ## Hotkeys
 
@@ -280,6 +293,14 @@ remove button fills solid on hover.
   already use. The two agent prompts are in `agent_prompt()` in `main.rs`.
 - Recording rate, width and key-frame interval: the constants at the top of
   the recording section in `src-tauri/src/capture.rs`.
+- The docs site: `site/` is a VitePress site deployed to qacut.com by the
+  `Site` workflow on every push to `main`. Process docs exported from QACut
+  go under `site/docs/` with their images beside them. `cd site && npm
+  install && npm run dev` to preview.
+- Releasing: bump the version in `src-tauri/Cargo.toml`,
+  `src-tauri/tauri.conf.json` and `package.json`; `npm run tauri build`;
+  `gh release create vX.Y.Z` with the two installers from
+  `src-tauri/target/release/bundle/`.
 - Checking the studio compositor against a real recording without opening
   the app: `harness.html` (see the comment at its top) renders click
   moments through the export's frame reader in a headed browser and logs

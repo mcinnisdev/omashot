@@ -1,0 +1,49 @@
+# Getting started
+
+QACut lives in the system tray. There is no window to open first: press a hotkey, drag a region, type a note.
+
+## Install
+
+Download the installer from the [latest release](https://github.com/mcinnisdev/qacut/releases/latest) and run it. Windows 10 (2004 or later) or Windows 11, 64-bit.
+
+The installers are not code-signed yet, so SmartScreen will warn on first run. Choose **More info**, then **Run anyway**.
+
+After install, look for the coral scissors in the tray. Left-click it for the menu.
+
+## Two products, one tray
+
+The menu has two sections.
+
+**QACut** is the lightweight half: screenshots, auto-captured clips, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
+
+**QACut Studio** is the other half: a screen recording meant to be watched by a person, edited into something polished, and exported as a video. Read [Recordings for people](/docs/studio).
+
+Both put their files under `~/QACut/`. Everything is plain files you can open, move or delete.
+
+## Your first bundle
+
+1. Press `Ctrl+Shift+2`. The screen freezes. Drag a region.
+2. Type what is wrong, or what this is, and press `Enter`. Press `Esc` to keep the shot with no note.
+3. Repeat. Press `Ctrl+Shift+G` when you move to a new page or area, and give the group you just finished a master note.
+4. Press `Ctrl+Shift+Enter` to write the bundle. The folder path is on your clipboard and the bundle window opens showing the result.
+
+Point an agent at the folder, or use **Copy agent prompt** in the bundle window for a ready-made instruction.
+
+## Your first Studio recording
+
+1. Press `Ctrl+Shift+3`, drag the region to record, adjust its edges, and press **Record**. A three-second countdown lets you get in place.
+2. Do the thing. Press `Ctrl+Shift+Z` to zoom in where the cursor is, and again to zoom out.
+3. Press `Ctrl+Shift+3` to stop. The studio opens on the recording.
+4. Trim, adjust the zooms, add a title, and press **Export…**.
+
+Turn on the microphone and camera toggles in the tray's Studio section first if you want narration and a camera bubble.
+
+## Where things go
+
+```
+~/QACut/
+  2026-09-17_143022-settings-review/   a bundle
+  Studio/2026-09-18_125833-onedrive/   a studio recording
+  brand/                                your logo, colours and voice notes
+  settings.json                         shortcuts and toggles
+```

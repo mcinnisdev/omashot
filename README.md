@@ -87,7 +87,11 @@ the fact. Keystroke badges default to shortcuts
 only, and any badge can be hidden by clicking its marker on the timeline.
 Trim sets where the video starts and ends (`I` and `O`, or drag the
 handles) and `X` twice cuts a stretch out of the middle; playback skips
-removed material and the timeline shades it. "Open Studio" in the tray
+removed material and the timeline shades it. **Export…** renders every
+kept frame through the same compositor at 720p, 1080p or 1440p and 30 or
+60 fps, encodes H.264 and AAC narration with the browser engine's
+WebCodecs (hardware where available), and writes an MP4 into the
+recording's folder. "Open Studio" in the tray
 lists past recordings. With the tray toggles on, the microphone
 and camera are recorded too, into `camera.webm` beside the source, with a
 live camera preview in a corner of the screen the region does not cover;

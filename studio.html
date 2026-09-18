@@ -13,6 +13,7 @@
         <span class="spacer" data-tauri-drag-region></span>
         <button class="quiet" id="open-list">Recordings</button>
         <button class="quiet" id="open-folder">Open folder</button>
+        <button class="btn primary" id="export-open">Export…</button>
         <button class="icon-btn" id="close" title="Close (Esc)" aria-label="Close">&times;</button>
       </div>
 
@@ -122,6 +123,43 @@
         <div class="tl-track tl-zooms" id="tl-zooms"></div>
         <div class="tl-track tl-marks" id="tl-marks"></div>
         <div class="tl-head" id="tl-head"></div>
+      </div>
+
+      <div class="export-panel" id="export" hidden>
+        <div class="panel-head">
+          <span>Export video</span>
+          <button class="quiet" id="export-close">Close</button>
+        </div>
+        <div class="export-options" id="export-options">
+          <label>Size
+            <select id="export-size">
+              <option value="1920x1080">1080p (1920 × 1080)</option>
+              <option value="1280x720">720p (1280 × 720)</option>
+              <option value="2560x1440">1440p (2560 × 1440)</option>
+            </select>
+          </label>
+          <label>Frame rate
+            <select id="export-fps">
+              <option value="30">30 fps</option>
+              <option value="60">60 fps</option>
+            </select>
+          </label>
+          <p class="hint">H.264 MP4 with your narration as AAC. Trim, cuts, zooms, cursor, keys and the camera bubble are all baked in, exactly as previewed.</p>
+          <button class="btn primary" id="export-start">Export</button>
+        </div>
+        <div class="export-progress" id="export-progress" hidden>
+          <div class="bar"><div class="fill" id="export-fill"></div></div>
+          <div class="status" id="export-status">Starting…</div>
+          <button class="quiet" id="export-cancel">Cancel</button>
+        </div>
+        <div class="export-done" id="export-done" hidden>
+          <div class="status">Saved as</div>
+          <code id="export-path"></code>
+          <div class="row">
+            <button class="btn" id="export-reveal">Show in folder</button>
+            <button class="quiet" id="export-again">Export again</button>
+          </div>
+        </div>
       </div>
 
       <div class="recordings" id="recordings" hidden>

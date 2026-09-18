@@ -58,6 +58,8 @@ struct Inner {
     /// A studio recording whose screen side has stopped; the overlay is
     /// flushing the camera track before the project is finalised.
     studio_finishing: Option<studio::Finishing>,
+    /// An export file being written by the studio, chunk by chunk.
+    export: Option<(std::path::PathBuf, std::fs::File)>,
     /// True when the session has changed since it was last written out, so
     /// "New bundle" knows whether there is anything to save first.
     dirty: bool,
@@ -922,6 +924,62 @@ async fn open_studio(app: AppHandle, dir: Option<String>) -> Result<(), String> 
     overlay::open_studio(&app, dir.as_deref()).map_err(|e| e.to_string())
 }
 
+// ------------------------------------------------------------- export
+//
+// The studio renders and encodes in the webview and streams the MP4 bytes
+// here as they are produced; the muxer may write at earlier offsets to
+// patch headers, so every chunk carries its position.
+
+#[tauri::command]
+fn export_open(state: State<Shared>, dir: String, name: String) -> Result<String, String> {
+    let stem = model::slug(&name);
+    let file_name = format!("{}.mp4", if stem.is_empty() { "export".to_string() } else { stem });
+    let path = std::path::Path::new(&dir).join(file_name);
+    let file = std::fs::File::create(&path).map_err(|e| e.to_string())?;
+    state.lock().unwrap().export = Some((path.clone(), file));
+    Ok(path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn export_write(state: State<Shared>, request: tauri::ipc::Request<'_>) -> Result<(), String> {
+    use std::io::{Seek, SeekFrom, Write as _};
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
+        return Err("expected raw bytes".into());
+    };
+    let offset: u64 = request
+        .headers()
+        .get("x-offset")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.parse().ok())
+        .ok_or("missing x-offset")?;
+    let mut inner = state.lock().unwrap();
+    let (_, file) = inner.export.as_mut().ok_or("no export in progress")?;
+    file.seek(SeekFrom::Start(offset)).map_err(|e| e.to_string())?;
+    file.write_all(bytes).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn export_close(app: AppHandle, state: State<Shared>) -> Result<String, String> {
+    let (path, file) = state.lock().unwrap().export.take().ok_or("no export in progress")?;
+    file.sync_all().map_err(|e| e.to_string())?;
+    drop(file);
+    let _ = app.opener().reveal_item_in_dir(&path);
+    Ok(path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn export_abort(state: State<Shared>) {
+    if let Some((path, file)) = state.lock().unwrap().export.take() {
+        drop(file);
+        let _ = std::fs::remove_file(path);
+    }
+}
+
+#[tauri::command]
+fn reveal_path(app: AppHandle, path: String) -> Result<(), String> {
+    app.opener().reveal_item_in_dir(path).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn get_studio_settings(app: AppHandle) -> studio::settings::Settings {
     studio::settings::Settings::load(&base_dir(&app))
@@ -1463,6 +1521,11 @@ fn main() {
             load_studio_project,
             save_studio_edits,
             open_studio,
+            export_open,
+            export_write,
+            export_close,
+            export_abort,
+            reveal_path,
             get_studio_settings,
             set_studio_settings,
             log_error,

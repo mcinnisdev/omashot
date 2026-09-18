@@ -5,6 +5,7 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { buildTrack, draw, layout, viewAt, type Track } from "./compositor";
+import { exportVideo, type Cancel } from "./export";
 import {
   DEFAULT_ZOOM_SCALE,
   withDefaults,
@@ -650,6 +651,92 @@ async function showRecordings() {
   }
   recordings.hidden = false;
 }
+
+// -------------------------------------------------------------- export
+
+const exportPanel = $<HTMLDivElement>("export");
+const exportOptions = $<HTMLDivElement>("export-options");
+const exportProgress = $<HTMLDivElement>("export-progress");
+const exportDone = $<HTMLDivElement>("export-done");
+let exportCancel: Cancel | null = null;
+let exportedPath = "";
+
+function showExportStage(stage: "options" | "progress" | "done") {
+  exportOptions.hidden = stage !== "options";
+  exportProgress.hidden = stage !== "progress";
+  exportDone.hidden = stage !== "done";
+}
+
+$("export-open").addEventListener("click", () => {
+  if (!project) return;
+  pause();
+  recordings.hidden = true;
+  showExportStage("options");
+  exportPanel.hidden = false;
+});
+$("export-close").addEventListener("click", () => {
+  if (exportCancel) exportCancel.cancelled = true;
+  exportPanel.hidden = true;
+});
+$("export-cancel").addEventListener("click", () => {
+  if (exportCancel) exportCancel.cancelled = true;
+});
+$("export-again").addEventListener("click", () => showExportStage("options"));
+$("export-reveal").addEventListener("click", () => {
+  if (exportedPath) void invoke("reveal_path", { path: exportedPath });
+});
+
+$("export-start").addEventListener("click", async () => {
+  if (!project || !track || !dir) return;
+  const [w, h] = $<HTMLSelectElement>("export-size").value.split("x").map(Number);
+  const fps = Number($<HTMLSelectElement>("export-fps").value);
+  // About 4 Mbit/s per megapixel at 30 fps, half again at 60.
+  const bitrate = Math.round(((w * h) / 1_000_000) * 4_000_000 * (fps === 60 ? 1.5 : 1));
+  const cancel: Cancel = { cancelled: false };
+  exportCancel = cancel;
+  showExportStage("progress");
+  const fill = $<HTMLDivElement>("export-fill");
+  const status = $<HTMLDivElement>("export-status");
+  const started = performance.now();
+  try {
+    const path = await exportVideo(
+      { width: w, height: h, fps, bitrate },
+      project,
+      edits,
+      track,
+      dir,
+      nameInput.value || project.id,
+      src.src,
+      project.camera ? cam.src : null,
+      project.camera?.has_video ? cam : null,
+      (p) => {
+        const f = p.total > 0 ? p.done / p.total : 0;
+        fill.style.width = `${Math.round(f * 100)}%`;
+        const secs = (performance.now() - started) / 1000;
+        const rate = p.done > 0 ? p.done / secs : 0;
+        const left = rate > 0 ? Math.max(0, (p.total - p.done) / rate) : 0;
+        status.textContent =
+          p.phase === "Rendering" && rate > 0
+            ? `${p.phase}: ${p.done} of ${p.total} frames, about ${Math.ceil(left)} s left`
+            : p.phase;
+      },
+      cancel,
+    );
+    exportedPath = path;
+    $<HTMLElement>("export-path").textContent = path;
+    showExportStage("done");
+    toast(`Exported in ${Math.round((performance.now() - started) / 1000)} s`);
+  } catch (e) {
+    const msg = String(e instanceof Error ? e.message : e);
+    toast(msg === "cancelled" ? "Export cancelled" : `Export failed: ${msg}`);
+    showExportStage("options");
+  } finally {
+    exportCancel = null;
+    // The camera element was seeked around during export.
+    syncCamera(true);
+    render();
+  }
+});
 
 // ------------------------------------------------------------- wiring
 

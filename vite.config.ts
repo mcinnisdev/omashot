@@ -19,6 +19,7 @@ export default defineConfig({
         note: resolve(__dirname, "note.html"),
         peek: resolve(__dirname, "peek.html"),
         rec: resolve(__dirname, "rec.html"),
+        edit: resolve(__dirname, "edit.html"),
       },
     },
   },

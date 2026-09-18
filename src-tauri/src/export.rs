@@ -1,4 +1,4 @@
-use crate::model::{slug, Session, ShotKind};
+use crate::model::{sidecars, slug, Session, ShotKind};
 use anyhow::Result;
 use serde::Serialize;
 use std::fmt::Write as _;
@@ -220,8 +220,8 @@ fn normalize_layout(session: &mut Session) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Renames a shot's file, and its key-frame directory if it has one, to
-/// `dest`, then points the shot at it.
+/// Renames a shot's file, its markup sidecars, and its key-frame directory
+/// if it has one, to `dest`, then points the shot at it.
 fn move_shot_files(shot: &mut crate::model::Shot, dest: &Path) -> std::io::Result<()> {
     let cur = PathBuf::from(&shot.abs_path);
     if cur == dest {
@@ -230,6 +230,11 @@ fn move_shot_files(shot: &mut crate::model::Shot, dest: &Path) -> std::io::Resul
     let old_frames = shot.frames_dir();
     if cur.exists() {
         std::fs::rename(&cur, dest)?;
+    }
+    for (from, to) in sidecars(&cur).iter().zip(sidecars(dest).iter()) {
+        if from.exists() {
+            std::fs::rename(from, to)?;
+        }
     }
     shot.abs_path = dest.to_string_lossy().to_string();
     if let (Some(from), Some(to)) = (old_frames, shot.frames_dir()) {
@@ -265,7 +270,9 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
         "on what is wrong there. Open the image before acting on the note. ",
         "A recording is an animated GIF; the key frames listed under it are stills taken ",
         "at the start, at every click or Enter (with where the click landed), and at ",
-        "the end, so each one is an action. Read them in order if you cannot play it.\n"
+        "the end, so each one is an action. Read them in order if you cannot play it. ",
+        "A file ending .orig.png is the unedited original behind an annotated image; ",
+        "use the annotated one.\n"
     ));
 
     if let Some(kit) = brand {

@@ -116,6 +116,19 @@ pub struct Shot {
     pub frames: Vec<KeyFrame>,
 }
 
+/// The two files the markup editor keeps beside an annotated PNG: the
+/// untouched original and the marks as JSON, so edits can be reopened.
+pub fn sidecars(png: &Path) -> [PathBuf; 2] {
+    let stem = png
+        .file_stem()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_default();
+    [
+        png.with_file_name(format!("{stem}.orig.png")),
+        png.with_file_name(format!("{stem}.marks.json")),
+    ]
+}
+
 impl Shot {
     /// The directory a recording's key frames live in, next to the GIF.
     pub fn frames_dir(&self) -> Option<PathBuf> {
@@ -421,10 +434,33 @@ impl Session {
         if let Some(pos) = g.shots.iter().position(|s| s.id == shot_id) {
             let shot = g.shots.remove(pos);
             let _ = std::fs::remove_file(&shot.abs_path);
+            for side in sidecars(Path::new(&shot.abs_path)) {
+                let _ = std::fs::remove_file(side);
+            }
             if let Some(dir) = shot.frames_dir() {
                 let _ = std::fs::remove_dir_all(dir);
             }
         }
+    }
+
+    /// Drops one still from a recording and deletes its files. Returns
+    /// false if there is no such frame.
+    pub fn remove_frame(&mut self, group: usize, shot_id: &str, file: &str) -> bool {
+        let Some(shot) = self.shot_mut(group, shot_id) else { return false };
+        let Some(pos) = shot.frames.iter().position(|f| f.file == file) else {
+            return false;
+        };
+        let frame = shot.frames.remove(pos);
+        let group_dir = Path::new(&shot.abs_path)
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_default();
+        let path = group_dir.join(&frame.file);
+        let _ = std::fs::remove_file(&path);
+        for side in sidecars(&path) {
+            let _ = std::fs::remove_file(side);
+        }
+        true
     }
 }
 

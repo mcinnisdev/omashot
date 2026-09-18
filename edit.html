@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Edit</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="edit">
+    <div class="edit-wrap">
+      <div class="edit-head" data-tauri-drag-region>
+        <span class="edit-title" id="title" data-tauri-drag-region>Edit</span>
+        <div class="tools" id="tools">
+          <button class="tool" data-tool="arrow" title="Arrow (A)">Arrow</button>
+          <button class="tool" data-tool="rect" title="Highlight (H)">Highlight</button>
+          <button class="tool" data-tool="blur" title="Blur (B)">Blur</button>
+          <button class="tool" data-tool="step" title="Step counter (S)">Step</button>
+        </div>
+        <span class="spacer" data-tauri-drag-region></span>
+        <button class="quiet" id="undo" title="Undo (Ctrl+Z)">Undo</button>
+        <button class="quiet" id="clear" title="Remove all marks">Clear</button>
+        <button class="btn" id="cancel" title="Cancel (Esc)">Cancel</button>
+        <button class="btn primary" id="save" title="Save (Enter)">Save</button>
+      </div>
+      <div class="edit-body" id="body">
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="edit-foot">
+        <span><kbd>A</kbd> arrow <kbd>H</kbd> highlight <kbd>B</kbd> blur <kbd>S</kbd> step</span>
+        <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo <kbd>Enter</kbd> save <kbd>Esc</kbd> cancel</span>
+      </div>
+    </div>
+    <script type="module" src="/src/edit.ts"></script>
+  </body>
+</html>

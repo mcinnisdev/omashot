@@ -7,6 +7,7 @@ use tauri::{
 pub const NOTE: &str = "note";
 pub const PEEK: &str = "peek";
 pub const REC: &str = "rec";
+pub const EDIT: &str = "edit";
 
 fn capture_label(monitor_id: &str) -> String {
     format!("capture-{monitor_id}")
@@ -178,4 +179,42 @@ pub fn close_rec_badge(app: &AppHandle) {
     if let Some(w) = app.get_webview_window(REC) {
         let _ = w.close();
     }
+}
+
+/// The markup editor for one PNG. Sized to the image plus its chrome, capped
+/// to something that fits on the screen; the canvas scales down inside.
+pub fn open_editor(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: u32) -> Result<()> {
+    if let Some(w) = app.get_webview_window(EDIT) {
+        let _ = w.close();
+    }
+    let w = (img_w as f64 + 40.0).clamp(560.0, 1400.0);
+    let h = (img_h as f64 + 118.0).clamp(380.0, 900.0);
+    let url = format!(
+        "edit.html?path={}&label={}",
+        urlencode(path),
+        urlencode(label)
+    );
+    let win = WebviewWindowBuilder::new(app, EDIT, WebviewUrl::App(url.into()))
+        .title("QACut edit")
+        .inner_size(w, h)
+        .min_inner_size(480.0, 320.0)
+        .decorations(false)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .focused(true)
+        .build()?;
+    let _ = win.center();
+    let _ = win.set_focus();
+    Ok(())
+}
+
+fn urlencode(s: &str) -> String {
+    let mut out = String::new();
+    for b in s.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => out.push(b as char),
+            _ => out.push_str(&format!("%{b:02X}")),
+        }
+    }
+    out
 }

@@ -872,6 +872,69 @@ textarea.master:focus {
   border-radius: 6px;
 }
 
+.quiet.small {
+  font-size: 11px;
+  padding: 2px 5px;
+  margin-top: 2px;
+}
+
+/* Recording timeline: one cell per still. */
+.frames {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 8px 160px;
+}
+.frame {
+  position: relative;
+  flex: 0 0 auto;
+  width: 120px;
+}
+.frame img {
+  width: 120px;
+  height: 72px;
+  object-fit: cover;
+  object-position: top left;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  cursor: pointer;
+}
+.frame img:hover {
+  border-color: var(--signal);
+}
+.frame-cap {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.frame-cut {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--text);
+  background: rgba(14, 17, 20, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  opacity: 0;
+}
+.frame:hover .frame-cut {
+  opacity: 1;
+}
+.frame-cut:hover {
+  color: var(--base);
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
 .shot-side {
   display: flex;
   flex-direction: column;
@@ -1072,4 +1135,87 @@ body.rec {
 .rec-pill .stop kbd {
   font-size: 10px;
   padding: 0 4px;
+}
+
+/* --------------------------------------------------------- markup editor */
+
+body.edit {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.edit-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--base);
+}
+
+.edit-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--raised);
+}
+.edit-head .spacer {
+  flex: 1;
+  align-self: stretch;
+}
+.edit-title {
+  font-size: 13px;
+  font-weight: 550;
+  margin-right: 8px;
+}
+
+.tools {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.tool {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: 5px;
+}
+.tool:hover {
+  color: var(--text);
+}
+.tool.on {
+  color: var(--base);
+  background: var(--signal);
+}
+
+.edit-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 12px;
+  background:
+    linear-gradient(45deg, var(--sunken) 25%, transparent 25%, transparent 75%, var(--sunken) 75%),
+    linear-gradient(45deg, var(--sunken) 25%, transparent 25%, transparent 75%, var(--sunken) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+.edit-body canvas {
+  border: 1px solid var(--line);
+  cursor: crosshair;
+}
+
+.edit-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 12px;
+  font-size: 11.5px;
+  color: var(--faint);
+  border-top: 1px solid var(--line);
 }

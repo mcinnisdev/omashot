@@ -94,6 +94,22 @@ it, onto a group heading to append it there, or use the arrow buttons. The
 folder is laid out to match on the next finish, so `01.png` is always
 step 1, whatever order things were captured in.
 
+## Markup and the recording timeline
+
+**Edit** under a screenshot opens a small editor with four tools: arrow,
+highlight, blur and step counter (`A`, `H`, `B`, `S`; `Ctrl+Z` undo, `Enter`
+save, `Esc` cancel). Blur is pixelation, which actually removes the text
+rather than softening it. The first save keeps the untouched original as
+`NN.orig.png` and the marks as `NN.marks.json` beside the image, so an edit
+can be reopened and changed rather than painted over. Those files travel
+with the shot and `bundle.md` tells the agent to ignore the originals.
+
+A recording shows its stills as a strip under it, each with its label.
+Click one to edit it (blur a password field, add a step number), or use
+its × to drop it before the bundle goes anywhere, so a bad frame never
+costs an agent tokens. Blur applies to stills only, not to the GIF: if a
+recording shows something sensitive, delete it and re-record.
+
 ## Output
 
 Everything lands under `~/QACut/`. The folder is named by timestamp; give

@@ -23,6 +23,14 @@ const exported = document.getElementById("exported") as HTMLDivElement;
 const exportedLabel = document.getElementById("exported-label") as HTMLElement;
 const exportedPath = document.getElementById("exported-path") as HTMLElement;
 
+function frameLabel(f: { at_ms: number; event: string; x: number | null; y: number | null }) {
+  const secs = Math.round(f.at_ms / 1000);
+  let s = `${secs} s`;
+  if (f.event) s += `, ${f.event}`;
+  if (f.x !== null && f.y !== null) s += ` at ${f.x},${f.y}`;
+  return s;
+}
+
 function clock(ms: number) {
   const s = Math.round(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -40,7 +48,16 @@ async function moveShot(group: number, shot: string, toGroup: number, toIndex: n
   }
 }
 
+// Bumped on every render so edited images are refetched, not served from
+// the webview's cache.
+let stamp = Date.now();
+
+function fileUrl(path: string) {
+  return `${convertFileSrc(path)}?v=${stamp}`;
+}
+
 async function render() {
+  stamp = Date.now();
   // Never yank the DOM out from under someone mid-sentence.
   const active = document.activeElement;
   if (
@@ -199,10 +216,11 @@ async function render() {
       });
 
       const isRec = s.kind === "recording";
+      const label = `${g.index}.${i + 1}`;
       const left = document.createElement("div");
       const img = document.createElement("img");
-      img.src = convertFileSrc(s.abs_path);
-      img.alt = `${isRec ? "Recording" : "Screenshot"} ${g.index}.${i + 1}`;
+      img.src = fileUrl(s.abs_path);
+      img.alt = `${isRec ? "Recording" : "Screenshot"} ${label}`;
       img.addEventListener("click", () =>
         void invoke("open_path", { path: s.abs_path }),
       );
@@ -210,9 +228,20 @@ async function render() {
       const meta = document.createElement("div");
       meta.className = "meta";
       meta.textContent = isRec
-        ? `${g.index}.${i + 1}  ${clock(s.duration_ms)}  ${s.width}x${s.height}`
-        : `${g.index}.${i + 1}  ${s.width}x${s.height}`;
+        ? `${label}  ${clock(s.duration_ms)}  ${s.width}x${s.height}`
+        : `${label}  ${s.width}x${s.height}`;
       left.append(img, meta);
+
+      if (!isRec) {
+        const edit = document.createElement("button");
+        edit.className = "quiet small";
+        edit.textContent = "Edit";
+        edit.title = "Arrows, highlights, blur, step counters";
+        edit.addEventListener("click", () =>
+          void invoke("edit_shot", { path: s.abs_path, label: `Edit ${label}` }),
+        );
+        left.append(edit);
+      }
 
       const middle = document.createElement("div");
       middle.className = "shot-fields";
@@ -271,6 +300,44 @@ async function render() {
       side.append(up, down, del);
       row.append(left, middle, side);
       wrap.append(row);
+
+      // A recording's stills, in order, so a bad one can be cut or a
+      // sensitive one blurred before the bundle goes anywhere.
+      if (isRec && s.frames.length > 0) {
+        const strip = document.createElement("div");
+        strip.className = "frames";
+        const groupDir = `${session.root}/${g.dir}`;
+        s.frames.forEach((f, k) => {
+          const path = `${groupDir}/${f.file}`;
+          const cell = document.createElement("div");
+          cell.className = "frame";
+
+          const thumb = document.createElement("img");
+          thumb.src = fileUrl(path);
+          thumb.alt = `Frame ${k + 1} of ${label}`;
+          thumb.title = frameLabel(f);
+          thumb.addEventListener("click", () =>
+            void invoke("edit_shot", { path, label: `Edit ${label} frame ${k + 1}` }),
+          );
+
+          const cap = document.createElement("div");
+          cap.className = "frame-cap";
+          cap.textContent = frameLabel(f);
+
+          const cut = document.createElement("button");
+          cut.className = "frame-cut";
+          cut.textContent = "\u00d7";
+          cut.title = "Remove this frame";
+          cut.setAttribute("aria-label", `Remove frame ${k + 1} of ${label}`);
+          cut.addEventListener("click", () =>
+            void call("remove_frame", { group: g.index, shot: s.id, file: f.file }),
+          );
+
+          cell.append(thumb, cap, cut);
+          strip.append(cell);
+        });
+        wrap.append(strip);
+      }
     });
 
     body.append(wrap);

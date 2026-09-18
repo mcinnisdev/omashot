@@ -915,6 +915,90 @@ fn move_shot(
     Ok(())
 }
 
+// ------------------------------------------------------------- markup
+
+#[derive(Clone, Serialize)]
+struct Markup {
+    /// The untouched image to draw over: the .orig.png if an edit was saved
+    /// before, else the file itself.
+    original: String,
+    marks: serde_json::Value,
+}
+
+/// Opens the markup editor on a PNG (a shot or a recording's still).
+#[tauri::command]
+async fn edit_shot(app: AppHandle, path: String, label: String) -> Result<(), String> {
+    let (w, h) = image::image_dimensions(&path).map_err(|e| e.to_string())?;
+    overlay::open_editor(&app, &path, &label, w, h).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn load_markup(path: String) -> Result<Markup, String> {
+    let png = std::path::Path::new(&path);
+    if !png.exists() {
+        return Err("that image is gone".into());
+    }
+    let [orig, marks] = model::sidecars(png);
+    let original = if orig.exists() { orig } else { png.to_path_buf() };
+    let marks = std::fs::read_to_string(marks)
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok())
+        .unwrap_or_else(|| serde_json::Value::Array(Vec::new()));
+    Ok(Markup {
+        original: original.to_string_lossy().to_string(),
+        marks,
+    })
+}
+
+/// Writes the annotated PNG over the file, keeping the untouched original
+/// and the marks beside it so the edit can be reopened.
+#[tauri::command]
+async fn save_markup(
+    app: AppHandle,
+    path: String,
+    png_base64: String,
+    marks: String,
+) -> Result<(), String> {
+    use base64::Engine as _;
+    let png = std::path::Path::new(&path);
+    let [orig, marks_path] = model::sidecars(png);
+    if !orig.exists() {
+        std::fs::copy(png, &orig).map_err(|e| e.to_string())?;
+    }
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(png_base64.as_bytes())
+        .map_err(|e| e.to_string())?;
+    std::fs::write(png, bytes).map_err(|e| e.to_string())?;
+    std::fs::write(&marks_path, marks).map_err(|e| e.to_string())?;
+    {
+        let state: State<Shared> = app.state();
+        state.lock().unwrap().dirty = true;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
+/// Drops one still from a recording so a bad frame never reaches the agent.
+#[tauri::command]
+fn remove_frame(
+    app: AppHandle,
+    state: State<Shared>,
+    group: usize,
+    shot: String,
+    file: String,
+) -> Result<(), String> {
+    {
+        let mut inner = state.lock().unwrap();
+        let session = inner.session.as_mut().ok_or("nothing captured yet")?;
+        if !session.remove_frame(group, &shot, &file) {
+            return Err("no such frame".into());
+        }
+        inner.dirty = true;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
 #[tauri::command]
 fn delete_shot(app: AppHandle, state: State<Shared>, group: usize, shot: String) {
     {
@@ -1043,6 +1127,10 @@ fn main() {
             set_group_note,
             delete_shot,
             move_shot,
+            edit_shot,
+            load_markup,
+            save_markup,
+            remove_frame,
             finish,
             copy_text,
             open_path,

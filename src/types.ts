@@ -16,6 +16,9 @@ export type Purpose = "fix" | "document" | "custom";
 export interface KeyFrame {
   file: string;
   at_ms: number;
+  event: string;
+  x: number | null;
+  y: number | null;
 }
 
 export interface Shot {

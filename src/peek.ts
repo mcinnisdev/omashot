@@ -285,13 +285,15 @@ function showExported(result: Export, dirty: boolean) {
   exportedPath.textContent = result.root;
 }
 
-type Action = "path" | "prompt" | "markdown" | "open";
+type Action = "path" | "prompt" | "markdown" | "open" | "zip" | "chatprompt";
 
 const doneText: Record<Action, string> = {
   path: "Folder path copied",
   prompt: "Agent prompt copied",
   markdown: "Markdown copied",
   open: "Folder opened",
+  zip: "ZIP saved beside the bundle and chat prompt copied",
+  chatprompt: "Chat prompt copied",
 };
 
 const toastEl = document.getElementById("toast") as HTMLDivElement;
@@ -427,6 +429,9 @@ const menus: Menu[] = [
       { label: "Copy agent prompt", run: () => run("prompt") },
       { label: "Copy folder path", run: () => run("path") },
       { label: "Copy markdown", run: () => run("markdown") },
+      "-",
+      { label: "Save ZIP for chat", run: () => run("zip") },
+      { label: "Copy chat prompt", run: () => run("chatprompt") },
       "-",
       { label: "Edit custom prompt…", run: () => showPanel(custom, customPrompt) },
       { label: "Brand kit…", run: () => showPanel(brand, brandNotes) },

@@ -105,25 +105,54 @@ fn brand_dir(app: &AppHandle) -> std::path::PathBuf {
 const BRAND_LINE: &str = " The brand/ folder holds the business's brand kit and voice notes; match \
                           them in anything you produce.";
 
+/// Where the prompt is going: a CLI agent that can open the folder, or a
+/// chat agent that only sees an uploaded ZIP.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Target {
+    Cli,
+    Chat,
+}
+
 /// Fills `{root}` and `{name}` in a custom template. A template that never
 /// mentions the folder gets it appended, so the agent can always find it.
-fn fill_custom_prompt(template: &str, root: &str, name: &str) -> String {
-    let mut out = template.trim().replace("{root}", root).replace("{name}", name);
+fn fill_custom_prompt(template: &str, root: &str, name: &str, target: Target) -> String {
+    let location = match target {
+        Target::Cli => root.to_string(),
+        Target::Chat => "the attached ZIP".to_string(),
+    };
+    let mut out = template
+        .trim()
+        .replace("{root}", &location)
+        .replace("{name}", name);
     if !template.contains("{root}") {
         if !out.is_empty() {
             out.push_str("\n\n");
         }
-        out.push_str(&format!("The bundle is at {root}. Start with bundle.md."));
+        out.push_str(&match target {
+            Target::Cli => format!("The bundle is at {root}. Start with bundle.md."),
+            Target::Chat => "The bundle is the attached ZIP. Unzip it and start with bundle.md.".to_string(),
+        });
     }
     out
 }
 
-/// The instruction handed to an agent alongside the folder path.
-fn agent_prompt(root: &str, name: &str, purpose: Purpose, custom: &str, brand: bool) -> String {
+/// The instruction handed to an agent alongside the folder path or ZIP.
+fn agent_prompt(
+    root: &str,
+    name: &str,
+    purpose: Purpose,
+    custom: &str,
+    brand: bool,
+    target: Target,
+) -> String {
+    let opening = |verb: &str| match target {
+        Target::Cli => format!("{verb} the QA bundle at {root}. "),
+        Target::Chat => format!("{verb} the QA bundle in the attached ZIP. Unzip it first. "),
+    };
     let base = match purpose {
-        Purpose::Custom => return fill_custom_prompt(custom, root, name),
+        Purpose::Custom => return fill_custom_prompt(custom, root, name, target),
         Purpose::Fix => [
-            &format!("Work through the QA bundle at {root}. "),
+            &opening("Work through"),
             "Start with bundle.md: each group is a page or area, its quoted master note ",
             "applies to every screenshot under it, and each screenshot's note says what is ",
             "wrong. Open each screenshot, and the key frames of any recording, before ",
@@ -131,7 +160,8 @@ fn agent_prompt(root: &str, name: &str, purpose: Purpose, custom: &str, brand: b
         ]
         .concat(),
         Purpose::Document => [
-            &format!("Using the QA bundle at {root}, write a step-by-step process document "),
+            &opening("Using"),
+            "write a step-by-step process document ",
             "for the workflow it shows. Read bundle.md first: each group is a stage, the ",
             "quoted note under it describes that stage, and each screenshot or recording ",
             "is one step with the reviewer's note saying what is happening. Open every ",
@@ -360,40 +390,60 @@ fn do_open_bundle(app: &AppHandle, path: &str) -> Result<(), String> {
 
 fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
     let state: State<Shared> = app.state();
-    let result = {
+    let mut result = {
         let mut inner = state.lock().unwrap();
         let session = inner
             .session
             .as_mut()
             .ok_or_else(|| "nothing captured yet".to_string())?;
-        let ex = export::write_bundle(session, &brand_dir(app)).map_err(|e| e.to_string())?;
+        let mut ex = export::write_bundle(session, &brand_dir(app)).map_err(|e| e.to_string())?;
+        if action == "zip" {
+            let zp = export::write_zip(session).map_err(|e| e.to_string())?;
+            ex.zip_path = Some(zp.to_string_lossy().to_string());
+        }
         inner.dirty = false;
         inner.last_export = Some(ex.clone());
         ex
     };
 
+    let prompt_for = |target: Target| -> Result<String, String> {
+        let (purpose, name, include_brand) = state
+            .lock()
+            .unwrap()
+            .session
+            .as_ref()
+            .map(|s| (s.purpose, s.title(), s.include_brand))
+            .unwrap_or((Purpose::Fix, String::new(), false));
+        let custom = load_custom_prompt(app);
+        if purpose == Purpose::Custom && custom.trim().is_empty() {
+            return Err("write a custom prompt first".into());
+        }
+        let brand = include_brand && !BrandKit::load(&brand_dir(app)).is_empty();
+        Ok(agent_prompt(&result.root, &name, purpose, &custom, brand, target))
+    };
+
     match action {
+        // Chat hand-off: reveal the archive ready to drag in, and put the
+        // matching prompt on the clipboard.
+        "zip" => {
+            let zp = result.zip_path.clone().unwrap_or_default();
+            let prompt = prompt_for(Target::Chat)?;
+            app.clipboard().write_text(prompt).map_err(|e| e.to_string())?;
+            let _ = app.opener().reveal_item_in_dir(&zp);
+            result.zip_path = Some(zp);
+        }
+        "chatprompt" => {
+            let prompt = prompt_for(Target::Chat)?;
+            app.clipboard().write_text(prompt).map_err(|e| e.to_string())?;
+        }
         "markdown" => {
             app.clipboard()
                 .write_text(result.markdown.clone())
                 .map_err(|e| e.to_string())?;
         }
         "prompt" => {
-            let (purpose, name, include_brand) = state
-                .lock()
-                .unwrap()
-                .session
-                .as_ref()
-                .map(|s| (s.purpose, s.title(), s.include_brand))
-                .unwrap_or((Purpose::Fix, String::new(), false));
-            let custom = load_custom_prompt(app);
-            if purpose == Purpose::Custom && custom.trim().is_empty() {
-                return Err("write a custom prompt first".into());
-            }
-            let brand = include_brand && !BrandKit::load(&brand_dir(app)).is_empty();
-            app.clipboard()
-                .write_text(agent_prompt(&result.root, &name, purpose, &custom, brand))
-                .map_err(|e| e.to_string())?;
+            let prompt = prompt_for(Target::Cli)?;
+            app.clipboard().write_text(prompt).map_err(|e| e.to_string())?;
         }
         "open" => {
             app.opener()
@@ -1097,16 +1147,34 @@ mod tests {
 
     #[test]
     fn custom_prompt_fills_placeholders_and_always_names_the_folder() {
-        let filled = fill_custom_prompt("Review {name} at {root}.", "C:/b", "Sprint 4");
+        let filled = fill_custom_prompt("Review {name} at {root}.", "C:/b", "Sprint 4", Target::Cli);
         assert_eq!(filled, "Review Sprint 4 at C:/b.");
 
-        let appended = fill_custom_prompt("Fix everything you see.", "C:/b", "x");
+        let appended = fill_custom_prompt("Fix everything you see.", "C:/b", "x", Target::Cli);
         assert!(appended.starts_with("Fix everything you see."));
         assert!(appended.ends_with("The bundle is at C:/b. Start with bundle.md."));
 
         assert_eq!(
-            fill_custom_prompt("", "C:/b", "x"),
+            fill_custom_prompt("", "C:/b", "x", Target::Cli),
             "The bundle is at C:/b. Start with bundle.md."
         );
+
+        // For chat the path is never mentioned; the upload is.
+        let chat = fill_custom_prompt("Look at {root}.", "C:/b", "x", Target::Chat);
+        assert_eq!(chat, "Look at the attached ZIP.");
+        let chat = fill_custom_prompt("Go.", "C:/b", "x", Target::Chat);
+        assert!(chat.ends_with("The bundle is the attached ZIP. Unzip it and start with bundle.md."));
+    }
+
+    #[test]
+    fn built_in_prompts_switch_between_folder_and_zip() {
+        let cli = agent_prompt("C:/b", "n", Purpose::Fix, "", false, Target::Cli);
+        assert!(cli.starts_with("Work through the QA bundle at C:/b. "));
+        let chat = agent_prompt("C:/b", "n", Purpose::Fix, "", true, Target::Chat);
+        assert!(chat.starts_with("Work through the QA bundle in the attached ZIP. Unzip it first. "));
+        assert!(!chat.contains("C:/b"));
+        assert!(chat.ends_with("match them in anything you produce."));
+        let doc = agent_prompt("C:/b", "n", Purpose::Document, "", false, Target::Chat);
+        assert!(doc.starts_with("Using the QA bundle in the attached ZIP. Unzip it first. write a step-by-step"));
     }
 }

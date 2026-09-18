@@ -70,6 +70,7 @@ export interface Export {
   markdown: string;
   groups: number;
   shots: number;
+  zip_path: string | null;
 }
 
 export interface AppState {

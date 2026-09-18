@@ -127,8 +127,13 @@ applies to every screenshot under it, and each screenshot's note says what is
 wrong. Open each screenshot it references before changing anything."
 ```
 
-**Chat.** "Copy markdown" in the bundle window puts the full `bundle.md` text
-on the clipboard. Paste it, then drag the PNGs in from the folder.
+**Chat.** Chat agents cannot read your disk, but most take an uploaded ZIP.
+**Hand off > Save ZIP for chat** writes the bundle, zips the whole folder
+(brand kit included) to `<bundle>.zip` beside it, reveals the archive in
+your file manager ready to drag into the chat, and copies a prompt that
+says "the attached ZIP" instead of a path. **Copy chat prompt** copies just
+the prompt. "Copy markdown" is still there for chats that take text only:
+paste `bundle.md`, then drag the PNGs in from the folder.
 
 That second step is a real limitation, not an oversight. No OS clipboard
 carries "markdown plus N images" as a single payload that a chat app will

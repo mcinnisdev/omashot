@@ -62,6 +62,8 @@ pub struct Export {
     pub markdown: String,
     pub groups: usize,
     pub shots: usize,
+    /// Set when the bundle was also zipped; the path of the archive.
+    pub zip_path: Option<String>,
 }
 
 /// Renames group directories to include their titles, copies the brand kit
@@ -133,7 +135,44 @@ pub fn write_bundle(session: &mut Session, brand_src: &Path) -> Result<Export> {
         markdown,
         groups: session.groups.iter().filter(|g| !g.is_empty()).count(),
         shots: session.shot_count(),
+        zip_path: None,
     })
+}
+
+/// Zips the (already written) bundle folder to `<folder>.zip` beside it,
+/// for hand-off to chat agents that only take uploads. Entries are prefixed
+/// with the folder name so unzipping yields one folder, and any earlier
+/// archive is replaced.
+pub fn write_zip(session: &Session) -> Result<PathBuf> {
+    use std::io::Write as _;
+    use zip::write::SimpleFileOptions;
+
+    let root = &session.root;
+    let folder = root
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .ok_or_else(|| anyhow::anyhow!("bundle folder has no name"))?;
+    let parent = root
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("bundle folder has no parent"))?;
+    let zip_path = parent.join(format!("{folder}.zip"));
+
+    let file = std::fs::File::create(&zip_path)?;
+    let mut zip = zip::ZipWriter::new(std::io::BufWriter::new(file));
+    let opts = SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated)
+        .unix_permissions(0o644);
+
+    let mut files = Vec::new();
+    list_files(root, root, &mut files);
+    files.sort();
+    for rel in files {
+        let mut src = std::fs::File::open(root.join(&rel))?;
+        zip.start_file(format!("{folder}/{rel}"), opts)?;
+        std::io::copy(&mut src, &mut zip)?;
+    }
+    zip.finish()?.flush()?;
+    Ok(zip_path)
 }
 
 fn ext_of(file: &str) -> String {
@@ -508,6 +547,51 @@ mod layout_tests {
         let after: Vec<_> = s.groups[0].shots.iter().map(|x| x.abs_path.clone()).collect();
         assert_eq!(before, after);
 
+        std::fs::remove_dir_all(base).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod zip_tests {
+    use super::*;
+
+    #[test]
+    fn zip_holds_the_whole_folder_under_one_directory() {
+        let base = std::env::temp_dir().join(format!(
+            "qacut-test-zip-{}",
+            chrono::Local::now().timestamp_micros()
+        ));
+        std::fs::create_dir_all(&base).unwrap();
+        let mut s = Session::start(&base).unwrap();
+        s.rename("Zipped").unwrap();
+        let (_, file, abs) = s.reserve_shot("png");
+        std::fs::write(&abs, b"png").unwrap();
+        s.current().shots.push(crate::model::Shot {
+            id: "a".into(),
+            file,
+            abs_path: abs.to_string_lossy().to_string(),
+            title: String::new(),
+            note: "n".into(),
+            width: 1,
+            height: 1,
+            captured_at: String::new(),
+            kind: ShotKind::Image,
+            duration_ms: 0,
+            frames: Vec::new(),
+        });
+        write_bundle(&mut s, &base.join("nobrand")).unwrap();
+        let zip_path = write_zip(&s).unwrap();
+        assert!(zip_path.ends_with(format!("{}-zipped.zip", s.id)));
+
+        let mut archive = zip::ZipArchive::new(std::fs::File::open(&zip_path).unwrap()).unwrap();
+        let names: Vec<String> = (0..archive.len())
+            .map(|i| archive.by_index(i).unwrap().name().to_string())
+            .collect();
+        let folder = format!("{}-zipped", s.id);
+        assert!(names.contains(&format!("{folder}/bundle.md")));
+        assert!(names.contains(&format!("{folder}/manifest.json")));
+        assert!(names.contains(&format!("{folder}/01/01.png")));
+        assert!(names.iter().all(|n| n.starts_with(&folder)));
         std::fs::remove_dir_all(base).unwrap();
     }
 }

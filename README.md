@@ -17,6 +17,7 @@ Tauri 2 (Rust backend, vanilla TS frontend). Windows, macOS and Linux.
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
 | `Ctrl/Cmd + Shift + N` | Start a new bundle and open the window to name it and its first group |
 | `Ctrl/Cmd + Shift + 3` | QACut Studio: record a source for the studio; press again to stop |
+| `Ctrl/Cmd + Shift + Z` | During a Studio recording: zoom in here / zoom out (a mark the studio turns into an editable zoom) |
 
 Inside the note box: `Enter` saves, `Shift + Enter` adds a line, `Esc` keeps
 the screenshot with no note. The header reads "Group 1 / Shot 1"; click either
@@ -77,7 +78,12 @@ with `project.json` describing it. When the recording stops, QACut Studio
 opens on it: a composited preview with a padded background, the cursor
 drawn back in and smoothed, click ripples, keystroke badges and the camera
 bubble, playing with narration, and an inspector whose settings are saved
-into `project.json`. "Open Studio" in the tray lists past recordings. With the tray toggles on, the microphone
+into `project.json`. Zoom marks made while recording become blocks on the
+studio's timeline: drag a block to move it, its edges to retime it, the
+preview to change where it looks, and a slider for how close; "Add zoom
+here" makes one after the fact. Keystroke badges default to shortcuts
+only, and any badge can be hidden by clicking its marker on the timeline.
+"Open Studio" in the tray lists past recordings. With the tray toggles on, the microphone
 and camera are recorded too, into `camera.webm` beside the source, with a
 live camera preview in a corner of the screen the region does not cover;
 `project.json` carries the offset between the two tracks. The studio that

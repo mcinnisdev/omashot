@@ -48,6 +48,7 @@ export interface Events {
   buttons: [number, string, string, number, number][];
   keys: KeyOut[];
   windows: [number, string][];
+  zooms?: [number, string, number, number][];
 }
 
 export interface StudioInfo {
@@ -63,24 +64,44 @@ export interface StudioInfo {
 export type Background = "midnight" | "sunset" | "ocean" | "slate" | "plain";
 export type Corner = "br" | "bl" | "tr" | "tl";
 
+export type KeyMode = "shortcuts" | "all";
+
+/// A zoom block: between start and end the view eases in to `scale` times
+/// magnification centred on (cx, cy) in region pixels, and eases back out.
+export interface Zoom {
+  start: number;
+  end: number;
+  cx: number;
+  cy: number;
+  scale: number;
+}
+
 export interface Edits {
   frame: { padding: number; radius: number; background: Background; shadow: boolean };
   cursor: { size: number; smoothing: number; ripple: boolean };
-  keys: { show: boolean };
+  /// `hidden` holds the press times of badges the user removed.
+  keys: { show: boolean; mode: KeyMode; hidden: number[] };
   camera: { show: boolean; size: number; corner: Corner; shape: "circle" | "rounded" };
   trim: { in_ms: number; out_ms: number | null };
-  /// Zoom blocks come in milestone 3; kept here so the format is stable.
-  zooms: { start: number; end: number; cx: number; cy: number; scale: number }[];
+  zooms: Zoom[];
+  /// Set once the recorded zoom marks have been turned into blocks, so a
+  /// deleted block does not come back on the next open.
+  zooms_seeded: boolean;
 }
 
 export const DEFAULT_EDITS: Edits = {
   frame: { padding: 0.06, radius: 14, background: "midnight", shadow: true },
   cursor: { size: 1.6, smoothing: 0.35, ripple: true },
-  keys: { show: true },
+  keys: { show: true, mode: "shortcuts", hidden: [] },
   camera: { show: true, size: 0.22, corner: "br", shape: "circle" },
   trim: { in_ms: 0, out_ms: null },
   zooms: [],
+  zooms_seeded: false,
 };
+
+export const DEFAULT_ZOOM_SCALE = 2;
+/// How long a zoom takes to ease in or out.
+export const ZOOM_EASE_MS = 600;
 
 /// Fills in whatever an older project.json lacks.
 export function withDefaults(e: Partial<Edits> | undefined): Edits {
@@ -92,7 +113,34 @@ export function withDefaults(e: Partial<Edits> | undefined): Edits {
     camera: { ...d.camera, ...(e?.camera ?? {}) },
     trim: { ...d.trim, ...(e?.trim ?? {}) },
     zooms: e?.zooms ?? [],
+    zooms_seeded: e?.zooms_seeded ?? false,
   };
+}
+
+/// Turns the operator's recorded zoom marks into blocks. An unmatched
+/// "start" runs to the end of the recording.
+export function zoomsFromMarks(
+  marks: [number, string, number, number][] | undefined,
+  region: Rect,
+  duration_ms: number,
+): Zoom[] {
+  const out: Zoom[] = [];
+  let open: Zoom | null = null;
+  for (const [t, action, x, y] of marks ?? []) {
+    if (action === "start") {
+      if (open) {
+        open.end = t;
+        out.push(open);
+      }
+      open = { start: t, end: duration_ms, cx: x - region.x, cy: y - region.y, scale: DEFAULT_ZOOM_SCALE };
+    } else if (open) {
+      open.end = Math.max(t, open.start + 200);
+      out.push(open);
+      open = null;
+    }
+  }
+  if (open) out.push(open);
+  return out;
 }
 
 export const BACKGROUNDS: Record<Background, [string, string]> = {

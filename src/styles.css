@@ -1123,6 +1123,9 @@ body.rec {
   animation: none;
   background: var(--muted);
 }
+.rec-pill.zoomed {
+  border-color: var(--signal);
+}
 .rec-pill.arming .label {
   color: var(--muted);
 }
@@ -1407,6 +1410,107 @@ body.studio {
 .transport input[type="range"] {
   flex: 1;
   accent-color: var(--signal);
+}
+
+.inspector .hint {
+  margin: 4px 0 8px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--faint);
+}
+.inspector .hint kbd {
+  font-size: 10px;
+  padding: 0 4px;
+}
+.inspector .btn {
+  margin-top: 4px;
+}
+
+/* Timeline under the transport. */
+.timeline {
+  position: relative;
+  height: 52px;
+  margin: 0 14px 10px;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+}
+.tl-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.tl-zooms {
+  top: 6px;
+  height: 20px;
+}
+.tl-marks {
+  top: 30px;
+  height: 16px;
+}
+.tl-zoom {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(255, 91, 91, 0.25);
+  border: 1px solid rgba(255, 91, 91, 0.7);
+  border-radius: 4px;
+  cursor: grab;
+}
+.tl-zoom.selected {
+  background: rgba(255, 91, 91, 0.45);
+  border-color: var(--signal);
+}
+.tl-zoom .edge {
+  position: absolute;
+  top: 0;
+  width: 7px;
+  height: 100%;
+  cursor: ew-resize;
+}
+.tl-zoom .edge.l {
+  left: -1px;
+}
+.tl-zoom .edge.r {
+  right: -1px;
+}
+.tl-click {
+  position: absolute;
+  top: 10px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--muted);
+  pointer-events: none;
+}
+.tl-key {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 9px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: #ffc400;
+  cursor: pointer;
+}
+.tl-key.hidden-key {
+  background: var(--faint);
+  opacity: 0.5;
+}
+.tl-key:hover {
+  transform: scaleX(2.5);
+}
+.tl-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #fff;
+  pointer-events: none;
 }
 
 .recordings {

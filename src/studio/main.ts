@@ -4,8 +4,17 @@
 // the export.
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { buildTrack, draw, type Track } from "./compositor";
-import { withDefaults, type Edits, type Events, type Project, type StudioInfo } from "./model";
+import { buildTrack, draw, layout, viewAt, type Track } from "./compositor";
+import {
+  DEFAULT_ZOOM_SCALE,
+  withDefaults,
+  zoomsFromMarks,
+  type Edits,
+  type Events,
+  type Project,
+  type StudioInfo,
+  type Zoom,
+} from "./model";
 
 const params = new URLSearchParams(location.search);
 
@@ -25,6 +34,10 @@ const inspector = $<HTMLElement>("inspector");
 const recordings = $<HTMLDivElement>("recordings");
 const recordingsList = $<HTMLDivElement>("recordings-list");
 const toastEl = $<HTMLDivElement>("toast");
+const timeline = $<HTMLDivElement>("timeline");
+const tlZooms = $<HTMLDivElement>("tl-zooms");
+const tlMarks = $<HTMLDivElement>("tl-marks");
+const tlHead = $<HTMLDivElement>("tl-head");
 
 let dir: string | null = null;
 let project: Project | null = null;
@@ -33,6 +46,7 @@ let edits: Edits = withDefaults(undefined);
 let track: Track | null = null;
 let saveTimer = 0;
 let rafPending = false;
+let selectedZoom: Zoom | null = null;
 
 function toast(text: string) {
   toastEl.textContent = text;
@@ -77,6 +91,7 @@ function render() {
   if (document.activeElement !== scrub) {
     scrub.value = String(Math.round((currentMs() / Math.max(1, project.duration_ms)) * 1000));
   }
+  tlHead.style.left = `${(currentMs() / Math.max(1, project.duration_ms)) * 100}%`;
 }
 
 function scheduleRender() {
@@ -156,11 +171,196 @@ function bindInspector() {
   });
   on("ripple", "change", (el) => (edits.cursor.ripple = (el as HTMLInputElement).checked));
   on("show-keys", "change", (el) => (edits.keys.show = (el as HTMLInputElement).checked));
+  on("key-mode", "change", (el) => {
+    edits.keys.mode = el.value as Edits["keys"]["mode"];
+    if (project && events) track = buildTrack(project, events, edits);
+    renderTimeline();
+  });
   on("cam-show", "change", (el) => (edits.camera.show = (el as HTMLInputElement).checked));
   on("cam-size", "input", (el) => (edits.camera.size = Number(el.value)));
   on("cam-corner", "change", (el) => (edits.camera.corner = el.value as Edits["camera"]["corner"]));
   on("cam-shape", "change", (el) => (edits.camera.shape = el.value as Edits["camera"]["shape"]));
 }
+
+// ------------------------------------------------------------ timeline
+
+function pct(ms: number) {
+  return `${(ms / Math.max(1, project?.duration_ms ?? 1)) * 100}%`;
+}
+
+function msAt(clientX: number) {
+  const r = timeline.getBoundingClientRect();
+  const f = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+  return f * (project?.duration_ms ?? 0);
+}
+
+function selectZoom(z: Zoom | null) {
+  selectedZoom = z;
+  $<HTMLElement>("zoom-none").hidden = z !== null;
+  $<HTMLElement>("zoom-edit").hidden = z === null;
+  if (z) $<HTMLInputElement>("zoom-scale").value = String(z.scale);
+  renderTimeline();
+  scheduleRender();
+}
+
+function renderTimeline() {
+  if (!project || !track) return;
+  tlZooms.replaceChildren();
+  tlMarks.replaceChildren();
+
+  for (const z of edits.zooms) {
+    const el = document.createElement("div");
+    el.className = "tl-zoom" + (z === selectedZoom ? " selected" : "");
+    el.style.left = pct(z.start);
+    el.style.width = pct(z.end - z.start);
+    el.title = `Zoom ${z.scale.toFixed(1)}×, ${fmt(z.start)} to ${fmt(z.end)}`;
+    const l = document.createElement("div");
+    l.className = "edge l";
+    const r = document.createElement("div");
+    r.className = "edge r";
+    el.append(l, r);
+
+    // Drag the body to move, an edge to retime; a click selects.
+    const startDrag = (e: MouseEvent, mode: "move" | "l" | "r") => {
+      e.stopPropagation();
+      e.preventDefault();
+      selectZoom(z);
+      const from = { x: e.clientX, start: z.start, end: z.end };
+      const onMove = (m: MouseEvent) => {
+        const dms = msAt(m.clientX) - msAt(from.x);
+        const D = project!.duration_ms;
+        if (mode === "move") {
+          const len = from.end - from.start;
+          z.start = Math.min(Math.max(0, from.start + dms), D - len);
+          z.end = z.start + len;
+        } else if (mode === "l") {
+          z.start = Math.min(Math.max(0, from.start + dms), from.end - 300);
+        } else {
+          z.end = Math.max(Math.min(D, from.end + dms), from.start + 300);
+        }
+        el.style.left = pct(z.start);
+        el.style.width = pct(z.end - z.start);
+        seekMs(mode === "r" ? z.end - 1 : z.start + 1);
+      };
+      const onUp = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        edits.zooms.sort((a, b) => a.start - b.start);
+        saveSoon();
+        renderTimeline();
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    };
+    el.addEventListener("mousedown", (e) => startDrag(e, "move"));
+    l.addEventListener("mousedown", (e) => startDrag(e, "l"));
+    r.addEventListener("mousedown", (e) => startDrag(e, "r"));
+    tlZooms.append(el);
+  }
+
+  for (const c of track.clicks) {
+    const d = document.createElement("div");
+    d.className = "tl-click";
+    d.style.left = pct(c.t);
+    tlMarks.append(d);
+  }
+  const hidden = new Set(edits.keys.hidden);
+  for (const b of track.badges) {
+    const k = document.createElement("div");
+    k.className = "tl-key" + (hidden.has(b.t) ? " hidden-key" : "");
+    k.style.left = pct(b.t);
+    k.title = `${b.text} at ${fmt(b.t)}${hidden.has(b.t) ? " (hidden)" : ""}`;
+    k.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (hidden.has(b.t)) edits.keys.hidden = edits.keys.hidden.filter((t) => t !== b.t);
+      else edits.keys.hidden.push(b.t);
+      seekMs(b.t + 50);
+      saveSoon();
+      renderTimeline();
+    });
+    tlMarks.append(k);
+  }
+}
+
+// Clicking the empty timeline seeks; clicking away deselects a zoom.
+timeline.addEventListener("mousedown", (e) => {
+  if (!project) return;
+  selectZoom(null);
+  const move = (m: MouseEvent) => seekMs(msAt(m.clientX));
+  move(e);
+  const up = () => {
+    window.removeEventListener("mousemove", move);
+    window.removeEventListener("mouseup", up);
+  };
+  window.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", up);
+});
+
+// Drag in the preview while a zoom is selected to move where it looks.
+canvas.addEventListener("mousedown", (e) => {
+  if (!project || !selectedZoom) return;
+  const z = selectedZoom;
+  const t = currentMs();
+  if (t < z.start || t > z.end) seekMs(z.start + Math.min(700, (z.end - z.start) / 2));
+  const rect = canvas.getBoundingClientRect();
+  const L = layout(canvas.width, canvas.height, project, edits);
+  const view = viewAt(edits.zooms, currentMs(), project.region);
+  const perPx = (canvas.width / rect.width) / (L.s * view.scale);
+  let last = { x: e.clientX, y: e.clientY };
+  canvas.style.cursor = "grabbing";
+  const onMove = (m: MouseEvent) => {
+    z.cx = Math.min(Math.max(z.cx - (m.clientX - last.x) * perPx, 0), project!.region.width);
+    z.cy = Math.min(Math.max(z.cy - (m.clientY - last.y) * perPx, 0), project!.region.height);
+    last = { x: m.clientX, y: m.clientY };
+    scheduleRender();
+  };
+  const onUp = () => {
+    canvas.style.cursor = "";
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    saveSoon();
+  };
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+});
+
+$("zoom-add").addEventListener("click", () => {
+  if (!project || !track) return;
+  const t = currentMs();
+  const path = track.path;
+  let cx = project.region.width / 2;
+  let cy = project.region.height / 2;
+  if (path.length > 0) {
+    const p = path.reduce((best, q) => (Math.abs(q.t - t) < Math.abs(best.t - t) ? q : best), path[0]);
+    cx = p.x;
+    cy = p.y;
+  }
+  const z: Zoom = {
+    start: t,
+    end: Math.min(project.duration_ms, t + 3000),
+    cx,
+    cy,
+    scale: DEFAULT_ZOOM_SCALE,
+  };
+  edits.zooms.push(z);
+  edits.zooms.sort((a, b) => a.start - b.start);
+  selectZoom(z);
+  saveSoon();
+});
+$("zoom-remove").addEventListener("click", () => {
+  if (!selectedZoom) return;
+  edits.zooms = edits.zooms.filter((z) => z !== selectedZoom);
+  selectZoom(null);
+  saveSoon();
+});
+$<HTMLInputElement>("zoom-scale").addEventListener("input", (e) => {
+  if (!selectedZoom) return;
+  selectedZoom.scale = Number((e.target as HTMLInputElement).value);
+  renderTimeline();
+  scheduleRender();
+  saveSoon();
+});
 
 function showInspector() {
   $<HTMLInputElement>("padding").value = String(edits.frame.padding);
@@ -171,6 +371,7 @@ function showInspector() {
   $<HTMLInputElement>("smoothing").value = String(edits.cursor.smoothing);
   $<HTMLInputElement>("ripple").checked = edits.cursor.ripple;
   $<HTMLInputElement>("show-keys").checked = edits.keys.show;
+  $<HTMLSelectElement>("key-mode").value = edits.keys.mode;
   $<HTMLInputElement>("cam-show").checked = edits.camera.show;
   $<HTMLInputElement>("cam-size").value = String(edits.camera.size);
   $<HTMLSelectElement>("cam-corner").value = edits.camera.corner;
@@ -210,7 +411,15 @@ async function open(projectDir: string) {
   project = loaded.project;
   events = loaded.events;
   edits = withDefaults(project.edits as Partial<Edits>);
+  // The operator's zoom marks become blocks once; after that the blocks
+  // are theirs to change or delete.
+  if (!edits.zooms_seeded) {
+    edits.zooms = zoomsFromMarks(events.zooms, project.region, project.duration_ms);
+    edits.zooms_seeded = true;
+    saveSoon();
+  }
   track = buildTrack(project, events, edits);
+  selectedZoom = null;
   nameInput.value = project.name;
 
   src.src = convertFileSrc(`${projectDir}/${project.source}`);
@@ -224,6 +433,7 @@ async function open(projectDir: string) {
   inspector.hidden = false;
   recordings.hidden = true;
   showInspector();
+  selectZoom(null);
   await new Promise<void>((resolve) => {
     src.addEventListener("loadeddata", () => resolve(), { once: true });
   });

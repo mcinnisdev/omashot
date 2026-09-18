@@ -7,7 +7,7 @@
 // through fit, padding and (later) zoom. Everything drawn on the frame,
 // cursor and ripples included, goes through that one mapping.
 
-import { BACKGROUNDS, type Edits, type Events, type Project } from "./model";
+import { BACKGROUNDS, ZOOM_EASE_MS, type Edits, type Events, type Project, type Zoom } from "./model";
 
 export interface Frame {
   t: number;
@@ -39,9 +39,36 @@ export function buildTrack(project: Project, events: Events, edits: Edits): Trac
   return {
     path: smooth(raw, clicks, edits.cursor.smoothing),
     clicks,
-    badges: badgesFrom(events.keys),
+    badges: badgesFrom(events.keys, edits.keys.mode),
     shapes: events.shapes.map(([t, name]) => ({ t, name })),
   };
+}
+
+/// QACut's own chords never belong in a walkthrough.
+const OWN_HOTKEYS = new Set([
+  "Ctrl+Shift+2",
+  "Ctrl+Shift+3",
+  "Ctrl+Shift+R",
+  "Ctrl+Shift+Z",
+  "Ctrl+Shift+G",
+  "Ctrl+Shift+Q",
+  "Ctrl+Shift+N",
+  "Ctrl+Shift+Enter",
+]);
+
+const SPECIAL_KEYS = new Set([
+  "Enter", "Esc", "Tab", "Delete", "Insert", "Home", "End", "PageUp", "PageDown", "PrintScreen",
+]);
+
+/// Whether a badge is a shortcut rather than typing: a chord with Ctrl,
+/// Alt or Win, a function key, or a special key.
+function isShortcut(text: string) {
+  const parts = text.split("+");
+  const key = parts[parts.length - 1];
+  const mods = parts.slice(0, -1);
+  if (mods.some((m) => m === "Ctrl" || m === "Alt" || m === "Win")) return true;
+  if (/^F\d{1,2}$/.test(key)) return true;
+  return SPECIAL_KEYS.has(key);
 }
 
 /// Critically damped spring over the raw path at 120 Hz. `amount` 0 is the
@@ -97,7 +124,11 @@ function smooth(
 
 /// Turns key events into badges: each non-modifier press becomes
 /// "Ctrl+Shift+S"; a modifier held alone for a while shows on its own.
-function badgesFrom(keys: { t: number; key: string; down: boolean; mods: string }[]) {
+/// In "shortcuts" mode plain typing is dropped.
+function badgesFrom(
+  keys: { t: number; key: string; down: boolean; mods: string }[],
+  mode: "shortcuts" | "all",
+) {
   const mods = new Set(["Ctrl", "Shift", "Alt", "Win"]);
   const out: { t: number; text: string }[] = [];
   const heldSince = new Map<string, number>();
@@ -118,9 +149,51 @@ function badgesFrom(keys: { t: number; key: string; down: boolean; mods: string 
     const text = k.mods ? `${k.mods}+${k.key}` : k.key;
     // The modifiers that make up this chord are accounted for.
     for (const m of k.mods.split("+")) heldSince.delete(m);
+    if (OWN_HOTKEYS.has(text)) continue;
+    if (mode === "shortcuts" && !isShortcut(text)) continue;
     out.push({ t: k.t, text });
   }
   return out;
+}
+
+// ---------------------------------------------------------------- zoom
+
+export interface View {
+  /// Magnification, 1 when not zoomed.
+  scale: number;
+  /// Top-left of the visible part of the region, in region pixels.
+  vx: number;
+  vy: number;
+}
+
+function smoothstep(f: number) {
+  const x = Math.min(1, Math.max(0, f));
+  return x * x * (3 - 2 * x);
+}
+
+/// The view at time t: the active block eases in over ZOOM_EASE_MS from
+/// its start and out over the same before its end, clamped so the view
+/// never leaves the region.
+export function viewAt(zooms: Zoom[], t: number, region: { width: number; height: number }): View {
+  let scale = 1;
+  let cx = region.width / 2;
+  let cy = region.height / 2;
+  for (const z of zooms) {
+    if (t < z.start || t > z.end) continue;
+    const ease = Math.min(ZOOM_EASE_MS, (z.end - z.start) / 2);
+    const fin = ease > 0 ? (t - z.start) / ease : 1;
+    const fout = ease > 0 ? (z.end - t) / ease : 1;
+    const f = smoothstep(Math.min(fin, fout));
+    scale = 1 + (z.scale - 1) * f;
+    cx = region.width / 2 + (z.cx - region.width / 2) * f;
+    cy = region.height / 2 + (z.cy - region.height / 2) * f;
+    break;
+  }
+  const vw = region.width / scale;
+  const vh = region.height / scale;
+  const vx = Math.min(Math.max(cx - vw / 2, 0), region.width - vw);
+  const vy = Math.min(Math.max(cy - vh / 2, 0), region.height - vh);
+  return { scale, vx, vy };
 }
 
 function at<T extends { t: number }>(arr: T[], t: number): T | null {
@@ -214,15 +287,32 @@ export function draw(
     ctx.restore();
   }
 
-  // The frame: source cropped to the region, clipped to rounded corners.
+  // The frame: the visible part of the region (all of it, or the zoomed
+  // window), clipped to rounded corners.
   ctx.save();
   roundRect(ctx, L.x, L.y, L.w, L.h, radius);
   ctx.clip();
   const r = project.region;
-  ctx.drawImage(frame.source, r.x, r.y, r.width, r.height, L.x, L.y, L.w, L.h);
+  const view = viewAt(edits.zooms, t, r);
+  const k = L.s * view.scale;
+  ctx.drawImage(
+    frame.source,
+    r.x + view.vx,
+    r.y + view.vy,
+    r.width / view.scale,
+    r.height / view.scale,
+    L.x,
+    L.y,
+    L.w,
+    L.h,
+  );
 
-  // Everything on the frame shares the region-to-canvas mapping.
-  const toCanvas = (x: number, y: number) => ({ x: L.x + x * L.s, y: L.y + y * L.s });
+  // Everything on the frame shares the region-to-canvas mapping, zoom
+  // included, so the cursor and ripples scale with the picture.
+  const toCanvas = (x: number, y: number) => ({
+    x: L.x + (x - view.vx) * k,
+    y: L.y + (y - view.vy) * k,
+  });
 
   // Click ripples.
   if (edits.cursor.ripple) {
@@ -231,11 +321,11 @@ export function draw(
       if (age < 0 || age > RIPPLE_MS) continue;
       const f = age / RIPPLE_MS;
       const p = toCanvas(c.x, c.y);
-      const rad = (8 + 34 * f) * L.s * edits.cursor.size;
+      const rad = (8 + 34 * f) * k * edits.cursor.size;
       ctx.beginPath();
       ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * (1 - f)})`;
-      ctx.lineWidth = Math.max(1.5, 3 * L.s);
+      ctx.lineWidth = Math.max(1.5, 3 * k);
       ctx.stroke();
       ctx.fillStyle = `rgba(255, 255, 255, ${0.25 * (1 - f)})`;
       ctx.fill();
@@ -247,14 +337,17 @@ export function draw(
   if (pos) {
     const shape = at(track.shapes, t)?.name ?? "arrow";
     const p = toCanvas(pos.x, pos.y);
-    const size = 22 * L.s * edits.cursor.size;
+    const size = 22 * k * edits.cursor.size;
     drawCursor(ctx, p.x, p.y, size, shape);
   }
   ctx.restore();
 
   // Keystroke badges, bottom centre of the frame, newest on the right.
   if (edits.keys.show) {
-    const live = track.badges.filter((b) => t >= b.t && t - b.t < BADGE_MS).slice(-3);
+    const hidden = new Set(edits.keys.hidden);
+    const live = track.badges
+      .filter((b) => t >= b.t && t - b.t < BADGE_MS && !hidden.has(b.t))
+      .slice(-3);
     if (live.length > 0) {
       const fontPx = Math.max(12, L.h * 0.035);
       ctx.font = `600 ${fontPx}px ${getComputedStyle(document.body).getPropertyValue("--mono") || "monospace"}`;

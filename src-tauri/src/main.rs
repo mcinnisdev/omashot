@@ -32,6 +32,8 @@ const HK_RECORD: &str = "CommandOrControl+Shift+R";
 const HK_NEW: &str = "CommandOrControl+Shift+N";
 /// QACut Studio: record a source for the studio rather than a GIF.
 const HK_STUDIO: &str = "CommandOrControl+Shift+3";
+/// During a studio recording: mark "zoom in here" / "zoom out".
+const HK_ZOOM: &str = "CommandOrControl+Shift+Z";
 
 /// Time between confirming a recording region and the first frame, so the
 /// user can get windows and the mouse into place.
@@ -303,6 +305,18 @@ fn finalize_studio(app: &AppHandle) {
             }
         }
         Err(e) => eprintln!("qacut: studio recording could not be finalised: {e}"),
+    }
+}
+
+/// Zoom mark during a studio recording; ignored otherwise.
+fn trigger_zoom_mark(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let zoomed = {
+        let mut inner = state.lock().unwrap();
+        inner.studio.as_mut().map(|a| a.mark_zoom())
+    };
+    if let Some(on) = zoomed {
+        let _ = app.emit("zoom-changed", on);
     }
 }
 
@@ -1429,6 +1443,8 @@ fn main() {
                         off_main(&app, trigger_new_bundle);
                     } else if matches(HK_STUDIO) {
                         off_main(&app, trigger_studio);
+                    } else if matches(HK_ZOOM) {
+                        off_main(&app, trigger_zoom_mark);
                     }
                 })
                 .build(),
@@ -1487,7 +1503,7 @@ fn main() {
         .setup(|app| {
             let handle = app.handle().clone();
 
-            for spec in [HK_CAPTURE, HK_RECORD, HK_STUDIO, HK_GROUP, HK_PEEK, HK_FINISH, HK_NEW] {
+            for spec in [HK_CAPTURE, HK_RECORD, HK_STUDIO, HK_ZOOM, HK_GROUP, HK_PEEK, HK_FINISH, HK_NEW] {
                 match Shortcut::from_str(spec) {
                     Ok(sc) => {
                         if let Err(e) = handle.global_shortcut().register(sc) {
@@ -1513,6 +1529,7 @@ fn main() {
 
             let head_studio = MenuItem::with_id(app, "h2", "QACut Studio", false, None::<&str>)?;
             let studio_i = MenuItem::with_id(app, "studio", "Studio recording / stop", true, Some(HK_STUDIO))?;
+            let zoom_i = MenuItem::with_id(app, "zoom", "Zoom in here / zoom out (while recording)", true, Some(HK_ZOOM))?;
             let st = studio::settings::Settings::load(&base_dir(&handle));
             let keys_i = CheckMenuItem::with_id(app, "st_keys", "Capture keystrokes", true, st.keystrokes, None::<&str>)?;
             let mic_i = CheckMenuItem::with_id(app, "st_mic", "Record microphone", true, st.mic, None::<&str>)?;
@@ -1530,7 +1547,7 @@ fn main() {
                     &head_qacut, &capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i,
                     &open_i, &folder_i,
                     &sep1,
-                    &head_studio, &studio_i, &open_studio_i, &keys_i, &mic_i, &cam_i, &studio_folder_i,
+                    &head_studio, &studio_i, &zoom_i, &open_studio_i, &keys_i, &mic_i, &cam_i, &studio_folder_i,
                     &sep2,
                     &quit_i,
                 ],
@@ -1550,6 +1567,7 @@ fn main() {
                     "record" => off_main(app, trigger_record),
                     "studio" => off_main(app, trigger_studio),
                     "open_studio" => off_main(app, trigger_open_studio),
+                    "zoom" => off_main(app, trigger_zoom_mark),
                     "st_keys" | "st_mic" | "st_cam" => {
                         // The item toggled itself; persist what it shows.
                         let s = studio::settings::Settings {

@@ -39,6 +39,9 @@ pub fn now_100ns() -> i64 {
     }
 }
 
+/// (t, "start" or "end", cursor x, cursor y) in screen coordinates.
+pub type ZoomMark = (i64, &'static str, i32, i32);
+
 #[derive(Clone, Debug, Serialize)]
 pub struct KeyEvent {
     pub t: i64,
@@ -56,6 +59,9 @@ pub struct Events {
     pub buttons: Vec<(i64, &'static str, &'static str, i32, i32)>,
     pub keys: Vec<KeyEvent>,
     pub windows: Vec<(i64, String)>,
+    /// Zoom marks the operator made with the hotkey: (t, "start" or "end",
+    /// cursor x, cursor y in screen coordinates).
+    pub zooms: Vec<ZoomMark>,
 }
 
 /// The written form: times in milliseconds from the first frame, positions
@@ -69,6 +75,7 @@ pub struct EventsOut {
     pub buttons: Vec<(f64, &'static str, &'static str, i32, i32)>,
     pub keys: Vec<KeyOut>,
     pub windows: Vec<(f64, String)>,
+    pub zooms: Vec<(f64, &'static str, i32, i32)>,
 }
 
 #[derive(Serialize)]
@@ -107,6 +114,11 @@ impl Events {
                 })
                 .collect(),
             windows: self.windows.into_iter().map(|(t, w)| (ms(t), w)).collect(),
+            zooms: self
+                .zooms
+                .into_iter()
+                .map(|(t, a, x, y)| (ms(t), a, x - monitor.x, y - monitor.y))
+                .collect(),
         }
     }
 }
@@ -115,6 +127,8 @@ pub struct EventRecorder {
     stop: Arc<AtomicBool>,
     poll: JoinHandle<Events>,
     hook: Option<hook::HookThread>,
+    zooms: Arc<Mutex<Vec<ZoomMark>>>,
+    zoomed: bool,
 }
 
 impl EventRecorder {
@@ -123,7 +137,23 @@ impl EventRecorder {
         let flag = stop.clone();
         let poll = std::thread::spawn(move || poll_loop(flag));
         let hook = if keystrokes { hook::HookThread::start()? } else { None };
-        Ok(EventRecorder { stop, poll, hook })
+        Ok(EventRecorder {
+            stop,
+            poll,
+            hook,
+            zooms: Arc::new(Mutex::new(Vec::new())),
+            zoomed: false,
+        })
+    }
+
+    /// The zoom hotkey: alternates "zoom in here" and "zoom out", at the
+    /// cursor's position now. Returns whether a zoom is now in progress.
+    pub fn mark_zoom(&mut self) -> bool {
+        let (x, y) = cursor_pos();
+        self.zoomed = !self.zoomed;
+        let action = if self.zoomed { "start" } else { "end" };
+        self.zooms.lock().unwrap().push((now_100ns(), action, x, y));
+        self.zoomed
     }
 
     pub fn stop(self) -> Events {
@@ -132,8 +162,24 @@ impl EventRecorder {
         if let Some(h) = self.hook {
             events.keys = h.stop();
         }
+        events.zooms = std::mem::take(&mut *self.zooms.lock().unwrap());
         events
     }
+}
+
+#[cfg(windows)]
+fn cursor_pos() -> (i32, i32) {
+    let mut p = windows_sys::Win32::Foundation::POINT { x: 0, y: 0 };
+    if unsafe { windows_sys::Win32::UI::WindowsAndMessaging::GetCursorPos(&mut p) } != 0 {
+        (p.x, p.y)
+    } else {
+        (0, 0)
+    }
+}
+
+#[cfg(not(windows))]
+fn cursor_pos() -> (i32, i32) {
+    (0, 0)
 }
 
 #[cfg(windows)]
@@ -422,7 +468,9 @@ mod tests {
         ev.cursor.push((1_000_000, 1930, 210)); // 0.1 s before the first frame
         ev.cursor.push((2_000_000, 1940, 220));
         ev.buttons.push((2_500_000, "left", "down", 1940, 220));
+        ev.zooms.push((3_000_000, "start", 2000, 300));
         let out = ev.relative_to(2_000_000, &Rect { x: 1920, y: 0, width: 1920, height: 1200 });
+        assert_eq!(out.zooms[0], (100.0, "start", 80, 300));
         assert_eq!(out.cursor[0], (-100.0, 10, 210));
         assert_eq!(out.cursor[1], (0.0, 20, 220));
         assert_eq!(out.buttons[0], (50.0, "left", "down", 20, 220));

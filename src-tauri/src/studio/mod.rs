@@ -112,6 +112,11 @@ pub fn begin(
 }
 
 impl Active {
+    /// The zoom hotkey while recording. Returns whether a zoom is now on.
+    pub fn mark_zoom(&mut self) -> bool {
+        self.events.mark_zoom()
+    }
+
     /// Stops both recorders, writes `events.json` and `project.json`, and
     /// returns what is left to do once the overlay has flushed the camera.
     pub fn stop(self) -> Result<Finishing> {

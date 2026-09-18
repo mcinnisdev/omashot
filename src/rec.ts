@@ -77,6 +77,7 @@ function placeCam() {
 
 const opened = Date.now();
 let started: number | null = countdownMs > 0 ? null : opened;
+let zoomed = false;
 
 function fmt(ms: number) {
   const s = Math.floor(ms / 1000);
@@ -93,10 +94,13 @@ function tick() {
     stop.innerHTML = "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> cancels";
   } else {
     pill.classList.remove("arming");
-    label.textContent = "REC";
+    pill.classList.toggle("zoomed", zoomed);
+    label.textContent = zoomed ? "REC · ZOOM" : "REC";
     time.textContent = fmt(Date.now() - started);
     stop.innerHTML = studio
-      ? "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>3</kbd> stops"
+      ? zoomed
+        ? "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> zooms out"
+        : "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> zoom here · <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>3</kbd> stops"
       : "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> stops";
   }
   placePill();
@@ -181,6 +185,11 @@ void listen("recording-started", () => {
 
 void listen("recording-stop", () => {
   void finishMedia();
+});
+
+void listen<boolean>("zoom-changed", (e) => {
+  zoomed = e.payload;
+  tick();
 });
 
 if (studio) void setupMedia();

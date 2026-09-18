@@ -228,6 +228,16 @@ WebCodecs or remux it once. And the key that triggers the stop hotkey is
 not in the events, because the hook is stopped before it delivers, which is
 harmless.
 
+## Status (2026-09-18)
+
+Milestones 1 to 4 are in: source capture with narration and camera, the
+studio preview, zoom blocks (marked live or added after, following the
+cursor or fixed), trim and cuts, keystroke and click effects, title and
+logo, and MP4 export, all verified on real recordings. Configurable
+shortcuts and the two-section tray came along the way. What remains from
+the plan is milestone 5, sequences and title cards, and the polish
+column, which now waits on feedback from use rather than on a plan.
+
 ## Non-goals for v2
 
 Live streaming, cloud upload, collaborative editing, a timeline for audio

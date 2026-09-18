@@ -350,12 +350,111 @@ body.peek {
 }
 
 .peek-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 6px;
+  border-bottom: 1px solid var(--line);
+  background: var(--raised);
+}
+.peek-head .spacer {
+  flex: 1;
+  align-self: stretch;
+}
+
+/* Menu bar: titles in the head, one dropdown at a time beneath. */
+.menubar {
+  display: flex;
+  gap: 2px;
+}
+.menu-title {
+  font-size: 12.5px;
+  color: var(--muted);
+  padding: 5px 9px;
+  border-radius: 5px;
+}
+.menu-title:hover,
+.menu-title.open {
+  color: var(--text);
+  background: var(--sunken);
+}
+.menu-title:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: -2px;
+}
+.menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  z-index: 20;
+  min-width: 230px;
+  padding: 5px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  text-align: left;
+  border-radius: 5px;
+}
+.menu-item:hover {
+  background: var(--sunken);
+}
+.menu-item:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: -2px;
+}
+.menu-keys {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+}
+.menu-sep {
+  height: 1px;
+  margin: 5px 6px;
+  background: var(--line-soft);
+}
+
+/* Title row: the name, and the one primary action. */
+.peek-title {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 13px 16px;
+  padding: 12px 16px 10px;
   border-bottom: 1px solid var(--line);
   background: var(--raised);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  padding: 7px 14px;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--base);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
 
 .peek-head .count {
@@ -397,7 +496,7 @@ body.peek {
   outline-offset: 2px;
 }
 
-.peek-head .bundle-name {
+.peek-title .bundle-name {
   flex: 1;
   min-width: 120px;
   font-size: 15px;
@@ -409,14 +508,14 @@ body.peek {
   padding: 2px 0;
   user-select: text;
 }
-.peek-head .bundle-name::placeholder {
+.peek-title .bundle-name::placeholder {
   color: var(--faint);
   font-weight: 450;
 }
-.peek-head .bundle-name:hover:not(:disabled) {
+.peek-title .bundle-name:hover:not(:disabled) {
   border-bottom-color: var(--line);
 }
-.peek-head .bundle-name:focus {
+.peek-title .bundle-name:focus {
   outline: none;
   border-bottom-color: var(--signal);
 }

@@ -902,6 +902,32 @@ async fn start_group(app: AppHandle) {
     trigger_group(&app);
 }
 
+#[tauri::command]
+async fn start_record(app: AppHandle) {
+    trigger_record(&app);
+}
+
+#[tauri::command]
+fn open_base_folder(app: AppHandle) -> Result<(), String> {
+    let dir = base_dir(&app);
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    app.opener()
+        .open_path(dir.to_string_lossy().to_string(), None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
+/// Same as the tray's Quit: let a running recording finish its file first.
+#[tauri::command]
+async fn quit(app: AppHandle) {
+    let state: State<Shared> = app.state();
+    let rec = state.lock().unwrap().recording.take();
+    if let Some((rec, _, _)) = rec {
+        let _ = rec.stop();
+    }
+    capture::clear_scratch();
+    app.exit(0);
+}
+
 // ------------------------------------------------------------------- boot
 
 fn main() {
@@ -970,6 +996,9 @@ fn main() {
             open_path,
             start_capture,
             start_group,
+            start_record,
+            open_base_folder,
+            quit,
         ])
         .setup(|app| {
             let handle = app.handle().clone();

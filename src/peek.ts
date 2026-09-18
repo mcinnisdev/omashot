@@ -9,11 +9,12 @@ const bundleName = document.getElementById("bundle-name") as HTMLInputElement;
 const purpose = document.getElementById("purpose") as HTMLSelectElement;
 const custom = document.getElementById("custom") as HTMLDivElement;
 const customPrompt = document.getElementById("custom-prompt") as HTMLTextAreaElement;
-const openToggle = document.getElementById("open-toggle") as HTMLButtonElement;
+const menubar = document.getElementById("menubar") as HTMLElement;
 const bundles = document.getElementById("bundles") as HTMLDivElement;
 const bundlesList = document.getElementById("bundles-list") as HTMLDivElement;
-const brandToggle = document.getElementById("brand-toggle") as HTMLButtonElement;
+const bundlesClose = document.getElementById("bundles-close") as HTMLButtonElement;
 const brand = document.getElementById("brand") as HTMLDivElement;
+const brandClose = document.getElementById("brand-close") as HTMLButtonElement;
 const brandInclude = document.getElementById("brand-include") as HTMLInputElement;
 const brandFiles = document.getElementById("brand-files") as HTMLSpanElement;
 const brandOpen = document.getElementById("brand-open") as HTMLButtonElement;
@@ -37,14 +38,6 @@ async function moveShot(group: number, shot: string, toGroup: number, toIndex: n
   } catch (err) {
     console.error(err);
   }
-}
-
-function flash(btn: HTMLButtonElement, text: string) {
-  const original = btn.textContent ?? "";
-  btn.textContent = text;
-  window.setTimeout(() => {
-    btn.textContent = original;
-  }, 1400);
 }
 
 async function render() {
@@ -71,13 +64,8 @@ async function render() {
   brandInclude.checked = session?.include_brand ?? true;
   brandNotes.value = state.brand.notes;
   const n = state.brand.files.length;
-  const hasKit = n > 0 || state.brand.notes.trim() !== "";
   brandFiles.textContent =
     n === 0 ? "no files yet" : `${n} file${n === 1 ? "" : "s"}`;
-  brandToggle.classList.toggle("on", hasKit && brandInclude.checked);
-  brandToggle.title = hasKit
-    ? `${n} file${n === 1 ? "" : "s"} in the brand folder`
-    : "No brand kit yet";
 
   const shots = session?.groups.reduce((n, g) => n + g.shots.length, 0) ?? 0;
   const used = session?.groups.filter((g) => g.shots.length > 0).length ?? 0;
@@ -299,75 +287,57 @@ function showExported(result: Export, dirty: boolean) {
 
 type Action = "path" | "prompt" | "markdown" | "open";
 
-const flashText: Record<Action, string> = {
-  path: "Path copied",
-  prompt: "Prompt copied",
+const doneText: Record<Action, string> = {
+  path: "Folder path copied",
+  prompt: "Agent prompt copied",
   markdown: "Markdown copied",
-  open: "Opened",
+  open: "Folder opened",
 };
 
-// Every action writes the bundle first, so what gets copied or opened is
-// never stale.
-async function run(action: Action, btn: HTMLButtonElement) {
+const toastEl = document.getElementById("toast") as HTMLDivElement;
+let toastTimer = 0;
+
+function toast(text: string) {
+  toastEl.textContent = text;
+  toastEl.hidden = false;
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => {
+    toastEl.hidden = true;
+  }, 1600);
+}
+
+// Every hand-off action writes the bundle first, so what gets copied or
+// opened is never stale.
+async function run(action: Action) {
   try {
     const result = await invoke<Export>("finish", { action });
     showExported(result, false);
-    flash(btn, flashText[action]);
+    toast(doneText[action]);
   } catch (err) {
-    flash(btn, String(err));
+    toast(String(err));
   }
 }
 
-const copyPath = document.getElementById("copy-path") as HTMLButtonElement;
-const copyPrompt = document.getElementById("copy-prompt") as HTMLButtonElement;
-const copyMd = document.getElementById("copy-md") as HTMLButtonElement;
-const openFolder = document.getElementById("open-folder") as HTMLButtonElement;
-const newBundle = document.getElementById("new-bundle") as HTMLButtonElement;
-const close = document.getElementById("close") as HTMLButtonElement;
-
-copyPath.addEventListener("click", () => void run("path", copyPath));
-copyPrompt.addEventListener("click", () => void run("prompt", copyPrompt));
-copyMd.addEventListener("click", () => void run("markdown", copyMd));
-openFolder.addEventListener("click", () => void run("open", openFolder));
-close.addEventListener("click", () => void getCurrentWindow().close());
-
-newBundle.addEventListener("click", async () => {
+async function call(command: string, args?: Record<string, unknown>, done?: string) {
   try {
-    await invoke("new_bundle");
-    flash(newBundle, "Started fresh");
+    await invoke(command, args);
+    if (done) toast(done);
   } catch (err) {
-    flash(newBundle, String(err));
+    toast(String(err));
   }
   await render();
-});
+}
 
-bundleName.addEventListener("change", async () => {
-  try {
-    await invoke("rename_bundle", { name: bundleName.value });
-  } catch (err) {
-    bundleName.title = String(err);
-  }
-  bundleName.blur();
-  await render();
-});
-bundleName.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") bundleName.blur();
-});
+// ------------------------------------------------------------ panels
 
-purpose.addEventListener("change", async () => {
-  await invoke("set_purpose", { purpose: purpose.value });
-  custom.hidden = purpose.value !== "custom";
-  if (!custom.hidden) customPrompt.focus();
-});
+function showPanel(panel: HTMLElement, focus?: HTMLElement) {
+  for (const p of [bundles, brand, custom]) p.hidden = p !== panel;
+  focus?.focus();
+}
 
-customPrompt.addEventListener("change", () => {
-  void invoke("set_custom_prompt", { text: customPrompt.value });
-});
-
-brandToggle.addEventListener("click", () => {
-  brand.hidden = !brand.hidden;
-  if (!brand.hidden) brandNotes.focus();
-});
+function hidePanels() {
+  for (const p of [bundles, brand, custom]) p.hidden = true;
+}
 
 async function showBundles() {
   const list = await invoke<BundleInfo[]>("list_bundles");
@@ -401,23 +371,175 @@ async function showBundles() {
     open.addEventListener("click", async () => {
       try {
         await invoke("open_bundle", { path: b.path });
-        bundles.hidden = true;
+        hidePanels();
         await render();
       } catch (err) {
-        flash(open, String(err));
+        toast(String(err));
       }
     });
 
     row.append(name, meta, open);
     bundlesList.append(row);
   }
-  bundles.hidden = false;
+  showPanel(bundles);
 }
 
-openToggle.addEventListener("click", () => {
-  if (bundles.hidden) void showBundles();
-  else bundles.hidden = true;
+// ------------------------------------------------------------ menu bar
+
+type Item =
+  | "-"
+  | {
+      label: string;
+      keys?: string;
+      run: () => void | Promise<void>;
+    };
+
+interface Menu {
+  title: string;
+  items: () => Item[];
+}
+
+const menus: Menu[] = [
+  {
+    title: "Bundle",
+    items: () => [
+      { label: "New bundle", keys: "Ctrl+Shift+N", run: () => call("new_bundle", undefined, "Started a new bundle") },
+      { label: "Open bundle…", run: showBundles },
+      { label: "Rename bundle", run: () => bundleName.focus() },
+      "-",
+      { label: "Finish and copy path", keys: "Ctrl+Shift+Enter", run: () => run("path") },
+      { label: "Open bundle folder", run: () => run("open") },
+      "-",
+      { label: "Close window", keys: "Esc", run: () => getCurrentWindow().close() },
+    ],
+  },
+  {
+    title: "Capture",
+    items: () => [
+      { label: "Capture region", keys: "Ctrl+Shift+2", run: () => call("start_capture") },
+      { label: "Record region", keys: "Ctrl+Shift+R", run: () => call("start_record") },
+      { label: "Wrap up group", keys: "Ctrl+Shift+G", run: () => call("start_group") },
+    ],
+  },
+  {
+    title: "Hand off",
+    items: () => [
+      { label: "Copy agent prompt", run: () => run("prompt") },
+      { label: "Copy folder path", run: () => run("path") },
+      { label: "Copy markdown", run: () => run("markdown") },
+      "-",
+      { label: "Edit custom prompt…", run: () => showPanel(custom, customPrompt) },
+      { label: "Brand kit…", run: () => showPanel(brand, brandNotes) },
+    ],
+  },
+  {
+    title: "Help",
+    items: () => [
+      { label: "Show bundle window", keys: "Ctrl+Shift+Q", run: () => toast("You are looking at it") },
+      { label: "Open QACut folder", run: () => call("open_base_folder") },
+      "-",
+      { label: "Quit QACut", run: () => call("quit") },
+    ],
+  },
+];
+
+let openMenu: HTMLElement | null = null;
+
+function closeMenu() {
+  openMenu?.remove();
+  openMenu = null;
+  menubar.querySelectorAll(".open").forEach((el) => el.classList.remove("open"));
+}
+
+function openMenuFor(button: HTMLButtonElement, menu: Menu) {
+  closeMenu();
+  button.classList.add("open");
+  const list = document.createElement("div");
+  list.className = "menu";
+  list.setAttribute("role", "menu");
+  for (const item of menu.items()) {
+    if (item === "-") {
+      const sep = document.createElement("div");
+      sep.className = "menu-sep";
+      list.append(sep);
+      continue;
+    }
+    const row = document.createElement("button");
+    row.className = "menu-item";
+    row.setAttribute("role", "menuitem");
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    row.append(label);
+    if (item.keys) {
+      const keys = document.createElement("span");
+      keys.className = "menu-keys";
+      keys.textContent = item.keys;
+      row.append(keys);
+    }
+    row.addEventListener("click", () => {
+      closeMenu();
+      void item.run();
+    });
+    list.append(row);
+  }
+  list.style.left = `${button.offsetLeft}px`;
+  menubar.append(list);
+  openMenu = list;
+}
+
+for (const menu of menus) {
+  const button = document.createElement("button");
+  button.className = "menu-title";
+  button.textContent = menu.title;
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (button.classList.contains("open")) closeMenu();
+    else openMenuFor(button, menu);
+  });
+  // Sliding across titles while one is open switches menus.
+  button.addEventListener("mouseenter", () => {
+    if (openMenu && !button.classList.contains("open")) openMenuFor(button, menu);
+  });
+  menubar.append(button);
+}
+
+document.addEventListener("click", (e) => {
+  if (openMenu && !menubar.contains(e.target as Node)) closeMenu();
 });
+
+// ------------------------------------------------------------ controls
+
+const copyPrompt = document.getElementById("copy-prompt") as HTMLButtonElement;
+const close = document.getElementById("close") as HTMLButtonElement;
+
+copyPrompt.addEventListener("click", () => void run("prompt"));
+close.addEventListener("click", () => void getCurrentWindow().close());
+bundlesClose.addEventListener("click", hidePanels);
+brandClose.addEventListener("click", hidePanels);
+
+bundleName.addEventListener("change", async () => {
+  try {
+    await invoke("rename_bundle", { name: bundleName.value });
+  } catch (err) {
+    toast(String(err));
+  }
+  bundleName.blur();
+  await render();
+});
+bundleName.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") bundleName.blur();
+});
+
+purpose.addEventListener("change", async () => {
+  await invoke("set_purpose", { purpose: purpose.value });
+  if (purpose.value === "custom") showPanel(custom, customPrompt);
+  else custom.hidden = true;
+});
+
+customPrompt.addEventListener("change", () => {
+  void invoke("set_custom_prompt", { text: customPrompt.value });
+});
+
 brandInclude.addEventListener("change", () => {
   void invoke("set_include_brand", { include: brandInclude.checked });
 });
@@ -428,7 +550,16 @@ brandNotes.addEventListener("change", async () => {
 });
 
 window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") void getCurrentWindow().close();
+  if (e.key !== "Escape") return;
+  if (openMenu) {
+    closeMenu();
+    return;
+  }
+  if (!bundles.hidden || !brand.hidden) {
+    hidePanels();
+    return;
+  }
+  void getCurrentWindow().close();
 });
 
 void listen("session-changed", () => void render());

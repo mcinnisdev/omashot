@@ -7,27 +7,23 @@
   </head>
   <body class="peek">
     <div class="peek-wrap">
-      <!-- Row one is the bundle itself: what it is called, what is in it,
-           and the two things that change its setup. -->
+      <!-- Menu bar. Every command lives here with its shortcut; the rows
+           below carry only the bundle's name and the one primary action. -->
       <div class="peek-head" data-tauri-drag-region>
+        <nav class="menubar" id="menubar" aria-label="Bundle menu"></nav>
+        <span class="spacer" data-tauri-drag-region></span>
+        <span class="count" id="count" data-tauri-drag-region></span>
+        <button class="icon-btn" id="close" title="Close (Esc)" aria-label="Close">
+          &times;
+        </button>
+      </div>
+      <div class="peek-title">
         <input
           class="bundle-name"
           id="bundle-name"
           placeholder="Name this bundle"
           aria-label="Bundle name"
         />
-        <span class="count" id="count" data-tauri-drag-region></span>
-        <button class="btn ghost" id="open-toggle">Open</button>
-        <button class="btn ghost" id="brand-toggle">Brand kit</button>
-        <button class="btn ghost" id="new-bundle">New bundle</button>
-        <button class="icon-btn" id="close" title="Close (Esc)" aria-label="Close">
-          &times;
-        </button>
-      </div>
-      <!-- Row two is the hand-off: one primary action with its purpose
-           attached, and the quieter ways to get at the same files. -->
-      <div class="peek-tools">
-        <span class="tools-label">Hand off</span>
         <div class="segmented">
           <select id="purpose" aria-label="What this bundle is for">
             <option value="fix">Fix issues</option>
@@ -36,12 +32,12 @@
           </select>
           <button class="btn primary" id="copy-prompt">Copy agent prompt</button>
         </div>
-        <span class="tools-sep"></span>
-        <button class="quiet" id="copy-path">Copy path</button>
-        <button class="quiet" id="copy-md">Copy markdown</button>
-        <button class="quiet" id="open-folder">Open folder</button>
       </div>
       <div class="bundles" id="bundles" hidden>
+        <div class="panel-head">
+          <span>Open a bundle</span>
+          <button class="quiet" id="bundles-close">Close</button>
+        </div>
         <div class="bundles-list" id="bundles-list"></div>
       </div>
       <div class="brand" id="brand" hidden>
@@ -52,6 +48,7 @@
           </label>
           <span class="brand-files" id="brand-files"></span>
           <button class="btn" id="brand-open">Open brand folder</button>
+          <button class="quiet" id="brand-close">Close</button>
         </div>
         <textarea
           id="brand-notes"
@@ -69,14 +66,7 @@
         <code id="exported-path"></code>
       </div>
       <div class="peek-body" id="body"></div>
-      <div class="peek-foot">
-        <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>2</kbd> capture</span>
-        <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> record / stop</span>
-        <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> new group</span>
-        <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> show bundle</span>
-        <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd> finish</span>
-        <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> new bundle</span>
-      </div>
+      <div class="toast" id="toast" hidden></div>
     </div>
     <script type="module" src="/src/peek.ts"></script>
   </body>

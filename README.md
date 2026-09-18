@@ -71,7 +71,11 @@ Only **New bundle** (hotkey, tray menu or bundle window) ends one and starts
 the next, saving any unwritten changes first. A bundle with no shots is
 deleted rather than left as an empty folder.
 
-To go back to an earlier bundle, **Open** in the bundle window (or "Open
+The bundle window has a menu bar (Bundle, Capture, Hand off, Help) that
+holds every command with its shortcut; the only always-visible control is
+the purpose selector with **Copy agent prompt**.
+
+To go back to an earlier bundle, **Bundle > Open bundle...** (or "Open
 bundle..." in the tray) lists everything under `~/QACut/`, newest first.
 Opening one puts the current bundle away the same way New bundle does, then
 reloads the chosen one from its `manifest.json`, so you can add shots,

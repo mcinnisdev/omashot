@@ -3,10 +3,12 @@ import type { Frame } from "./types";
 
 const params = new URLSearchParams(location.search);
 const monitor = params.get("m") ?? "0";
-// "shot" crops the frozen frame the moment the drag ends. "record" lets the
-// selection be adjusted first, then starts recording the live region after
-// a countdown.
-const recording = params.get("mode") === "record";
+// "shot" crops the frozen frame the moment the drag ends. "record" and
+// "studio" let the selection be adjusted first, then start recording the
+// live region after a countdown: "record" makes v1's GIF and stills,
+// "studio" makes a v2 source for the studio.
+const mode = params.get("mode") ?? "shot";
+const recording = mode === "record" || mode === "studio";
 
 const frameEl = document.getElementById("frame") as HTMLImageElement;
 const scrim = document.getElementById("scrim") as HTMLDivElement;
@@ -37,7 +39,10 @@ let sent = false;
 
 const HINTS = {
   shot: "<b>Drag</b> to select the region <kbd>Esc</kbd> cancel",
-  record: "<b>Drag</b> the region to record <kbd>Esc</kbd> cancel",
+  record:
+    mode === "studio"
+      ? "<b>Drag</b> the region to record for people <kbd>Esc</kbd> cancel"
+      : "<b>Drag</b> the region to record <kbd>Esc</kbd> cancel",
   adjust:
     "<b>Drag</b> the box or its edges to adjust <kbd>Enter</kbd> record <kbd>Esc</kbd> cancel",
 };
@@ -122,7 +127,9 @@ async function send(r: Rect) {
   if (sent) return;
   sent = true;
   try {
-    await invoke(recording ? "start_recording" : "commit_selection", {
+    const command =
+      mode === "studio" ? "start_studio" : recording ? "start_recording" : "commit_selection";
+    await invoke(command, {
       monitor,
       x: r.x,
       y: r.y,

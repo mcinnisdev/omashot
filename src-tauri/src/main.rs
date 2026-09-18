@@ -5,6 +5,7 @@ mod export;
 mod model;
 mod mp4;
 mod overlay;
+mod studio;
 
 use capture::Frame;
 use export::{BrandKit, Export};
@@ -14,7 +15,7 @@ use serde::Serialize;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use tauri::menu::{Menu, MenuItem};
+use tauri::menu::{CheckMenuItem, Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_clipboard_manager::ClipboardExt;
@@ -29,6 +30,8 @@ const HK_PEEK: &str = "CommandOrControl+Shift+Q";
 const HK_FINISH: &str = "CommandOrControl+Shift+Enter";
 const HK_RECORD: &str = "CommandOrControl+Shift+R";
 const HK_NEW: &str = "CommandOrControl+Shift+N";
+/// v2: record a source for the studio ("for people") rather than a GIF.
+const HK_STUDIO: &str = "CommandOrControl+Shift+3";
 
 /// Time between confirming a recording region and the first frame, so the
 /// user can get windows and the mouse into place.
@@ -48,6 +51,8 @@ struct Inner {
     recording: Option<(capture::Recording, usize, String)>,
     /// Set while the pre-recording countdown runs; storing true cancels it.
     countdown: Option<Arc<AtomicBool>>,
+    /// A studio recording in progress.
+    studio: Option<studio::Active>,
     /// True when the session has changed since it was last written out, so
     /// "New bundle" knows whether there is anything to save first.
     dirty: bool,
@@ -237,6 +242,39 @@ fn trigger_record(app: &AppHandle) {
     }
 }
 
+/// Toggles a studio recording: opens the overlay, cancels a countdown, or
+/// stops the recording that is running.
+fn trigger_studio(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let (countdown, active) = {
+        let inner = state.lock().unwrap();
+        (inner.countdown.clone(), inner.studio.is_some())
+    };
+    if let Some(flag) = countdown {
+        flag.store(true, Ordering::SeqCst);
+    } else if active {
+        finish_studio(app);
+    } else {
+        open_overlay(app, "studio");
+    }
+}
+
+/// Stops the studio recording, writes the project, and shows the folder.
+fn finish_studio(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let Some(active) = state.lock().unwrap().studio.take() else {
+        return;
+    };
+    overlay::close_rec_badge(app);
+    match active.stop() {
+        Ok(dir) => {
+            eprintln!("qacut: studio recording saved to {}", dir.display());
+            let _ = app.opener().reveal_item_in_dir(dir.join("source.mp4"));
+        }
+        Err(e) => eprintln!("qacut: studio recording failed: {e}"),
+    }
+}
+
 /// Freezes every monitor and opens the selection overlay in `mode`.
 fn open_overlay(app: &AppHandle, mode: &str) {
     let state: State<Shared> = app.state();
@@ -245,7 +283,11 @@ fn open_overlay(app: &AppHandle, mode: &str) {
     // start a still capture while a recording is running.
     {
         let mut inner = state.lock().unwrap();
-        if inner.capturing || !inner.frames.is_empty() || inner.recording.is_some() {
+        if inner.capturing
+            || !inner.frames.is_empty()
+            || inner.recording.is_some()
+            || inner.studio.is_some()
+        {
             return;
         }
         inner.capturing = true;
@@ -671,6 +713,87 @@ async fn start_recording(
 #[tauri::command]
 async fn stop_recording(app: AppHandle) {
     finish_recording(&app);
+}
+
+/// The overlay, in studio mode, hands over the region. Same countdown as a
+/// GIF recording, then the studio capture and event recorders start.
+#[tauri::command]
+async fn start_studio(
+    app: AppHandle,
+    state: State<'_, Shared>,
+    monitor: String,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+) -> Result<(), String> {
+    overlay::close_capture(&app);
+
+    let (frame, cancel) = {
+        let mut inner = state.lock().unwrap();
+        if inner.recording.is_some() || inner.studio.is_some() || inner.countdown.is_some() {
+            return Err("already recording".into());
+        }
+        let frame = inner
+            .frames
+            .iter()
+            .find(|(f, _)| f.monitor_id == monitor)
+            .map(|(f, _)| f.clone())
+            .ok_or_else(|| "that monitor is no longer frozen".to_string())?;
+        inner.frames.clear();
+        let cancel = Arc::new(AtomicBool::new(false));
+        inner.countdown = Some(cancel.clone());
+        (frame, cancel)
+    };
+    capture::clear_scratch();
+
+    if let Err(e) =
+        overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS)
+    {
+        eprintln!("qacut: could not show recording overlay: {e}");
+    }
+
+    let started = std::time::Instant::now();
+    while started.elapsed().as_millis() < RECORD_COUNTDOWN_MS as u128 {
+        if cancel.load(Ordering::SeqCst) {
+            state.lock().unwrap().countdown = None;
+            overlay::close_rec_badge(&app);
+            return Ok(());
+        }
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+
+    let settings = studio::settings::Settings::load(&base_dir(&app));
+    let active = studio::begin(&base_dir(&app), &frame, x, y, width, height, settings.keystrokes);
+    {
+        let mut inner = state.lock().unwrap();
+        inner.countdown = None;
+        match active {
+            Ok(a) => inner.studio = Some(a),
+            Err(e) => {
+                overlay::close_rec_badge(&app);
+                eprintln!("qacut: studio recording could not start: {e}");
+                return Err(e.to_string());
+            }
+        }
+    }
+    let _ = app.emit("recording-started", ());
+    Ok(())
+}
+
+#[tauri::command]
+async fn start_studio_from_menu(app: AppHandle) {
+    trigger_studio(&app);
+}
+
+#[tauri::command]
+fn get_studio_settings(app: AppHandle) -> studio::settings::Settings {
+    studio::settings::Settings::load(&base_dir(&app))
+}
+
+#[tauri::command]
+fn set_studio_settings(app: AppHandle, settings: studio::settings::Settings) -> Result<(), String> {
+    settings.save(&base_dir(&app)).map_err(|e| e.to_string())
 }
 
 /// Lets a window that is about to close report why something failed.
@@ -1133,9 +1256,15 @@ fn open_base_folder(app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 async fn quit(app: AppHandle) {
     let state: State<Shared> = app.state();
-    let rec = state.lock().unwrap().recording.take();
+    let (rec, st) = {
+        let mut inner = state.lock().unwrap();
+        (inner.recording.take(), inner.studio.take())
+    };
     if let Some((rec, _, _)) = rec {
         let _ = rec.stop();
+    }
+    if let Some(active) = st {
+        let _ = active.stop();
     }
     capture::clear_scratch();
     app.exit(0);
@@ -1174,6 +1303,8 @@ fn main() {
                         off_main(&app, trigger_record);
                     } else if matches(HK_NEW) {
                         off_main(&app, trigger_new_bundle);
+                    } else if matches(HK_STUDIO) {
+                        off_main(&app, trigger_studio);
                     }
                 })
                 .build(),
@@ -1183,6 +1314,10 @@ fn main() {
             commit_selection,
             start_recording,
             stop_recording,
+            start_studio,
+            start_studio_from_menu,
+            get_studio_settings,
+            set_studio_settings,
             log_error,
             cancel_capture,
             save_note,
@@ -1221,7 +1356,7 @@ fn main() {
         .setup(|app| {
             let handle = app.handle().clone();
 
-            for spec in [HK_CAPTURE, HK_RECORD, HK_GROUP, HK_PEEK, HK_FINISH, HK_NEW] {
+            for spec in [HK_CAPTURE, HK_RECORD, HK_STUDIO, HK_GROUP, HK_PEEK, HK_FINISH, HK_NEW] {
                 match Shortcut::from_str(spec) {
                     Ok(sc) => {
                         if let Err(e) = handle.global_shortcut().register(sc) {
@@ -1234,6 +1369,12 @@ fn main() {
 
             let capture_i = MenuItem::with_id(app, "capture", "Capture region", true, Some(HK_CAPTURE))?;
             let record_i = MenuItem::with_id(app, "record", "Record region / stop", true, Some(HK_RECORD))?;
+            let studio_i = MenuItem::with_id(app, "studio", "Record for people / stop", true, Some(HK_STUDIO))?;
+            let st = studio::settings::Settings::load(&base_dir(&handle));
+            let keys_i = CheckMenuItem::with_id(app, "st_keys", "Studio: capture keystrokes", true, st.keystrokes, None::<&str>)?;
+            let mic_i = CheckMenuItem::with_id(app, "st_mic", "Studio: record microphone", true, st.mic, None::<&str>)?;
+            let cam_i = CheckMenuItem::with_id(app, "st_cam", "Studio: record camera", true, st.camera, None::<&str>)?;
+            let toggles = (keys_i.clone(), mic_i.clone(), cam_i.clone());
             let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, Some(HK_GROUP))?;
             let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, Some(HK_PEEK))?;
             let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, Some(HK_FINISH))?;
@@ -1244,8 +1385,8 @@ fn main() {
             let menu = Menu::with_items(
                 app,
                 &[
-                    &capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i, &open_i,
-                    &folder_i, &quit_i,
+                    &capture_i, &record_i, &studio_i, &group_i, &peek_i, &finish_i, &new_i,
+                    &open_i, &folder_i, &keys_i, &mic_i, &cam_i, &quit_i,
                 ],
             )?;
 
@@ -1258,9 +1399,21 @@ fn main() {
                 .tooltip("QACut")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
-                .on_menu_event(|app, event| match event.id().as_ref() {
+                .on_menu_event(move |app, event| match event.id().as_ref() {
                     "capture" => off_main(app, trigger_capture),
                     "record" => off_main(app, trigger_record),
+                    "studio" => off_main(app, trigger_studio),
+                    "st_keys" | "st_mic" | "st_cam" => {
+                        // The item toggled itself; persist what it shows.
+                        let s = studio::settings::Settings {
+                            keystrokes: toggles.0.is_checked().unwrap_or(false),
+                            mic: toggles.1.is_checked().unwrap_or(false),
+                            camera: toggles.2.is_checked().unwrap_or(false),
+                        };
+                        if let Err(e) = s.save(&base_dir(app)) {
+                            eprintln!("qacut: could not save settings: {e}");
+                        }
+                    }
                     "group" => off_main(app, trigger_group),
                     "peek" => off_main(app, trigger_peek),
                     "finish" => off_main(app, trigger_finish),
@@ -1274,9 +1427,15 @@ fn main() {
                     "quit" => {
                         // Let a running recording write its trailer first.
                         let state: State<Shared> = app.state();
-                        let rec = state.lock().unwrap().recording.take();
+                        let (rec, st) = {
+                            let mut inner = state.lock().unwrap();
+                            (inner.recording.take(), inner.studio.take())
+                        };
                         if let Some((rec, _, _)) = rec {
                             let _ = rec.stop();
+                        }
+                        if let Some(active) = st {
+                            let _ = active.stop();
                         }
                         capture::clear_scratch();
                         app.exit(0);

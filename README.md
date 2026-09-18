@@ -16,6 +16,7 @@ Tauri 2 (Rust backend, vanilla TS frontend). Windows, macOS and Linux.
 | `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
 | `Ctrl/Cmd + Shift + N` | Start a new bundle and open the window to name it and its first group |
+| `Ctrl/Cmd + Shift + 3` | v2 preview: record a source for the studio; press again to stop |
 
 Inside the note box: `Enter` saves, `Shift + Enter` adds a line, `Esc` keeps
 the screenshot with no note. The header reads "Group 1 / Shot 1"; click either
@@ -60,6 +61,18 @@ written in the bundle window and kept in `~/QACut/custom-prompt.txt` for
 every bundle after that; `{root}` becomes the folder path and `{name}` the
 bundle name, and a template that never mentions `{root}` gets the path
 appended so the agent can always find the folder.
+
+## Recording for people (v2, in progress)
+
+`Ctrl+Shift+3` records a *source* for the studio instead of a GIF: the whole
+monitor under the region at up to 60 fps into a high-bitrate H.264 MP4 with
+the cursor hidden, plus `events.json` with the cursor path at 120 Hz, cursor
+shapes, clicks, keystrokes (opt-in) and foreground window titles, all on the
+same clock as the frames. Each recording is a folder under `~/QACut/Studio/`
+with `project.json` describing it. The studio that turns these into a
+finished video is being built; see `docs/v2-plan.md`. Three tray toggles
+control keystrokes, microphone and camera capture; the last two are wired in
+the next step.
 
 ## Brand kit
 

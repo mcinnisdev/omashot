@@ -1,0 +1,674 @@
+/* QACut site theme: the app's coral on VitePress's defaults, plus the
+   landing page, which is hand-built HTML in index.md. */
+
+:root {
+  --vp-c-brand-1: #e8484b;
+  --vp-c-brand-2: #d63f42;
+  --vp-c-brand-3: #ff5b5b;
+  --vp-c-brand-soft: rgba(255, 91, 91, 0.14);
+  --qc-ink: #0e1114;
+  --qc-panel: #171c21;
+  --qc-line: #262d34;
+  --qc-muted: #8b959e;
+  --qc-signal: #ff5b5b;
+  --qc-amber: #ffc400;
+}
+.dark {
+  --vp-c-brand-1: #ff5b5b;
+  --vp-c-brand-2: #ff7373;
+  --vp-c-brand-3: #e8484b;
+}
+
+/* ------------------------------------------------------------ layout */
+
+.qc {
+  --pad: 24px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--pad) 96px;
+  color: var(--vp-c-text-1);
+}
+.qc section {
+  padding: 72px 0 24px;
+}
+.qc h1,
+.qc h2,
+.qc h3 {
+  border: none;
+  margin: 0;
+  padding: 0;
+  letter-spacing: -0.02em;
+}
+.qc h2 {
+  font-size: clamp(28px, 3.6vw, 40px);
+  line-height: 1.1;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.qc h3 {
+  font-size: 18px;
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+.qc p {
+  margin: 0;
+  line-height: 1.6;
+}
+.qc .lead {
+  font-size: 18px;
+  color: var(--vp-c-text-2);
+  max-width: 640px;
+}
+.qc .eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vp-c-brand-1);
+  margin-bottom: 14px;
+}
+.qc .center {
+  text-align: center;
+}
+.qc .center .lead {
+  margin: 0 auto;
+}
+.qc code {
+  font-size: 0.9em;
+}
+
+/* ------------------------------------------------------------- hero */
+
+.qc-hero {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 48px;
+  align-items: center;
+  padding: 64px 0 24px;
+}
+.qc-hero h1 {
+  font-size: clamp(40px, 5.6vw, 64px);
+  line-height: 1.02;
+  font-weight: 800;
+  margin: 0 0 18px;
+}
+.qc-hero h1 em {
+  font-style: normal;
+  color: var(--vp-c-brand-1);
+}
+.qc-hero .lead {
+  font-size: 19px;
+  margin-bottom: 26px;
+}
+.qc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.qc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 650;
+  font-size: 15px;
+  text-decoration: none !important;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.qc-btn:hover {
+  transform: translateY(-1px);
+}
+.qc-btn.primary {
+  background: var(--vp-c-brand-1);
+  color: #fff !important;
+}
+.qc-btn.primary:hover {
+  background: var(--vp-c-brand-2);
+}
+.qc-btn.ghost {
+  border-color: var(--vp-c-divider);
+  color: var(--vp-c-text-1) !important;
+  background: var(--vp-c-bg-soft);
+}
+.qc-btn.ghost:hover {
+  border-color: var(--vp-c-brand-1);
+}
+.qc-fine {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--vp-c-text-3);
+}
+.qc-fine a {
+  color: var(--vp-c-text-2);
+}
+
+/* The studio frame, drawn in CSS: a padded background, an inset window,
+   a cursor, a ripple, a keystroke badge, a camera bubble and a title. */
+.qc-stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #141a2b, #2a1f4d);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  overflow: hidden;
+  font-family: var(--vp-font-family-base);
+}
+.qc-stage .title {
+  position: absolute;
+  top: 5.5%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: clamp(11px, 1.6vw, 17px);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+.qc-stage .win {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  top: 17%;
+  bottom: 13%;
+  border-radius: 10px;
+  background: #1b1f26;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.qc-stage .bar {
+  height: 11%;
+  background: #262c35;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+}
+.qc-stage .bar i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4a5563;
+}
+.qc-stage .bar i:first-child {
+  background: #ff5f57;
+}
+.qc-stage .bar i:nth-child(2) {
+  background: #febc2e;
+}
+.qc-stage .bar i:nth-child(3) {
+  background: #28c840;
+}
+.qc-stage .side {
+  position: absolute;
+  top: 11%;
+  bottom: 0;
+  left: 0;
+  width: 26%;
+  background: #202630;
+  padding: 10% 8%;
+}
+.qc-stage .side b,
+.qc-stage .main b {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: #3a4350;
+  margin-bottom: 9px;
+}
+.qc-stage .side b:first-child {
+  background: var(--qc-signal);
+  width: 70%;
+}
+.qc-stage .main {
+  position: absolute;
+  top: 11%;
+  bottom: 0;
+  left: 26%;
+  right: 0;
+  padding: 6% 7%;
+}
+.qc-stage .main b.w1 {
+  width: 55%;
+  height: 10px;
+  background: #6b7684;
+}
+.qc-stage .main b.w2 {
+  width: 85%;
+}
+.qc-stage .main b.w3 {
+  width: 70%;
+}
+.qc-stage .field {
+  height: 12%;
+  border: 1px solid #3a4350;
+  border-radius: 6px;
+  margin: 12px 0 10px;
+  width: 80%;
+}
+.qc-stage .btn {
+  display: inline-block;
+  padding: 4% 9%;
+  border-radius: 6px;
+  background: var(--qc-signal);
+  color: #fff;
+  font-size: clamp(8px, 1.1vw, 12px);
+  font-weight: 650;
+}
+.qc-stage .ripple {
+  position: absolute;
+  left: 61.5%;
+  top: 68%;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.18);
+  animation: qc-ripple 1.6s ease-out infinite;
+}
+@keyframes qc-ripple {
+  0% {
+    transform: scale(0.35);
+    opacity: 1;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+.qc-stage .cursor {
+  position: absolute;
+  left: 61.5%;
+  top: 68%;
+  width: 26px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+  animation: qc-cursor 6s ease-in-out infinite;
+}
+@keyframes qc-cursor {
+  0%,
+  15% {
+    transform: translate(-120px, -90px);
+  }
+  40%,
+  60% {
+    transform: translate(0, 0);
+  }
+  85%,
+  100% {
+    transform: translate(-120px, -90px);
+  }
+}
+.qc-stage .keys {
+  position: absolute;
+  left: 50%;
+  bottom: 4.5%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: rgba(14, 17, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-family: var(--vp-font-family-mono);
+  font-size: clamp(9px, 1.2vw, 12px);
+  font-weight: 600;
+}
+.qc-stage .cam {
+  position: absolute;
+  right: 11.5%;
+  bottom: 15.5%;
+  width: 17%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #f3d1b8, #b27a5c 60%, #6b4531);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.qc-stage .cam::after {
+  content: "";
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  top: 22%;
+  bottom: 46%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12);
+}
+.qc-stage .logo {
+  position: absolute;
+  left: 3%;
+  top: 4%;
+  height: 8%;
+  opacity: 0.9;
+}
+
+/* ------------------------------------------------------------- split */
+
+.qc-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.qc-card {
+  min-width: 0;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+  border-radius: 16px;
+  padding: 28px;
+}
+.qc-card .eyebrow {
+  margin-bottom: 8px;
+}
+.qc-card h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.qc-card p {
+  color: var(--vp-c-text-2);
+  margin-bottom: 16px;
+}
+.qc-card ul {
+  margin: 0 0 16px;
+  padding-left: 18px;
+  color: var(--vp-c-text-2);
+  line-height: 1.6;
+}
+.qc-card .visual {
+  margin-top: 8px;
+  min-width: 0;
+}
+
+/* The bundle an agent reads. */
+.qc-bundle {
+  font-family: var(--vp-font-family-mono);
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  background: var(--qc-ink);
+  color: #d5dbe0;
+  border-radius: 10px;
+  padding: 16px 18px;
+  overflow: hidden;
+  white-space: pre;
+}
+.qc-bundle .h {
+  color: #fff;
+  font-weight: 700;
+}
+.qc-bundle .q {
+  color: var(--qc-muted);
+}
+.qc-bundle .l {
+  color: #7cc4ff;
+}
+.qc-bundle .m {
+  color: var(--qc-muted);
+  font-style: italic;
+}
+
+/* A timeline strip with zoom blocks, cuts, clicks and keys. */
+.qc-timeline {
+  position: relative;
+  height: 64px;
+  border-radius: 8px;
+  background: var(--qc-ink);
+  border: 1px solid var(--qc-line);
+  overflow: hidden;
+}
+.qc-timeline .film {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    #1f2630 0 44px,
+    #242c37 44px 88px
+  );
+  opacity: 0.6;
+}
+.qc-timeline .zoom {
+  position: absolute;
+  top: 8px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255, 91, 91, 0.3);
+  border: 1px solid rgba(255, 91, 91, 0.8);
+}
+.qc-timeline .cut {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0 6px, rgba(0, 0, 0, 0.35) 6px 12px);
+  border-left: 2px solid rgba(255, 91, 91, 0.7);
+  border-right: 2px solid rgba(255, 91, 91, 0.7);
+}
+.qc-timeline .click {
+  position: absolute;
+  top: 48px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--qc-muted);
+}
+.qc-timeline .key {
+  position: absolute;
+  top: 40px;
+  width: 3px;
+  height: 9px;
+  border-radius: 1px;
+  background: var(--qc-amber);
+}
+.qc-timeline .handle {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 12px;
+  border-radius: 4px;
+  background: #e4e8eb;
+}
+.qc-timeline .head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #fff;
+  left: 30%;
+  animation: qc-head 8s linear infinite;
+}
+@keyframes qc-head {
+  from {
+    left: 6%;
+  }
+  to {
+    left: 94%;
+  }
+}
+
+/* ------------------------------------------------------------- steps */
+
+.qc-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 28px;
+}
+.qc-step {
+  position: relative;
+  padding: 26px 24px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+}
+.qc-step .n {
+  position: absolute;
+  top: -14px;
+  left: 22px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--vp-c-brand-1);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qc-step kbd {
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+}
+.qc-step p {
+  color: var(--vp-c-text-2);
+  margin-top: 6px;
+}
+
+/* ---------------------------------------------------------- features */
+
+.qc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 28px;
+}
+.qc-feature {
+  padding: 22px;
+  border-radius: 14px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+}
+.qc-feature .ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.qc-feature p {
+  color: var(--vp-c-text-2);
+  font-size: 14.5px;
+}
+
+/* --------------------------------------------------------- compare */
+
+.qc-compare {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 24px;
+  font-size: 15px;
+}
+.qc-compare th,
+.qc-compare td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--vp-c-divider);
+  text-align: left;
+}
+.qc-compare th {
+  font-weight: 650;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.qc-compare th:not(:first-child),
+.qc-compare td:not(:first-child) {
+  text-align: center;
+  width: 20%;
+}
+.qc-compare td.yes {
+  color: var(--vp-c-brand-1);
+  font-weight: 700;
+}
+.qc-compare td.no {
+  color: var(--vp-c-text-3);
+}
+.qc-compare td.some {
+  color: var(--vp-c-text-2);
+}
+.qc-compare tr.total td {
+  border-bottom: none;
+  font-weight: 650;
+}
+.qc-note {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--vp-c-text-3);
+}
+
+/* ------------------------------------------------------------- oss */
+
+.qc-oss {
+  border-radius: 20px;
+  padding: 48px 40px;
+  background: linear-gradient(135deg, rgba(255, 91, 91, 0.12), rgba(255, 91, 91, 0.02));
+  border: 1px solid var(--vp-c-brand-soft);
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.qc-oss .qc-actions {
+  justify-content: flex-end;
+}
+
+/* ------------------------------------------------------------ mobile */
+
+@media (max-width: 860px) {
+  .qc-hero,
+  .qc-split,
+  .qc-oss {
+    grid-template-columns: 1fr;
+  }
+  .qc-steps,
+  .qc-grid {
+    grid-template-columns: 1fr;
+  }
+  .qc-oss .qc-actions {
+    justify-content: flex-start;
+  }
+  .qc section {
+    padding: 48px 0 12px;
+  }
+  .qc-compare th:not(:first-child),
+  .qc-compare td:not(:first-child) {
+    width: auto;
+  }
+}
+
+/* ------------------------------------------------------------ fixes */
+
+.qc-card ul,
+.qc-card ul li {
+  list-style: disc;
+}
+.qc-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.qc-compare {
+  min-width: 560px;
+}
+.qc,
+.qc-hero,
+.qc-card,
+.qc-step,
+.qc-feature {
+  min-width: 0;
+}
+.qc-stage {
+  max-width: 100%;
+}

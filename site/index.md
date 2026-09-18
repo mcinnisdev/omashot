@@ -11,7 +11,7 @@ titleTemplate: Screen capture that hands off
 <div>
 <span class="eyebrow">Free and open source · Windows</span>
 <h1>Capture your screen.<br /><em>Hand off the work.</em></h1>
-<p class="lead">Screen recordings become walkthroughs people will actually watch. Screenshots and notes become a bundle an AI agent can fix from. One tray icon, no account, and nothing leaves your machine unless you send it.</p>
+<p class="lead">Screen recordings become walkthroughs people will actually watch. Screenshots and notes become a bundle an AI agent can work from. One tray icon, no account, and nothing leaves your machine unless you send it.</p>
 <div class="qc-actions">
 <a class="qc-btn primary" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
 <a class="qc-btn outline" href="/docs/getting-started">Getting started</a>

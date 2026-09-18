@@ -37,9 +37,14 @@ the region is outlined, so it is obvious when something has drifted out of
 shot. The hotkey cancels during the countdown. The region is
 grabbed at ten frames a second with the cursor drawn on as a ring, scaled to
 at most 720 px wide and streamed into a looping GIF, so stopping is instant.
-Every two seconds a still is saved beside it (thinned to twelve at most).
-Agents cannot play a GIF, so `bundle.md` links those stills in order under the
-recording; a human reading the resulting document just sees the GIF.
+A still is saved beside it at the start, at every click or Enter (the mouse
+is polled every 15 ms, so the still is at most one frame after the click,
+and the ring fills solid in the GIF for a moment), and at the end. Each
+still records what happened and where the click landed. Agents cannot play
+a GIF, so `bundle.md` lists those stills as actions under the recording; a
+human reading the resulting document just sees the GIF. A recording with no
+clicks falls back to a still every two seconds. Click detection is Windows
+only for now; elsewhere you get the interval stills.
 
 A bundle has a purpose, chosen in the bundle window: **Fix issues** (the
 default), **Write process doc**, or **Custom prompt**. It only changes the

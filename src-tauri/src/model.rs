@@ -29,11 +29,40 @@ pub enum ShotKind {
 }
 
 /// One still saved beside a recording so it can be read without playing.
+/// Stills are taken at the start, at every click or Enter, and at the end,
+/// so each one marks an action; the interval kind is the fallback for a
+/// recording with no clicks.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KeyFrame {
     /// Relative to the group directory, e.g. "03-frames/02.png".
     pub file: String,
     pub at_ms: u64,
+    /// "start", "click", "right-click", "middle-click", "enter", "end" or
+    /// "interval".
+    #[serde(default)]
+    pub event: String,
+    /// Where the click landed, in the still's own pixels. Absent for
+    /// non-click events and for clicks outside the recorded region.
+    #[serde(default)]
+    pub x: Option<u32>,
+    #[serde(default)]
+    pub y: Option<u32>,
+}
+
+impl KeyFrame {
+    /// How the frame is described in bundle.md: "3 s, click at 412,188".
+    pub fn label(&self) -> String {
+        let secs = (self.at_ms as f64 / 1000.0).round() as u64;
+        let mut s = format!("{secs} s");
+        if !self.event.is_empty() {
+            s.push_str(", ");
+            s.push_str(&self.event);
+        }
+        if let (Some(x), Some(y)) = (self.x, self.y) {
+            s.push_str(&format!(" at {x},{y}"));
+        }
+        s
+    }
 }
 
 /// What the bundle is for. Changes the prompt handed to the agent.
@@ -542,7 +571,13 @@ mod recording_tests {
         assert!(dir.ends_with("01-frames"));
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("01.png"), b"png").unwrap();
-        sh.frames.push(KeyFrame { file: "01-frames/01.png".into(), at_ms: 0 });
+        sh.frames.push(KeyFrame {
+            file: "01-frames/01.png".into(),
+            at_ms: 0,
+            event: "start".into(),
+            x: None,
+            y: None,
+        });
         s.current().shots.push(sh);
 
         s.remove_shot(1, "r");

@@ -127,10 +127,16 @@ pub fn clear_scratch() {
 const FRAME_INTERVAL: Duration = Duration::from_millis(100);
 /// Frames wider than this are scaled down before encoding.
 const MAX_WIDTH: u32 = 720;
-/// How often a still is saved beside the GIF.
+/// How often a fallback still is saved when no clicks happen.
 const KEYFRAME_EVERY: Duration = Duration::from_secs(2);
-/// Stills are thinned to at most this many when the recording stops.
+/// Interval stills are thinned to at most this many when the recording stops.
 const MAX_KEYFRAMES: usize = 12;
+/// Click stills are thinned to at most this many.
+const MAX_CLICK_FRAMES: usize = 40;
+/// How often the mouse buttons and Enter are polled between frames.
+const INPUT_POLL: Duration = Duration::from_millis(15);
+/// How long the cursor ring stays filled after a click, so the GIF shows it.
+const CLICK_FLASH: Duration = Duration::from_millis(400);
 /// A recording nobody stopped ends itself here.
 const MAX_DURATION: Duration = Duration::from_secs(10 * 60);
 
@@ -216,8 +222,15 @@ pub fn start_recording(
 
         let start = Instant::now();
         let mut last = start;
-        let mut last_key: Option<Instant> = None;
+        let mut last_interval: Option<Instant> = None;
         let mut frames: Vec<KeyFrame> = Vec::new();
+        let mut saved = 0usize;
+        // A press seen while waiting for the next frame; that frame becomes
+        // its still. (event, cursor in region pixels if inside it.)
+        let mut pending: Option<(&'static str, Option<(u32, u32)>)> = Some(("start", None));
+        let mut flash_until: Option<Instant> = None;
+        let mut buttons = buttons_down();
+        let mut last_img: Option<RgbaImage> = None;
 
         loop {
             let tick = Instant::now();
@@ -234,10 +247,12 @@ pub fn start_recording(
                 }
             };
 
+            let now = Instant::now();
+            let filled = flash_until.is_some_and(|t| now < t);
             if let Ok(pos) = app.cursor_position() {
                 let cx = pos.x.round() as i64 - mon_x as i64 - px as i64;
                 let cy = pos.y.round() as i64 - mon_y as i64 - py as i64;
-                mark_cursor(&mut img, cx, cy, ring);
+                mark_cursor(&mut img, cx, cy, ring, filled);
             }
 
             let img = if out_w != pw {
@@ -246,22 +261,35 @@ pub fn start_recording(
                 img
             };
 
-            let now = Instant::now();
-            if last_key.map_or(true, |t| now - t >= KEYFRAME_EVERY) {
-                let name = format!("{:02}.png", frames.len() + 1);
+            // Stills: one for the start, one per action, and an interval
+            // fallback that only survives if no action ever happens.
+            let mut save = |img: &RgbaImage, event: &str, at: Option<(u32, u32)>, frames: &mut Vec<KeyFrame>| {
+                saved += 1;
+                let name = format!("{saved:02}.png");
                 if img.save(frames_dir.join(&name)).is_ok() {
+                    let scale = out_w as f64 / pw as f64;
                     frames.push(KeyFrame {
                         file: format!("{rel_dir}/{name}"),
                         at_ms: (now - start).as_millis() as u64,
+                        event: event.to_string(),
+                        x: at.map(|(x, _)| (x as f64 * scale).round() as u32),
+                        y: at.map(|(_, y)| (y as f64 * scale).round() as u32),
                     });
                 }
-                last_key = Some(now);
+            };
+            if let Some((event, at)) = pending.take() {
+                save(&img, event, at, &mut frames);
+                last_interval = Some(now);
+            } else if last_interval.map_or(true, |t| now - t >= KEYFRAME_EVERY) {
+                save(&img, "interval", None, &mut frames);
+                last_interval = Some(now);
             }
 
             // Each frame is shown for as long as the previous one really
             // took, so the GIF keeps wall-clock time even if capture lags.
             let delay_ms = ((now - last).as_millis() as u32).max(20);
             last = now;
+            last_img = Some(img.clone());
             enc.encode_frame(GifFrame::from_parts(
                 img,
                 0,
@@ -272,14 +300,50 @@ pub fn start_recording(
             if flag.load(Ordering::SeqCst) || start.elapsed() > MAX_DURATION {
                 break;
             }
-            let spent = tick.elapsed();
-            if spent < FRAME_INTERVAL {
-                std::thread::sleep(FRAME_INTERVAL - spent);
+
+            // Wait for the next frame, watching the buttons. A new press
+            // ends the wait early so its still is at most a poll late.
+            while tick.elapsed() < FRAME_INTERVAL {
+                std::thread::sleep(INPUT_POLL);
+                let now_down = buttons_down();
+                for (i, name) in ["click", "right-click", "middle-click", "enter"].iter().enumerate() {
+                    if now_down[i] && !buttons[i] {
+                        let at = app.cursor_position().ok().and_then(|pos| {
+                            let cx = pos.x.round() as i64 - mon_x as i64 - px as i64;
+                            let cy = pos.y.round() as i64 - mon_y as i64 - py as i64;
+                            (cx >= 0 && cy >= 0 && cx < pw as i64 && cy < ph as i64)
+                                .then_some((cx as u32, cy as u32))
+                        });
+                        pending = Some((name, if i < 3 { at } else { None }));
+                        if i < 3 {
+                            flash_until = Some(Instant::now() + CLICK_FLASH);
+                        }
+                    }
+                }
+                buttons = now_down;
+                if pending.is_some() || flag.load(Ordering::SeqCst) {
+                    break;
+                }
+            }
+        }
+
+        // The last frame is the end state.
+        if let Some(img) = last_img {
+            saved += 1;
+            let name = format!("{saved:02}.png");
+            if img.save(frames_dir.join(&name)).is_ok() {
+                frames.push(KeyFrame {
+                    file: format!("{rel_dir}/{name}"),
+                    at_ms: start.elapsed().as_millis() as u64,
+                    event: "end".into(),
+                    x: None,
+                    y: None,
+                });
             }
         }
         drop(enc);
 
-        let frames = thin_keyframes(frames, &frames_dir);
+        let frames = choose_keyframes(frames, &frames_dir);
 
         Ok(Recorded {
             width: out_w,
@@ -292,9 +356,26 @@ pub fn start_recording(
     Ok(Recording { stop, handle })
 }
 
-/// Draws a translucent ring where the cursor is, since screen grabs do not
-/// include it and a demonstration without a pointer is hard to follow.
-fn mark_cursor(img: &mut RgbaImage, cx: i64, cy: i64, r: i64) {
+/// Which of left, right, middle and Enter are held right now.
+#[cfg(windows)]
+fn buttons_down() -> [bool; 4] {
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
+        GetAsyncKeyState, VK_LBUTTON, VK_MBUTTON, VK_RBUTTON, VK_RETURN,
+    };
+    [VK_LBUTTON, VK_RBUTTON, VK_MBUTTON, VK_RETURN]
+        .map(|vk| unsafe { GetAsyncKeyState(vk as i32) } as u16 & 0x8000 != 0)
+}
+
+/// No input polling on this platform yet; interval stills are the fallback.
+#[cfg(not(windows))]
+fn buttons_down() -> [bool; 4] {
+    [false; 4]
+}
+
+/// Draws a ring where the cursor is, since screen grabs do not include it
+/// and a demonstration without a pointer is hard to follow. `filled` marks
+/// a click for a few frames.
+fn mark_cursor(img: &mut RgbaImage, cx: i64, cy: i64, r: i64, filled: bool) {
     let (w, h) = (img.width() as i64, img.height() as i64);
     if cx < -r || cy < -r || cx > w + r || cy > h + r {
         return;
@@ -311,6 +392,8 @@ fn mark_cursor(img: &mut RgbaImage, cx: i64, cy: i64, r: i64) {
                 0.0
             } else if d >= rf - 2.5 {
                 0.9
+            } else if filled {
+                0.7
             } else {
                 0.25
             };
@@ -324,23 +407,50 @@ fn mark_cursor(img: &mut RgbaImage, cx: i64, cy: i64, r: i64) {
     }
 }
 
-/// Keeps at most `MAX_KEYFRAMES` stills, evenly spaced, first and last
-/// included, and deletes the rest from disk.
-fn thin_keyframes(frames: Vec<KeyFrame>, dir: &Path) -> Vec<KeyFrame> {
-    if frames.len() <= MAX_KEYFRAMES {
-        return frames;
-    }
-    let n = frames.len();
-    let keep: std::collections::BTreeSet<usize> = (0..MAX_KEYFRAMES)
-        .map(|i| (i * (n - 1)) / (MAX_KEYFRAMES - 1))
-        .collect();
+/// Decides which stills survive. If any action happened, the interval
+/// stills go (actions say what mattered; timestamps do not) and the action
+/// stills are thinned to `MAX_CLICK_FRAMES`. Otherwise the interval stills
+/// are thinned to `MAX_KEYFRAMES`. Start and end always stay. Dropped
+/// stills are deleted from disk.
+fn choose_keyframes(frames: Vec<KeyFrame>, dir: &Path) -> Vec<KeyFrame> {
+    let has_actions = frames
+        .iter()
+        .any(|f| !matches!(f.event.as_str(), "start" | "end" | "interval"));
+    let (keep_kind, cap) = if has_actions {
+        (false, MAX_CLICK_FRAMES)
+    } else {
+        (true, MAX_KEYFRAMES)
+    };
+
     let mut kept = Vec::new();
-    for (i, f) in frames.into_iter().enumerate() {
-        if keep.contains(&i) {
+    for f in frames {
+        let interval = f.event == "interval";
+        if interval && !keep_kind {
+            drop_still(&f, dir);
+        } else {
             kept.push(f);
-        } else if let Some(name) = Path::new(&f.file).file_name() {
-            let _ = std::fs::remove_file(dir.join(name));
         }
     }
-    kept
+
+    if kept.len() <= cap {
+        return kept;
+    }
+    let n = kept.len();
+    let keep: std::collections::BTreeSet<usize> =
+        (0..cap).map(|i| (i * (n - 1)) / (cap - 1)).collect();
+    let mut out = Vec::new();
+    for (i, f) in kept.into_iter().enumerate() {
+        if keep.contains(&i) {
+            out.push(f);
+        } else {
+            drop_still(&f, dir);
+        }
+    }
+    out
+}
+
+fn drop_still(f: &KeyFrame, dir: &Path) {
+    if let Some(name) = Path::new(&f.file).file_name() {
+        let _ = std::fs::remove_file(dir.join(name));
+    }
 }

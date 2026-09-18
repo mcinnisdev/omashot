@@ -263,8 +263,9 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
         "The quoted text under a group heading is the reviewer's note for the whole group. ",
         "Each numbered item is a screenshot of one region, followed by the reviewer's note ",
         "on what is wrong there. Open the image before acting on the note. ",
-        "A recording is an animated GIF; the key frames listed under it are stills at ",
-        "regular intervals, so read those in order if you cannot play it.\n"
+        "A recording is an animated GIF; the key frames listed under it are stills taken ",
+        "at the start, at every click or Enter (with where the click landed), and at ",
+        "the end, so each one is an action. Read them in order if you cannot play it.\n"
     ));
 
     if let Some(kit) = brand {
@@ -332,20 +333,15 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
                     "_Recording, {secs} s, {} × {} px, captured {when}._",
                     shot.width, shot.height
                 );
+                let _ = writeln!(md);
                 if !shot.frames.is_empty() {
-                    let _ = write!(md, " Key frames:");
-                    for (k, f) in shot.frames.iter().enumerate() {
-                        let sep = if k == 0 { " " } else { ", " };
-                        let _ = write!(
-                            md,
-                            "{sep}[{} s]({}/{})",
-                            (f.at_ms as f64 / 1000.0).round() as u64,
-                            g.dir,
-                            f.file
-                        );
+                    let _ = writeln!(md);
+                    let _ = writeln!(md, "Key frames:");
+                    let _ = writeln!(md);
+                    for f in &shot.frames {
+                        let _ = writeln!(md, "- [{}]({}/{})", f.label(), g.dir, f.file);
                     }
                 }
-                let _ = writeln!(md);
             } else {
                 let _ = writeln!(
                     md,
@@ -398,8 +394,9 @@ mod tests {
             kind: ShotKind::Recording,
             duration_ms: 12400,
             frames: vec![
-                KeyFrame { file: "02-frames/01.png".into(), at_ms: 0 },
-                KeyFrame { file: "02-frames/02.png".into(), at_ms: 2010 },
+                KeyFrame { file: "02-frames/01.png".into(), at_ms: 0, event: "start".into(), x: None, y: None },
+                KeyFrame { file: "02-frames/02.png".into(), at_ms: 3140, event: "click".into(), x: Some(412), y: Some(188) },
+                KeyFrame { file: "02-frames/03.png".into(), at_ms: 12400, event: "end".into(), x: None, y: None },
             ],
         });
 
@@ -415,7 +412,10 @@ mod tests {
         assert!(md.contains("Save button is clipped"));
         assert!(md.contains("_640 × 200 px, captured 14:56:50_"));
         assert!(md.contains("![1.2](01/02.gif)"));
-        assert!(md.contains("_Recording, 12 s, 720 × 400 px, captured 14:57:10._ Key frames: [0 s](01/02-frames/01.png), [2 s](01/02-frames/02.png)"));
+        assert!(md.contains("_Recording, 12 s, 720 × 400 px, captured 14:57:10._"));
+        assert!(md.contains("- [0 s, start](01/02-frames/01.png)"));
+        assert!(md.contains("- [3 s, click at 412,188](01/02-frames/02.png)"));
+        assert!(md.contains("- [12 s, end](01/02-frames/03.png)"));
         std::fs::remove_dir_all(base).unwrap();
     }
 }
@@ -491,7 +491,7 @@ mod layout_tests {
                 "{}/01.png",
                 dir.file_name().unwrap().to_string_lossy()
             );
-            sh.frames.push(KeyFrame { file: rel, at_ms: 0 });
+            sh.frames.push(KeyFrame { file: rel, at_ms: 0, event: "start".into(), x: None, y: None });
         }
         s.current().shots.push(sh);
     }
@@ -529,7 +529,7 @@ mod layout_tests {
         assert!(dir.join("03-frames/01.png").exists());
         assert_eq!(g.shots[2].frames[0].file, "03-frames/01.png");
         assert!(ex.markdown.contains("![1.3](01-first/03.gif)"));
-        assert!(ex.markdown.contains("[0 s](01-first/03-frames/01.png)"));
+        assert!(ex.markdown.contains("- [0 s, start](01-first/03-frames/01.png)"));
 
         // The old group-2 file is gone from its old home and nothing is left over.
         let leftovers: Vec<_> = std::fs::read_dir(s.root.join("02"))

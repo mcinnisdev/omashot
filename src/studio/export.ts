@@ -69,7 +69,7 @@ function decoderDescription(entry: any): Uint8Array | undefined {
 /// Pulls source frames by timestamp, decoding just ahead of demand and
 /// closing frames once they are behind. Sample-and-hold: the frame for
 /// time t is the last frame at or before t.
-class SourceFrames {
+export class SourceFrames {
   private samples: Sample[] = [];
   private fed = 0;
   private queue: VideoFrame[] = [];

@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /><title>harness</title></head>
+  <!-- Dev-only check of the compositor against a real recording, run in a
+       headed Chromium with console logging:
+         msedge --enable-logging=stderr --app="http://localhost:1420/harness.html?dir=C:/Users/you/QACut/Studio/<id>&n=3"
+       It renders the first n click moments at two paddings and logs each
+       frame as a PNG data URL. Times must increase: the frame reader only
+       moves forward, like the export. -->
+  <body style="background:#111;color:#ddd;font-family:sans-serif">
+    <pre id="log"></pre>
+    <script type="module">
+      import { buildTrack, draw } from "/src/studio/compositor.ts";
+      import { withDefaults } from "/src/studio/model.ts";
+      const q = new URLSearchParams(location.search);
+      const dir = q.get("dir");
+      const fs = (p) => `/@fs/${dir}/${p}`;
+      const say = (s) => { document.getElementById("log").textContent += s + "\n"; console.log("HARNESS " + s); };
+      say("loading project");
+      const project = await (await fetch(fs("project.json"))).json();
+      const events = await (await fetch(fs("events.json"))).json();
+      say(`project ${project.id} region ${JSON.stringify(project.region)}`);
+      const { SourceFrames } = await import("/src/studio/export.ts");
+      const src = await SourceFrames.open(fs("source.mp4"), (p) => say("step " + p));
+      const canvas = document.createElement("canvas"); canvas.width = 1280; canvas.height = 720;
+      const ctx = canvas.getContext("2d");
+      const clicks = events.buttons.filter((b) => b[2] === "down").slice(0, Number(q.get("n") ?? 3));
+      for (const pad of [0.06, 0.2]) {
+        const edits = withDefaults({ frame: { padding: pad, radius: 14, background: "plain", shadow: false }, cursor: { size: 1.6, smoothing: 0.35, ripple: true }, keys: { show: false, mode: "shortcuts", hidden: [] }, zooms: [], zooms_seeded: true });
+        const track = buildTrack(project, events, edits);
+        for (const [t, , , x, y] of clicks) {
+          const frame = await src.at(t + 120);
+          if (!frame) { say(`no frame at ${t}`); continue; }
+          draw(ctx, { t: t + 120, source: frame, camera: null, logo: null }, project, edits, track);
+          say(`img pad=${pad} t=${t} click=${x},${y} ${canvas.toDataURL("image/png")}`);
+        }
+      }
+      src.close();
+      say("DONE");
+    </script>
+  </body>
+</html>

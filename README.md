@@ -273,6 +273,10 @@ remove button fills solid on hover.
   already use. The two agent prompts are in `agent_prompt()` in `main.rs`.
 - Recording rate, width and key-frame interval: the constants at the top of
   the recording section in `src-tauri/src/capture.rs`.
+- Checking the studio compositor against a real recording without opening
+  the app: `harness.html` (see the comment at its top) renders click
+  moments through the export's frame reader in a headed browser and logs
+  the frames as PNGs. `npm run dev` must be running.
 
 ## Layout
 

@@ -77,6 +77,18 @@ class SourceFrames {
   private decoder!: VideoDecoder;
   private firstUs = 0;
   private error: Error | null = null;
+  /// The time being sought; frames behind it are released as they arrive
+  /// so the decoder's output pool never fills up while skipping ahead.
+  private targetUs = 0;
+  cancel: Cancel = { cancelled: false };
+
+  /// Drop every queued frame that a later queued frame already supersedes
+  /// for the current target.
+  private prune() {
+    while (this.queue.length >= 2 && this.queue[1].timestamp <= this.targetUs) {
+      this.queue.shift()!.close();
+    }
+  }
 
   static async open(url: string, step: (phase: string) => void): Promise<SourceFrames> {
     const s = new SourceFrames();
@@ -120,7 +132,10 @@ class SourceFrames {
     step(`Configuring decoder (${config!.codec}, ${s.samples.length} frames)`);
 
     s.decoder = new VideoDecoder({
-      output: (frame) => s.queue.push(frame),
+      output: (frame) => {
+        s.queue.push(frame);
+        s.prune();
+      },
       error: (e) => {
         s.error = e;
       },
@@ -151,19 +166,30 @@ class SourceFrames {
   async at(ms: number): Promise<VideoFrame | null> {
     if (this.error) throw this.error;
     const tUs = ms * 1000;
+    this.targetUs = tUs;
+    this.prune();
     // Decode until a frame beyond t exists (so the one before it is final)
     // or the source is exhausted.
     for (;;) {
+      if (this.cancel.cancelled) throw new Error("cancelled");
+      if (this.error) throw this.error;
       const last = this.queue[this.queue.length - 1];
       if (last && last.timestamp > tUs) break;
       if (this.fed >= this.samples.length) {
         await this.decoder.flush();
         break;
       }
-      // A flush is required before the next key frame can be decoded
-      // once the decoder has emitted; keep the pipeline shallow instead.
+      // Keep the pipeline shallow; the wait times out so cancellation
+      // and decoder errors are noticed even if nothing dequeues.
       if (this.decoder.decodeQueueSize > 12) {
-        await new Promise<void>((r) => this.decoder.addEventListener("dequeue", () => r(), { once: true }));
+        await new Promise<void>((r) => {
+          const done = () => {
+            window.clearTimeout(timer);
+            r();
+          };
+          const timer = window.setTimeout(done, 1000);
+          this.decoder.addEventListener("dequeue", done, { once: true });
+        });
         continue;
       }
       this.feedOne();
@@ -273,6 +299,7 @@ export async function exportVideo(
     void invoke("log_error", { message: `export: ${phase}` });
   };
   const source = await SourceFrames.open(sourceUrl, step);
+  source.cancel = cancel;
 
   // Output file, streamed to Rust as the muxer produces bytes.
   step("Opening output file");

@@ -11,7 +11,7 @@ titleTemplate: Screen capture that hands off
 <div>
 <span class="eyebrow">Free and open source · Windows</span>
 <h1>Capture your screen.<br /><em>Hand off the work.</em></h1>
-<p class="lead">Screenshots and notes become a bundle an AI agent can fix from. Screen recordings become walkthroughs people will actually watch. One tray icon, no account, and nothing leaves your machine unless you send it.</p>
+<p class="lead">Screen recordings become walkthroughs people will actually watch. Screenshots and notes become a bundle an AI agent can fix from. One tray icon, no account, and nothing leaves your machine unless you send it.</p>
 <div class="qc-actions">
 <a class="qc-btn primary" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
 <a class="qc-btn outline" href="/docs/getting-started">Getting started</a>
@@ -35,10 +35,26 @@ titleTemplate: Screen capture that hands off
 <section>
 <div class="center">
 <span class="eyebrow">Two tools, one tray</span>
-<h2>One for the agent. One for the audience.</h2>
-<p class="lead">An agent needs files it can read and act on. A person needs something worth watching. Same hotkeys, two outputs.</p>
+<h2>One for your audience. One for your agent.</h2>
+<p class="lead">A person needs something worth watching. An agent needs files it can read and act on. Same hotkeys, two outputs.</p>
 </div>
 <div class="qc-split" style="margin-top: 32px">
+<div class="qc-card">
+<span class="eyebrow">QACut Studio</span>
+<h3>Polished screen recordings</h3>
+<p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble. Trim, cut, export to MP4.</p>
+<div class="visual qc-timeline" aria-label="A studio timeline with zoom blocks, a cut, click and key markers">
+<div class="film"></div>
+<div class="cut" style="left: 44%; width: 9%"></div>
+<div class="zoom" style="left: 12%; width: 14%"></div>
+<div class="zoom" style="left: 31%; width: 10%"></div>
+<div class="zoom" style="left: 60%; width: 18%"></div>
+<div class="click" style="left: 16%"></div><div class="click" style="left: 23%"></div><div class="click" style="left: 35%"></div><div class="click" style="left: 66%"></div><div class="click" style="left: 74%"></div>
+<div class="key" style="left: 70%"></div><div class="key" style="left: 83%"></div>
+<div class="handle" style="left: 5%"></div><div class="handle" style="left: 93%"></div>
+<div class="head"></div>
+</div>
+</div>
 <div class="qc-card">
 <span class="eyebrow">QACut</span>
 <h3>Bundles for agents</h3>
@@ -57,22 +73,6 @@ Clipped at 125% scaling; label wraps.
 Toggle animates but the state never saves.
 <span class="m">Key frames: 0 s start · 3 s click at 412,188 · 9 s end</span></pre>
 </div>
-<div class="qc-card">
-<span class="eyebrow">QACut Studio</span>
-<h3>Polished screen recordings</h3>
-<p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble. Trim, cut, export to MP4.</p>
-<div class="visual qc-timeline" aria-label="A studio timeline with zoom blocks, a cut, click and key markers">
-<div class="film"></div>
-<div class="cut" style="left: 44%; width: 9%"></div>
-<div class="zoom" style="left: 12%; width: 14%"></div>
-<div class="zoom" style="left: 31%; width: 10%"></div>
-<div class="zoom" style="left: 60%; width: 18%"></div>
-<div class="click" style="left: 16%"></div><div class="click" style="left: 23%"></div><div class="click" style="left: 35%"></div><div class="click" style="left: 66%"></div><div class="click" style="left: 74%"></div>
-<div class="key" style="left: 70%"></div><div class="key" style="left: 83%"></div>
-<div class="handle" style="left: 5%"></div><div class="handle" style="left: 93%"></div>
-<div class="head"></div>
-</div>
-</div>
 </div>
 </section>
 <section>
@@ -82,21 +82,21 @@ Toggle animates but the state never saves.
 </div>
 <div class="qc-flow">
 <div class="qc-flow-step">
-<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>2</kbd></div>
-<h3>Capture</h3>
-<p>Drag a region. Type what's wrong.</p>
-</div>
-<svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<div class="qc-flow-step">
 <div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>3</kbd></div>
 <h3>Record</h3>
-<p>Screen, cursor, clicks and keys, as data.</p>
+<p>Drag a region. Do the thing. Press it again to stop.</p>
 </div>
 <svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div class="qc-flow-step">
-<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>Enter</kbd></div>
-<h3>Hand off</h3>
-<p>Bundle path on your clipboard.</p>
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>Z</kbd></div>
+<h3>Zoom</h3>
+<p>Push in where the work is, while you record.</p>
+</div>
+<svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div class="qc-flow-step">
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>2</kbd></div>
+<h3>Capture</h3>
+<p>A screenshot and a note, when something needs fixing.</p>
 </div>
 </div>
 </section>
@@ -155,10 +155,11 @@ any recording, before changing anything."</pre>
 <tbody>
 <tr><td>Runs on your machine, no upload</td><td class="yes">Yes</td><td class="no">Cloud</td><td class="no">Cloud</td><td class="yes">Yes</td></tr>
 <tr><td>No account required</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="some">License</td></tr>
-<tr><td>Bundles an AI agent can act on</td><td class="yes">Yes</td><td class="no">No</td><td class="some">Docs only</td><td class="no">No</td></tr>
+<tr><td>Camera bubble and narration</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td></tr>
 <tr><td>Cursor smoothing and follow zoom</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="yes">Yes</td></tr>
 <tr><td>Zooms you mark while recording</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
 <tr><td>Step documents from clicks</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td></tr>
+<tr><td>Bundles an AI agent can act on</td><td class="yes">Yes</td><td class="no">No</td><td class="some">Docs only</td><td class="no">No</td></tr>
 <tr><td>Your brand on the output</td><td class="yes">Yes</td><td class="some">Paid</td><td class="some">Paid</td><td class="some">Partial</td></tr>
 <tr><td>Open source</td><td class="yes">MIT</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
 <tr class="total"><td>Price</td><td class="yes">Free</td><td class="some">Per seat</td><td class="some">Per seat</td><td class="some">One-time</td></tr>

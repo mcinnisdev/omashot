@@ -49,6 +49,27 @@ let track: Track | null = null;
 let saveTimer = 0;
 let rafPending = false;
 let selectedZoom: Zoom | null = null;
+/// The chosen logo, loaded once per path.
+let logoImg: HTMLImageElement | null = null;
+let logoPath: string | null = null;
+
+function loadLogo(path: string | null) {
+  if (path === logoPath) return;
+  logoPath = path;
+  if (!path) {
+    logoImg = null;
+    scheduleRender();
+    return;
+  }
+  const img = new Image();
+  img.onload = () => {
+    if (logoPath === path) {
+      logoImg = img;
+      scheduleRender();
+    }
+  };
+  img.src = `${convertFileSrc(path)}?v=${Date.now()}`;
+}
 /// A cut being made: its start, waiting for the end.
 let cutFrom: number | null = null;
 
@@ -115,7 +136,7 @@ function playable(ms: number) {
 
 function render() {
   if (!project || !track) return;
-  draw(ctx, { t: currentMs(), source: src, camera: project.camera ? cam : null }, project, edits, track);
+  draw(ctx, { t: currentMs(), source: src, camera: project.camera ? cam : null, logo: logoImg }, project, edits, track);
   timeEl.textContent = `${fmt(currentMs())} / ${fmt(project.duration_ms)}  ·  ${fmt(keptMs())} kept`;
   if (document.activeElement !== scrub) {
     scrub.value = String(Math.round((currentMs() / Math.max(1, project.duration_ms)) * 1000));
@@ -225,6 +246,36 @@ function bindInspector() {
   on("cam-size", "input", (el) => (edits.camera.size = Number(el.value)));
   on("cam-corner", "change", (el) => (edits.camera.corner = el.value as Edits["camera"]["corner"]));
   on("cam-shape", "change", (el) => (edits.camera.shape = el.value as Edits["camera"]["shape"]));
+  on("title-text", "input", (el) => (edits.title.text = el.value));
+  on("title-sub", "input", (el) => (edits.title.subtitle = el.value));
+  on("title-pos", "change", (el) => (edits.title.position = el.value as Edits["title"]["position"]));
+  on("logo-path", "change", (el) => {
+    edits.logo.path = el.value || null;
+    loadLogo(edits.logo.path);
+  });
+  on("logo-corner", "change", (el) => (edits.logo.corner = el.value as Edits["logo"]["corner"]));
+  on("logo-size", "input", (el) => (edits.logo.size = Number(el.value)));
+}
+
+async function fillLogoChoices() {
+  const sel = $<HTMLSelectElement>("logo-path");
+  const images = await invoke<{ name: string; path: string }[]>("list_brand_images");
+  sel.replaceChildren();
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = images.length ? "None" : "None (brand folder has no images)";
+  sel.append(none);
+  for (const im of images) {
+    const o = document.createElement("option");
+    o.value = im.path;
+    o.textContent = im.name;
+    sel.append(o);
+  }
+  sel.value = edits.logo.path ?? "";
+  if (edits.logo.path && sel.value !== edits.logo.path) {
+    // The file is gone; forget it.
+    edits.logo.path = null;
+  }
 }
 
 // ------------------------------------------------------------ timeline
@@ -557,6 +608,12 @@ function showInspector() {
   $<HTMLSelectElement>("cam-corner").value = edits.camera.corner;
   $<HTMLSelectElement>("cam-shape").value = edits.camera.shape;
   $<HTMLElement>("camera-section").hidden = !project?.camera?.has_video;
+  $<HTMLInputElement>("title-text").value = edits.title.text;
+  $<HTMLInputElement>("title-sub").value = edits.title.subtitle;
+  $<HTMLSelectElement>("title-pos").value = edits.title.position;
+  $<HTMLSelectElement>("logo-corner").value = edits.logo.corner;
+  $<HTMLInputElement>("logo-size").value = String(edits.logo.size);
+  void fillLogoChoices().then(() => loadLogo(edits.logo.path));
 
   const p = project!;
   const secs = Math.round(p.duration_ms / 1000);
@@ -709,6 +766,7 @@ $("export-start").addEventListener("click", async () => {
       src.src,
       project.camera ? cam.src : null,
       project.camera?.has_video ? cam : null,
+      logoImg,
       (p) => {
         const f = p.total > 0 ? p.done / p.total : 0;
         fill.style.width = `${Math.round(f * 100)}%`;

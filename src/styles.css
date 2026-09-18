@@ -1372,6 +1372,25 @@ body.studio {
   width: 130px;
   accent-color: var(--signal);
 }
+.inspector input[type="text"] {
+  width: 140px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 3px 6px;
+  user-select: text;
+}
+.inspector input[type="text"]:focus {
+  outline: none;
+  border-color: var(--signal);
+}
+.inspector .hint code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
 .inspector input[type="checkbox"] {
   accent-color: var(--signal);
   margin: 0;

@@ -86,6 +86,32 @@
             </div>
             <p class="hint"><kbd>I</kbd> start, <kbd>O</kbd> end, <kbd>X</kbd> twice to cut a stretch out of the middle. Drag the handles on the timeline; click a cut to remove it.</p>
           </section>
+          <section>
+            <h3>Branding</h3>
+            <label>Title <input type="text" id="title-text" placeholder="Shown in the padding" /></label>
+            <label>Subtitle <input type="text" id="title-sub" placeholder="Optional" /></label>
+            <label>Where
+              <select id="title-pos">
+                <option value="top">Above the frame</option>
+                <option value="bottom">Below the frame</option>
+              </select>
+            </label>
+            <label>Logo
+              <select id="logo-path">
+                <option value="">None</option>
+              </select>
+            </label>
+            <label>Logo corner
+              <select id="logo-corner">
+                <option value="tl">Top left</option>
+                <option value="tr">Top right</option>
+                <option value="bl">Bottom left</option>
+                <option value="br">Bottom right</option>
+              </select>
+            </label>
+            <label>Logo size <input type="range" id="logo-size" min="0.2" max="1" step="0.05" /></label>
+            <p class="hint">Logos come from the brand folder (<code>~/QACut/brand</code>). Give the frame enough padding for a title to fit.</p>
+          </section>
           <section id="camera-section">
             <h3>Camera</h3>
             <label class="check"><input type="checkbox" id="cam-show" /> Show camera bubble</label>

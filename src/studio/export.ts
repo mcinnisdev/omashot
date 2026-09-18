@@ -3,7 +3,7 @@
 // the bytes to Rust as they are produced. The preview and the export share
 // `draw`, so what you saw is what you get.
 import { invoke } from "@tauri-apps/api/core";
-import { createFile, MP4BoxBuffer } from "mp4box";
+import { createFile, DataStream, Endianness, MP4BoxBuffer } from "mp4box";
 import { Muxer, StreamTarget } from "mp4-muxer";
 import { draw, type Track } from "./compositor";
 import type { Edits, Project } from "./model";
@@ -54,35 +54,16 @@ interface Sample {
   data: Uint8Array;
 }
 
-/// AVCDecoderConfigurationRecord bytes for VideoDecoder, from the parsed
-/// avcC box (mp4box keeps SPS and PPS as NAL units).
-function avcDescription(avcC: any): Uint8Array {
-  const nalus = (arr: any[]) => arr.map((s) => (s.nalu ?? s.data) as Uint8Array);
-  const sps = nalus(avcC.SPS ?? []);
-  const pps = nalus(avcC.PPS ?? []);
-  const size = 7 + sps.reduce((a, n) => a + 2 + n.length, 0) + pps.reduce((a, n) => a + 2 + n.length, 0);
-  const out = new Uint8Array(size);
-  let o = 0;
-  out[o++] = 1;
-  out[o++] = avcC.AVCProfileIndication;
-  out[o++] = avcC.profile_compatibility;
-  out[o++] = avcC.AVCLevelIndication;
-  out[o++] = 0xfc | (avcC.lengthSizeMinusOne & 3);
-  out[o++] = 0xe0 | sps.length;
-  for (const n of sps) {
-    out[o++] = n.length >> 8;
-    out[o++] = n.length & 255;
-    out.set(n, o);
-    o += n.length;
-  }
-  out[o++] = pps.length;
-  for (const n of pps) {
-    out[o++] = n.length >> 8;
-    out[o++] = n.length & 255;
-    out.set(n, o);
-    o += n.length;
-  }
-  return out;
+/// The decoder configuration record for VideoDecoder: the payload of the
+/// avcC (H.264) or hvcC (HEVC) box, serialised by mp4box and stripped of
+/// its 8-byte box header.
+function decoderDescription(entry: any): Uint8Array | undefined {
+  const box = entry?.avcC ?? entry?.hvcC ?? entry?.av1C ?? entry?.vpcC;
+  if (!box) return undefined;
+  const ds = new DataStream(undefined, 0, Endianness.BIG_ENDIAN);
+  box.write(ds);
+  const bytes = new Uint8Array(ds.buffer as unknown as ArrayBuffer, 0, ds.getPosition());
+  return bytes.slice(8);
 }
 
 /// Pulls source frames by timestamp, decoding just ahead of demand and
@@ -112,12 +93,11 @@ class SourceFrames {
         }
         const trak: any = file.getTrackById(track.id);
         const entry = trak?.mdia?.minf?.stbl?.stsd?.entries?.[0];
-        const avcC = entry?.avcC;
         config = {
           codec: track.codec,
           codedWidth: track.video?.width ?? track.track_width,
           codedHeight: track.video?.height ?? track.track_height,
-          description: avcC ? avcDescription(avcC) : undefined,
+          description: decoderDescription(entry),
           hardwareAcceleration: "prefer-hardware",
         };
         file.setExtractionOptions(track.id, null, { nbSamples: 200 });
@@ -140,8 +120,12 @@ class SourceFrames {
         s.error = e;
       },
     });
-    const support = await VideoDecoder.isConfigSupported(config!);
-    if (!support.supported) throw new Error(`cannot decode ${config!.codec} here`);
+    let support = await VideoDecoder.isConfigSupported(config!);
+    if (!support.supported) {
+      config!.hardwareAcceleration = "no-preference";
+      support = await VideoDecoder.isConfigSupported(config!);
+    }
+    if (!support.supported) throw new Error(`this machine cannot decode ${config!.codec}`);
     s.decoder.configure(config!);
     return s;
   }
@@ -269,6 +253,7 @@ export async function exportVideo(
   sourceUrl: string,
   cameraUrl: string | null,
   cam: HTMLVideoElement | null,
+  logo: HTMLImageElement | null,
   onProgress: (p: Progress) => void,
   cancel: Cancel,
 ): Promise<string> {
@@ -361,7 +346,7 @@ export async function exportVideo(
       if (encodeError) throw encodeError;
       if (frame) {
         if (showCam) await seekTo(cam!, Math.max(0, (tSrc - project.camera!.offset_ms) / 1000));
-        draw(ctx, { t: tSrc, source: frame, camera: showCam ? cam : null }, project, edits, track);
+        draw(ctx, { t: tSrc, source: frame, camera: showCam ? cam : null, logo }, project, edits, track);
         const vf = new VideoFrame(canvas, { timestamp: Math.round(i * frameUs), duration: Math.round(frameUs) });
         encoder.encode(vf, { keyFrame: i % (opts.fps * 2) === 0 });
         vf.close();

@@ -13,6 +13,8 @@ export interface Frame {
   t: number;
   source: CanvasImageSource;
   camera: HTMLVideoElement | null;
+  /// The logo image, loaded by the caller, when one is chosen.
+  logo?: HTMLImageElement | null;
 }
 
 export interface Track {
@@ -444,6 +446,61 @@ export function draw(
         ctx.globalAlpha = 1;
         x += w + gap;
       });
+    }
+  }
+
+  // Title and subtitle in the padding band above or below the frame.
+  const uiFont = getComputedStyle(document.body).getPropertyValue("--sans") || "sans-serif";
+  const titleText = edits.title.text.trim();
+  const subText = edits.title.subtitle.trim();
+  const band = edits.title.position === "top" ? L.y : H - (L.y + L.h);
+  if ((titleText || subText) && band >= H * 0.05) {
+    const titlePx = Math.min(band * 0.42, H * 0.045);
+    const subPx = titlePx * 0.6;
+    const gap = titlePx * 0.25;
+    const total = (titleText ? titlePx : 0) + (subText ? subPx : 0) + (titleText && subText ? gap : 0);
+    const bandTop = edits.title.position === "top" ? 0 : L.y + L.h;
+    let y = bandTop + (band - total) / 2;
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.shadowColor = "rgba(0,0,0,0.45)";
+    ctx.shadowBlur = titlePx * 0.25;
+    ctx.shadowOffsetY = titlePx * 0.06;
+    if (titleText) {
+      ctx.font = `650 ${titlePx}px ${uiFont}`;
+      ctx.fillStyle = "#fff";
+      ctx.fillText(titleText, W / 2, y);
+      y += titlePx + gap;
+    }
+    if (subText) {
+      ctx.font = `450 ${subPx}px ${uiFont}`;
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
+      ctx.fillText(subText, W / 2, y);
+    }
+    ctx.restore();
+  }
+
+  // Logo in a corner of the padding, never over the frame.
+  const logo = frame.logo;
+  if (logo && logo.complete && logo.naturalWidth > 0) {
+    const bandH = Math.min(L.y, H - (L.y + L.h));
+    const sideW = L.x;
+    const room = Math.max(bandH, sideW);
+    if (room >= H * 0.04) {
+      const target = room * 0.8 * edits.logo.size;
+      const s = Math.min(target / logo.naturalHeight, (W * 0.25) / logo.naturalWidth);
+      const lw = logo.naturalWidth * s;
+      const lh = logo.naturalHeight * s;
+      const m = Math.max(8, room * 0.15);
+      const corner = edits.logo.corner;
+      const x = corner.endsWith("l") ? m : W - m - lw;
+      const y = corner.startsWith("t") ? m : H - m - lh;
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = lh * 0.15;
+      ctx.drawImage(logo, x, y, lw, lh);
+      ctx.restore();
     }
   }
 

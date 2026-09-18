@@ -39,6 +39,7 @@ mod win {
     use windows_capture::capture::{CaptureControl, Context, GraphicsCaptureApiHandler};
     use windows_capture::encoder::{
         AudioSettingsBuilder, ContainerSettingsBuilder, VideoEncoder, VideoSettingsBuilder,
+        VideoSettingsSubType,
     };
     use windows_capture::frame::Frame;
     use windows_capture::graphics_capture_api::InternalCaptureControl;
@@ -61,8 +62,11 @@ mod win {
 
         fn new(ctx: Context<Self::Flags>) -> Result<Self, Self::Error> {
             let f = ctx.flags;
+            // H.264 rather than the crate's HEVC default: it decodes on
+            // every machine the studio might run on.
             let encoder = VideoEncoder::new(
                 VideoSettingsBuilder::new(f.width, f.height)
+                    .sub_type(VideoSettingsSubType::H264)
                     .frame_rate(60)
                     .bitrate(bitrate_for(f.width, f.height)),
                 AudioSettingsBuilder::default().disabled(true),

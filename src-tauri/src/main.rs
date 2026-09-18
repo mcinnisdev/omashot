@@ -975,6 +975,36 @@ fn export_abort(state: State<Shared>) {
     }
 }
 
+#[derive(Clone, Serialize)]
+struct BrandImage {
+    name: String,
+    path: String,
+}
+
+/// Image files in the brand folder, for the studio's logo picker.
+#[tauri::command]
+fn list_brand_images(app: AppHandle) -> Vec<BrandImage> {
+    let dir = brand_dir(&app);
+    let mut out = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(&dir) {
+        for e in entries.flatten() {
+            let p = e.path();
+            let ext = p
+                .extension()
+                .map(|x| x.to_string_lossy().to_lowercase())
+                .unwrap_or_default();
+            if matches!(ext.as_str(), "png" | "jpg" | "jpeg" | "svg" | "webp" | "gif") {
+                out.push(BrandImage {
+                    name: p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default(),
+                    path: p.to_string_lossy().to_string(),
+                });
+            }
+        }
+    }
+    out.sort_by(|a, b| a.name.cmp(&b.name));
+    out
+}
+
 #[tauri::command]
 fn reveal_path(app: AppHandle, path: String) -> Result<(), String> {
     app.opener().reveal_item_in_dir(path).map_err(|e| e.to_string())
@@ -1526,6 +1556,7 @@ fn main() {
             export_close,
             export_abort,
             reveal_path,
+            list_brand_images,
             get_studio_settings,
             set_studio_settings,
             log_error,

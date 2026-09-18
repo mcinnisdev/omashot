@@ -87,7 +87,9 @@ the fact. Keystroke badges default to shortcuts
 only, and any badge can be hidden by clicking its marker on the timeline.
 Trim sets where the video starts and ends (`I` and `O`, or drag the
 handles) and `X` twice cuts a stretch out of the middle; playback skips
-removed material and the timeline shades it. **Export…** renders every
+removed material and the timeline shades it. A title and subtitle can sit in the
+padding above or below the frame and a logo from the brand folder in a
+corner of it. **Export…** renders every
 kept frame through the same compositor at 720p, 1080p or 1440p and 30 or
 60 fps, encodes H.264 and AAC narration with the browser engine's
 WebCodecs (hardware where available), and writes an MP4 into the

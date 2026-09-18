@@ -97,6 +97,10 @@ export interface Edits {
   /// 0 lazy (big dead zone, long lag) to 1 tight (small dead zone, short
   /// lag). Applies to every follow zoom.
   follow_tightness: number;
+  /// Text in the padding above or below the frame.
+  title: { text: string; subtitle: string; position: "top" | "bottom" };
+  /// A logo from the brand folder in a corner of the padding.
+  logo: { path: string | null; corner: Corner; size: number };
 }
 
 export const DEFAULT_EDITS: Edits = {
@@ -110,6 +114,8 @@ export const DEFAULT_EDITS: Edits = {
   zooms_seeded: false,
   zoom_follow: true,
   follow_tightness: 0.6,
+  title: { text: "", subtitle: "", position: "top" },
+  logo: { path: null, corner: "tl", size: 0.5 },
 };
 
 export const DEFAULT_ZOOM_SCALE = 2;
@@ -130,6 +136,8 @@ export function withDefaults(e: Partial<Edits> | undefined): Edits {
     zooms_seeded: e?.zooms_seeded ?? false,
     zoom_follow: e?.zoom_follow ?? true,
     follow_tightness: e?.follow_tightness ?? 0.6,
+    title: { ...d.title, ...(e?.title ?? {}) },
+    logo: { ...d.logo, ...(e?.logo ?? {}) },
   };
 }
 

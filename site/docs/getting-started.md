@@ -1,6 +1,6 @@
 # Getting started
 
-QACut lives in the system tray. There is no window to open first: press a hotkey, drag a region, type a note.
+QA Cut lives in the system tray. There is no window to open first: press a hotkey, drag a region, type a note.
 
 ## Install
 
@@ -14,9 +14,9 @@ After install, look for the coral scissors in the tray. Left-click it for the me
 
 The menu has two sections.
 
-**QACut** is the lightweight half: screenshots, auto-captured clips, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
+**QA Cut** is the lightweight half: screenshots, auto-captured clips, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
 
-**QACut Studio** is the other half: a screen recording meant to be watched by a person, edited into something polished, and exported as a video. Read [Recordings for people](/docs/studio).
+**QA Cut Studio** is the other half: a screen recording edited into something polished, and exported as a video. Read [Polished screen recordings](/docs/studio).
 
 Both put their files under `~/QACut/`. Everything is plain files you can open, move or delete.
 

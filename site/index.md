@@ -2,7 +2,7 @@
 layout: page
 sidebar: false
 aside: false
-title: QACut
+title: QA Cut
 titleTemplate: Screen capture that hands off
 ---
 
@@ -11,15 +11,14 @@ titleTemplate: Screen capture that hands off
 <div>
 <span class="eyebrow">Free and open source · Windows</span>
 <h1>Capture what's wrong.<br />Record <em>how it's done.</em></h1>
-<p class="lead">QACut turns screenshots and clips into a bundle an AI agent can act on. QACut Studio turns a screen recording into a walkthrough people actually watch. One tray icon. No account. Nothing leaves your machine unless you send it.</p>
+<p class="lead">QA Cut turns screenshots and clips into a bundle an AI agent can act on. QA Cut Studio turns a screen recording into a walkthrough worth watching. One tray icon. No account. Nothing leaves your machine unless you send it.</p>
 <div class="qc-actions">
 <a class="qc-btn primary" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
-<a class="qc-btn ghost" href="/docs/getting-started">Getting started</a>
-<a class="qc-btn ghost" href="https://github.com/mcinnisdev/qacut">Source on GitHub</a>
+<a class="qc-btn outline" href="/docs/getting-started">Getting started</a>
 </div>
 <p class="qc-fine">Windows 10 (2004+) or 11, x64. MIT licensed. No telemetry, no sign-in.</p>
 </div>
-<div class="qc-stage" aria-label="A QACut Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
+<div class="qc-stage" aria-label="A QA Cut Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
 <img class="logo" src="/logo.png" alt="" />
 <div class="title">Unlink OneDrive from this computer</div>
 <div class="win">
@@ -36,19 +35,14 @@ titleTemplate: Screen capture that hands off
 <section>
 <div class="center">
 <span class="eyebrow">Two tools, one tray</span>
-<h2>Built for the two audiences a screen ends up in front of</h2>
-<p class="lead">An agent needs files it can read and act on. A person needs something worth watching. QACut makes both from the same three hotkeys.</p>
+<h2>One for the agent. One for the audience.</h2>
+<p class="lead">An agent needs files it can read and act on. A person needs something worth watching. Same hotkeys, two outputs.</p>
 </div>
 <div class="qc-split" style="margin-top: 32px">
 <div class="qc-card">
-<span class="eyebrow">QACut</span>
+<span class="eyebrow">QA Cut</span>
 <h3>Bundles for agents</h3>
-<p>Freeze the screen, drag a region, type what's wrong, keep going. Group shots as you move between pages. Finish, and the bundle is a folder with a markdown file that reads in order, every image linked relatively.</p>
-<ul>
-<li>Auto-capture a process: a clip plus a still at every click, labelled with where it landed.</li>
-<li>Mark up: arrows, highlights, step counters, and a blur that actually removes text.</li>
-<li>Hand off as a folder path to a CLI agent or as a ZIP to a chat, with the prompt written for you.</li>
-</ul>
+<p>Drag a region, say what's wrong, keep going. Finish, and you have a folder with a markdown file that reads top to bottom, every image linked, the prompt written for you.</p>
 <pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
 <span></span>
 <span class="h">## 1. Settings page</span>
@@ -64,14 +58,9 @@ Toggle animates but the state never saves.
 <span class="m">Key frames: 0 s start · 3 s click at 412,188 · 9 s end</span></pre>
 </div>
 <div class="qc-card">
-<span class="eyebrow">QACut Studio</span>
-<h3>Recordings for people</h3>
-<p>Record with the cursor as data, not pixels. Then draw it back in, smoothed, enlarged, with a ripple on every click. Zoom to where the work is, live with one key or afterwards on a timeline. Your camera in a bubble, your voice in sync, your logo in the corner.</p>
-<ul>
-<li>Zooms that follow the cursor, with a dead zone so they never twitch.</li>
-<li>Trim, cut the middle out, drag blocks, and the preview follows every move.</li>
-<li>Export exactly what you previewed: H.264 MP4 with AAC narration, 720p to 1440p.</li>
-</ul>
+<span class="eyebrow">QA Cut Studio</span>
+<h3>Polished screen recordings</h3>
+<p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble. Trim, cut, export to MP4.</p>
 <div class="visual qc-timeline" aria-label="A studio timeline with zoom blocks, a cut, click and key markers">
 <div class="film"></div>
 <div class="cut" style="left: 44%; width: 9%"></div>
@@ -89,12 +78,26 @@ Toggle animates but the state never saves.
 <section>
 <div class="center">
 <span class="eyebrow">How it works</span>
-<h2>Three keys and you're done</h2>
+<h2>Three keys.</h2>
 </div>
-<div class="qc-steps">
-<div class="qc-step"><span class="n">1</span><h3>Press a key</h3><p><kbd>Ctrl+Shift+2</kbd> for a screenshot, <kbd>Ctrl+Shift+R</kbd> to auto-capture a process, <kbd>Ctrl+Shift+3</kbd> for a Studio recording. Drag the region. A three-second countdown lets you get in place.</p></div>
-<div class="qc-step"><span class="n">2</span><h3>Do the thing</h3><p>Type a note under each shot. Press <kbd>Ctrl+Shift+Z</kbd> mid-recording to zoom in where you are and again to zoom out. Every click, key and cursor move is recorded as data on the same clock as the frames.</p></div>
-<div class="qc-step"><span class="n">3</span><h3>Hand it off</h3><p><kbd>Ctrl+Shift+Enter</kbd> writes the bundle and copies the path; the prompt is one click away. Or the Studio opens on your recording, you tidy it in minutes, and Export writes the MP4.</p></div>
+<div class="qc-flow">
+<div class="qc-flow-step">
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>2</kbd></div>
+<h3>Capture</h3>
+<p>Drag a region. Type what's wrong.</p>
+</div>
+<svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div class="qc-flow-step">
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>3</kbd></div>
+<h3>Record</h3>
+<p>Screen, cursor, clicks and keys, as data.</p>
+</div>
+<svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div class="qc-flow-step">
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>Enter</kbd></div>
+<h3>Hand off</h3>
+<p>Bundle path on your clipboard.</p>
+</div>
 </div>
 </section>
 <section>
@@ -104,24 +107,24 @@ Toggle animates but the state never saves.
 <p class="lead">Everything Screen Studio and Loom charge for, drawn from data you already recorded, editable after the fact.</p>
 </div>
 <div class="qc-grid">
-<div class="qc-feature"><div class="ico">⌖</div><h3>Zoom that follows</h3><p>A zoom block pushes in with an eased 600 ms move, holds still while the cursor moves inside the middle of the view, and eases after it near the edges. Tightness is a slider.</p></div>
-<div class="qc-feature"><div class="ico">◎</div><h3>Clicks and keys</h3><p>A ripple where every click landed. Keystroke badges for shortcuts only, or every key. Hide any single badge from the timeline.</p></div>
-<div class="qc-feature"><div class="ico">◉</div><h3>Camera and voice</h3><p>Your camera in a circle or rounded bubble, any corner, any size. Narration recorded on the same clock and cut with the video.</p></div>
-<div class="qc-feature"><div class="ico">⟷</div><h3>Trim and cut</h3><p>Start and end handles you can actually grab. Cut a stretch out of the middle, then drag it, resize it, or put it back. A filmstrip shows where you are.</p></div>
-<div class="qc-feature"><div class="ico">◈</div><h3>Title and logo</h3><p>A title and subtitle in the padding above or below the frame, and a logo from your brand folder in a corner of it. Five backgrounds, or plain.</p></div>
-<div class="qc-feature"><div class="ico">▶</div><h3>Export that matches</h3><p>The preview and the export share one renderer. Hardware H.264 where the machine has it, AAC narration, 30 or 60 fps, written straight into the recording's folder.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21M8 11h6M11 8v6"/></svg></div><h3>Zoom that follows</h3><p>A zoom block pushes in with an eased 600 ms move, holds still while the cursor moves inside the middle of the view, and eases after it near the edges. Tightness is a slider.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8.5"/></svg></div><h3>Clicks and keys</h3><p>A ripple where every click landed. Keystroke badges for shortcuts only, or every key. Hide any single badge from the timeline.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h3l2-2.5h6L17 7h3v11H4z"/><circle cx="12" cy="12.5" r="3.5"/></svg></div><h3>Camera and voice</h3><p>Your camera in a circle or rounded bubble, any corner, any size. Narration recorded on the same clock and cut with the video.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.4 15.6M8.4 8.4 20 20"/></svg></div><h3>Trim and cut</h3><p>Start and end handles you can actually grab. Cut a stretch out of the middle, then drag it, resize it, or put it back. A filmstrip shows where you are.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h13M10.5 5v14"/><rect x="16" y="15" width="5" height="5" rx="1"/></svg></div><h3>Title and logo</h3><p>A title and subtitle in the padding above or below the frame, and a logo from your brand folder in a corner of it. Five backgrounds, or plain.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg></div><h3>Export that matches</h3><p>The preview and the export share one renderer. Hardware H.264 where the machine has it, AAC narration, 30 or 60 fps, written straight into the recording's folder.</p></div>
 </div>
 </section>
 <section>
 <div class="center">
-<span class="eyebrow">Made for agents</span>
+<span class="eyebrow">Agent friendly</span>
 <h2>A bundle is a folder an agent can read</h2>
-<p class="lead">No API, no plugin, no format to learn. The markdown explains itself at the top, images are linked relatively, and the prompt is written for the purpose you picked: fix the issues, write the process doc, or your own.</p>
+<p class="lead">No API, no plugin. Markdown that explains itself, images linked relatively, and a prompt written for the job: fix the issues, write the process doc, or your own.</p>
 </div>
 <div class="qc-split" style="margin-top: 32px">
 <div class="qc-card">
 <h3>To a CLI agent</h3>
-<p>Finish copies the folder path. <strong>Copy agent prompt</strong> gives you the instruction with the path filled in.</p>
+<p>Finish copies the folder path. <strong>Copy agent prompt</strong> fills it into the instruction.</p>
 <pre class="visual qc-bundle">claude "Work through the QA bundle at
   C:\Users\nick\QACut\2026-09-17_143022-settings-review.
 Start with bundle.md: each group is a page or area,
@@ -134,9 +137,9 @@ any recording, before changing anything."</pre>
 <h3>To a chat agent</h3>
 <p><strong>Save ZIP for chat</strong> zips the folder, shows it in Explorer ready to drag in, and copies a prompt that says "the attached ZIP".</p>
 <ul>
-<li>The brand kit rides along, so the output sounds like you.</li>
-<li>Recordings include stills at every click, so an agent that can't play video still sees each step.</li>
-<li>Everything stays plain files. Move the folder anywhere and it still works.</li>
+<li>Your brand kit rides along, so the output sounds like you.</li>
+<li>Recordings include a still at every click, for agents that can't play video.</li>
+<li>Plain files. Move the folder anywhere and it still works.</li>
 </ul>
 </div>
 </div>
@@ -144,11 +147,11 @@ any recording, before changing anything."</pre>
 <section>
 <div class="center">
 <span class="eyebrow">Why not the tools you already know?</span>
-<h2>Own the files. Skip the seat.</h2>
+<h2>Same features. Skip the seat.</h2>
 </div>
 <div class="qc-scroll">
 <table class="qc-compare">
-<thead><tr><th></th><th>QACut</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
+<thead><tr><th></th><th>QA Cut</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
 <tbody>
 <tr><td>Runs on your machine, no upload</td><td class="yes">Yes</td><td class="no">Cloud</td><td class="no">Cloud</td><td class="yes">Yes</td></tr>
 <tr><td>No account required</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="some">License</td></tr>
@@ -162,7 +165,7 @@ any recording, before changing anything."</pre>
 </tbody>
 </table>
 </div>
-<p class="qc-note">Comparison reflects each product's public plans as of September 2026. They are good tools; they solve a different problem than "hand this to an agent" and "own the files".</p>
+<p class="qc-note">Public plans as of September 2026. They are good tools; they were not built to hand work to an agent.</p>
 </section>
 <section>
 <div class="qc-oss">
@@ -173,7 +176,7 @@ any recording, before changing anything."</pre>
 </div>
 <div class="qc-actions">
 <a class="qc-btn primary" href="https://github.com/mcinnisdev/qacut">Star on GitHub</a>
-<a class="qc-btn ghost" href="https://github.com/mcinnisdev/qacut/releases/latest">Download</a>
+<a class="qc-btn outline" href="https://github.com/mcinnisdev/qacut/releases/latest">Download</a>
 </div>
 </div>
 </section>

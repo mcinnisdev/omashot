@@ -1,16 +1,17 @@
 import { defineConfig } from "vitepress";
 
-// The docs are written with QACut itself: process docs exported from the
+// The docs are written with QA Cut itself: process docs exported from the
 // studio land under docs/ as markdown with their images and clips beside
 // them. VitePress turns the folder into the site; nothing else to do.
 export default defineConfig({
-  title: "QACut",
+  title: "QA Cut",
   description:
-    "Capture, record and hand off. Bundles for agents, polished walkthroughs for people. Free and open source.",
+    "Capture, record and hand off. Bundles for agents, polished screen recordings. Free and open source.",
   cleanUrls: true,
   lastUpdated: true,
   head: [["link", { rel: "icon", href: "/favicon.png" }]],
   themeConfig: {
+    siteTitle: '<span class="qa">QA</span> Cut',
     logo: "/logo.png",
     nav: [
       { text: "Docs", link: "/docs/getting-started" },
@@ -26,15 +27,15 @@ export default defineConfig({
         ],
       },
       {
-        text: "QACut",
+        text: "QA Cut",
         items: [
           { text: "Bundles for agents", link: "/docs/qacut" },
           { text: "Brand kit", link: "/docs/brand-kit" },
         ],
       },
       {
-        text: "QACut Studio",
-        items: [{ text: "Recordings for people", link: "/docs/studio" }],
+        text: "QA Cut Studio",
+        items: [{ text: "Polished screen recordings", link: "/docs/studio" }],
       },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/mcinnisdev/qacut" }],

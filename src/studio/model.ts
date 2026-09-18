@@ -86,6 +86,8 @@ export interface Edits {
   keys: { show: boolean; mode: KeyMode; hidden: number[] };
   camera: { show: boolean; size: number; corner: Corner; shape: "circle" | "rounded" };
   trim: { in_ms: number; out_ms: number | null };
+  /// Stretches removed from the middle, in source time.
+  cuts: { start: number; end: number }[];
   zooms: Zoom[];
   /// Set once the recorded zoom marks have been turned into blocks, so a
   /// deleted block does not come back on the next open.
@@ -103,6 +105,7 @@ export const DEFAULT_EDITS: Edits = {
   keys: { show: true, mode: "shortcuts", hidden: [] },
   camera: { show: true, size: 0.22, corner: "br", shape: "circle" },
   trim: { in_ms: 0, out_ms: null },
+  cuts: [],
   zooms: [],
   zooms_seeded: false,
   zoom_follow: true,
@@ -122,6 +125,7 @@ export function withDefaults(e: Partial<Edits> | undefined): Edits {
     keys: { ...d.keys, ...(e?.keys ?? {}) },
     camera: { ...d.camera, ...(e?.camera ?? {}) },
     trim: { ...d.trim, ...(e?.trim ?? {}) },
+    cuts: e?.cuts ?? [],
     zooms: e?.zooms ?? [],
     zooms_seeded: e?.zooms_seeded ?? false,
     zoom_follow: e?.zoom_follow ?? true,

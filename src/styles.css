@@ -1513,6 +1513,62 @@ body.studio {
   pointer-events: none;
 }
 
+/* Removed material and the in/out handles. */
+.tl-cuts {
+  top: 0;
+  bottom: 0;
+}
+.tl-dim {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.55) 0 6px,
+    rgba(0, 0, 0, 0.35) 6px 12px
+  );
+  pointer-events: none;
+}
+.tl-dim.tl-cut {
+  pointer-events: auto;
+  cursor: pointer;
+  border-left: 1px solid rgba(255, 91, 91, 0.6);
+  border-right: 1px solid rgba(255, 91, 91, 0.6);
+}
+.tl-dim.tl-cut:hover {
+  background: rgba(255, 91, 91, 0.35);
+}
+.tl-dim.pending {
+  background: rgba(255, 91, 91, 0.2);
+  border-style: dashed;
+}
+.tl-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  margin-left: -4px;
+  background: var(--text);
+  border-radius: 2px;
+  cursor: ew-resize;
+  opacity: 0.85;
+}
+.tl-handle:hover {
+  background: var(--signal);
+  opacity: 1;
+}
+
+.inspector .row {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0;
+}
+.inspector .row .btn,
+.inspector .row .quiet {
+  margin-top: 0;
+  font-size: 12px;
+}
+
 .recordings {
   position: absolute;
   top: 46px;

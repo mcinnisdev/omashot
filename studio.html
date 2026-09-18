@@ -73,6 +73,18 @@
               <button class="btn" id="zoom-remove">Remove this zoom</button>
             </div>
           </section>
+          <section>
+            <h3>Trim</h3>
+            <div class="row">
+              <button class="btn" id="trim-in" title="I">Start here</button>
+              <button class="btn" id="trim-out" title="O">End here</button>
+            </div>
+            <div class="row">
+              <button class="btn" id="cut-toggle" title="X">Cut from here</button>
+              <button class="quiet" id="trim-reset">Reset</button>
+            </div>
+            <p class="hint"><kbd>I</kbd> start, <kbd>O</kbd> end, <kbd>X</kbd> twice to cut a stretch out of the middle. Drag the handles on the timeline; click a cut to remove it.</p>
+          </section>
           <section id="camera-section">
             <h3>Camera</h3>
             <label class="check"><input type="checkbox" id="cam-show" /> Show camera bubble</label>
@@ -106,6 +118,7 @@
       </div>
       <!-- Timeline: zoom blocks, then clicks and key badges as markers. -->
       <div class="timeline" id="timeline">
+        <div class="tl-track tl-cuts" id="tl-cuts"></div>
         <div class="tl-track tl-zooms" id="tl-zooms"></div>
         <div class="tl-track tl-marks" id="tl-marks"></div>
         <div class="tl-head" id="tl-head"></div>

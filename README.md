@@ -85,7 +85,10 @@ follow the cursor, holding still while it moves inside the middle of the
 view and easing after it near the edges; "Add zoom here" makes one after
 the fact. Keystroke badges default to shortcuts
 only, and any badge can be hidden by clicking its marker on the timeline.
-"Open Studio" in the tray lists past recordings. With the tray toggles on, the microphone
+Trim sets where the video starts and ends (`I` and `O`, or drag the
+handles) and `X` twice cuts a stretch out of the middle; playback skips
+removed material and the timeline shades it. "Open Studio" in the tray
+lists past recordings. With the tray toggles on, the microphone
 and camera are recorded too, into `camera.webm` beside the source, with a
 live camera preview in a corner of the screen the region does not cover;
 `project.json` carries the offset between the two tracks. The studio that

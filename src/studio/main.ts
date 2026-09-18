@@ -35,6 +35,7 @@ const recordings = $<HTMLDivElement>("recordings");
 const recordingsList = $<HTMLDivElement>("recordings-list");
 const toastEl = $<HTMLDivElement>("toast");
 const timeline = $<HTMLDivElement>("timeline");
+const tlCuts = $<HTMLDivElement>("tl-cuts");
 const tlZooms = $<HTMLDivElement>("tl-zooms");
 const tlMarks = $<HTMLDivElement>("tl-marks");
 const tlHead = $<HTMLDivElement>("tl-head");
@@ -47,6 +48,8 @@ let track: Track | null = null;
 let saveTimer = 0;
 let rafPending = false;
 let selectedZoom: Zoom | null = null;
+/// A cut being made: its start, waiting for the end.
+let cutFrom: number | null = null;
 
 function toast(text: string) {
   toastEl.textContent = text;
@@ -84,10 +87,35 @@ function currentMs() {
   return src.currentTime * 1000;
 }
 
+// --------------------------------------------------------- trim and cuts
+
+function outMs() {
+  return edits.trim.out_ms ?? project?.duration_ms ?? 0;
+}
+
+/// Total length of what is kept.
+function keptMs() {
+  if (!project) return 0;
+  let total = Math.max(0, outMs() - edits.trim.in_ms);
+  for (const c of edits.cuts) {
+    const s = Math.max(c.start, edits.trim.in_ms);
+    const e = Math.min(c.end, outMs());
+    if (e > s) total -= e - s;
+  }
+  return total;
+}
+
+/// Where playback should be if it has landed on removed material.
+function playable(ms: number) {
+  if (ms < edits.trim.in_ms) return edits.trim.in_ms;
+  for (const c of edits.cuts) if (ms >= c.start && ms < c.end) return c.end;
+  return ms;
+}
+
 function render() {
   if (!project || !track) return;
   draw(ctx, { t: currentMs(), source: src, camera: project.camera ? cam : null }, project, edits, track);
-  timeEl.textContent = `${fmt(currentMs())} / ${fmt(project.duration_ms)}`;
+  timeEl.textContent = `${fmt(currentMs())} / ${fmt(project.duration_ms)}  ·  ${fmt(keptMs())} kept`;
   if (document.activeElement !== scrub) {
     scrub.value = String(Math.round((currentMs() / Math.max(1, project.duration_ms)) * 1000));
   }
@@ -104,7 +132,21 @@ function scheduleRender() {
 }
 
 // Every presented source frame is composited; while paused, edits re-render.
+// Removed material is skipped on the way through, and playback stops at
+// the out point.
 function onFrame() {
+  if (!src.paused) {
+    const t = currentMs();
+    if (t >= outMs()) {
+      pause();
+      return;
+    }
+    const p = playable(t);
+    if (p !== t) {
+      src.currentTime = p / 1000;
+      syncCamera(true);
+    }
+  }
   render();
   syncCamera();
   if (!src.paused && !src.ended) src.requestVideoFrameCallback(onFrame);
@@ -127,7 +169,8 @@ function syncCamera(force = false) {
 
 async function play() {
   if (!project) return;
-  if (src.ended) src.currentTime = 0;
+  if (src.ended || currentMs() >= outMs() - 20) src.currentTime = edits.trim.in_ms / 1000;
+  else src.currentTime = playable(currentMs()) / 1000;
   await src.play();
   syncCamera(true);
   playBtn.textContent = "Pause";
@@ -213,6 +256,66 @@ function renderTimeline() {
   if (!project || !track) return;
   tlZooms.replaceChildren();
   tlMarks.replaceChildren();
+  tlCuts.replaceChildren();
+
+  // Removed material: the head before in, the tail after out, and cuts.
+  const D = project.duration_ms;
+  const dim = (from: number, to: number, cut?: { start: number; end: number }) => {
+    if (to <= from) return;
+    const el = document.createElement("div");
+    el.className = "tl-dim" + (cut ? " tl-cut" : "");
+    el.style.left = pct(from);
+    el.style.width = pct(to - from);
+    if (cut) {
+      el.title = `Cut ${fmt(cut.start)} to ${fmt(cut.end)}. Click to remove.`;
+      el.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        edits.cuts = edits.cuts.filter((c) => c !== cut);
+        saveSoon();
+        renderTimeline();
+        scheduleRender();
+      });
+    }
+    tlCuts.append(el);
+  };
+  dim(0, edits.trim.in_ms);
+  dim(outMs(), D);
+  for (const c of edits.cuts) dim(c.start, c.end, c);
+  if (cutFrom !== null) {
+    const el = document.createElement("div");
+    el.className = "tl-dim tl-cut pending";
+    el.style.left = pct(Math.min(cutFrom, currentMs()));
+    el.style.width = pct(Math.abs(currentMs() - cutFrom));
+    tlCuts.append(el);
+  }
+
+  // In and out handles.
+  for (const which of ["in", "out"] as const) {
+    const h = document.createElement("div");
+    h.className = `tl-handle ${which}`;
+    h.style.left = pct(which === "in" ? edits.trim.in_ms : outMs());
+    h.title = which === "in" ? "Start of the video (drag, or press I here)" : "End of the video (drag, or press O here)";
+    h.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const onMove = (m: MouseEvent) => {
+        const ms = msAt(m.clientX);
+        if (which === "in") edits.trim.in_ms = Math.min(ms, outMs() - 500);
+        else edits.trim.out_ms = Math.max(ms, edits.trim.in_ms + 500);
+        seekMs(ms);
+        renderTimeline();
+      };
+      const onUp = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        saveSoon();
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    });
+    tlCuts.append(h);
+  }
 
   for (const z of edits.zooms) {
     const el = document.createElement("div");
@@ -333,6 +436,54 @@ canvas.addEventListener("mousedown", (e) => {
   window.addEventListener("mouseup", onUp);
 });
 
+// Trim and cut buttons; I, O and X do the same from the keyboard.
+function setIn() {
+  if (!project) return;
+  edits.trim.in_ms = Math.min(currentMs(), outMs() - 500);
+  saveSoon();
+  renderTimeline();
+  toast(`Starts at ${fmt(edits.trim.in_ms)}`);
+}
+function setOut() {
+  if (!project) return;
+  edits.trim.out_ms = Math.max(currentMs(), edits.trim.in_ms + 500);
+  saveSoon();
+  renderTimeline();
+  toast(`Ends at ${fmt(outMs())}`);
+}
+function toggleCut() {
+  if (!project) return;
+  const t = currentMs();
+  if (cutFrom === null) {
+    cutFrom = t;
+    toast(`Cut from ${fmt(t)}. Move to where it should resume and press X again.`);
+  } else {
+    const start = Math.min(cutFrom, t);
+    const end = Math.max(cutFrom, t);
+    cutFrom = null;
+    if (end - start >= 100) {
+      edits.cuts.push({ start, end });
+      edits.cuts.sort((a, b) => a.start - b.start);
+      saveSoon();
+      toast(`Cut ${fmt(start)} to ${fmt(end)}`);
+    }
+  }
+  $<HTMLButtonElement>("cut-toggle").textContent = cutFrom === null ? "Cut from here" : "Cut to here";
+  renderTimeline();
+}
+$("trim-in").addEventListener("click", setIn);
+$("trim-out").addEventListener("click", setOut);
+$("cut-toggle").addEventListener("click", toggleCut);
+$("trim-reset").addEventListener("click", () => {
+  edits.trim = { in_ms: 0, out_ms: null };
+  edits.cuts = [];
+  cutFrom = null;
+  $<HTMLButtonElement>("cut-toggle").textContent = "Cut from here";
+  saveSoon();
+  renderTimeline();
+  scheduleRender();
+});
+
 $("zoom-add").addEventListener("click", () => {
   if (!project || !track) return;
   const t = currentMs();
@@ -448,6 +599,7 @@ async function open(projectDir: string) {
   }
   track = buildTrack(project, events, edits);
   selectedZoom = null;
+  cutFrom = null;
   nameInput.value = project.name;
 
   src.src = convertFileSrc(`${projectDir}/${project.source}`);
@@ -465,7 +617,8 @@ async function open(projectDir: string) {
   await new Promise<void>((resolve) => {
     src.addEventListener("loadeddata", () => resolve(), { once: true });
   });
-  seekMs(0);
+  seekMs(edits.trim.in_ms);
+  renderTimeline();
 }
 
 async function showRecordings() {
@@ -531,6 +684,12 @@ window.addEventListener("keydown", (e) => {
     seekMs(currentMs() - (e.shiftKey ? 5000 : 1000));
   } else if (e.key === "ArrowRight") {
     seekMs(currentMs() + (e.shiftKey ? 5000 : 1000));
+  } else if (e.key.toLowerCase() === "i") {
+    setIn();
+  } else if (e.key.toLowerCase() === "o") {
+    setOut();
+  } else if (e.key.toLowerCase() === "x") {
+    toggleCut();
   }
 });
 

@@ -20,6 +20,160 @@ const brandInclude = document.getElementById("brand-include") as HTMLInputElemen
 const brandFiles = document.getElementById("brand-files") as HTMLSpanElement;
 const brandOpen = document.getElementById("brand-open") as HTMLButtonElement;
 const brandNotes = document.getElementById("brand-notes") as HTMLTextAreaElement;
+const shortcuts = document.getElementById("shortcuts") as HTMLDivElement;
+const shortcutRows = document.getElementById("shortcut-rows") as HTMLDivElement;
+
+// ------------------------------------------------------------ shortcuts
+
+interface Hotkeys {
+  capture: string;
+  record: string;
+  studio: string;
+  zoom: string;
+  group: string;
+  peek: string;
+  finish: string;
+  new: string;
+}
+
+const HOTKEY_LABELS: [keyof Hotkeys, string][] = [
+  ["capture", "Capture region"],
+  ["record", "Auto-capture region / stop"],
+  ["group", "Wrap up group"],
+  ["peek", "Show bundle"],
+  ["finish", "Finish and copy path"],
+  ["new", "New bundle"],
+  ["studio", "Studio recording / stop"],
+  ["zoom", "Zoom in here / zoom out (while recording)"],
+];
+
+let hk: Hotkeys = {
+  capture: "CommandOrControl+Shift+2",
+  record: "CommandOrControl+Shift+R",
+  studio: "CommandOrControl+Shift+3",
+  zoom: "CommandOrControl+Shift+Z",
+  group: "CommandOrControl+Shift+G",
+  peek: "CommandOrControl+Shift+Q",
+  finish: "CommandOrControl+Shift+Enter",
+  new: "CommandOrControl+Shift+N",
+};
+
+/// "CommandOrControl+Shift+N" as people read it.
+function keyLabel(spec: string) {
+  return spec
+    .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl")
+    .replace(/Super|Meta/g, "Win")
+    .replace(/Option/g, "Alt")
+    .replace(/Return/g, "Enter");
+}
+
+/// The chord a keydown represents, in the shortcut parser's spelling, or
+/// null while only modifiers are held.
+function chordFrom(e: KeyboardEvent): string | null {
+  const mods: string[] = [];
+  if (e.ctrlKey || e.metaKey) mods.push("CommandOrControl");
+  if (e.altKey) mods.push("Alt");
+  if (e.shiftKey) mods.push("Shift");
+  const code = e.code;
+  let key: string | null = null;
+  if (/^Key[A-Z]$/.test(code)) key = code.slice(3);
+  else if (/^Digit[0-9]$/.test(code)) key = code.slice(5);
+  else if (/^F\d{1,2}$/.test(code)) key = code;
+  else if (code === "Enter" || code === "NumpadEnter") key = "Enter";
+  else if (code === "Space") key = "Space";
+  else if (code === "Escape") key = "Escape";
+  else if (code === "Tab") key = "Tab";
+  else if (code === "Backspace") key = "Backspace";
+  else if (code === "Delete") key = "Delete";
+  else if (/^Arrow(Up|Down|Left|Right)$/.test(code)) key = code.replace("Arrow", "");
+  else if (code === "Home" || code === "End" || code === "PageUp" || code === "PageDown") key = code;
+  else if (code === "Minus") key = "-";
+  else if (code === "Equal") key = "=";
+  else if (code === "Comma") key = ",";
+  else if (code === "Period") key = ".";
+  else if (code === "Slash") key = "/";
+  else if (code === "Backquote") key = "`";
+  else if (code === "BracketLeft") key = "[";
+  else if (code === "BracketRight") key = "]";
+  else if (code === "Semicolon") key = ";";
+  else if (code === "Quote") key = "'";
+  else if (code === "Backslash") key = "\\";
+  if (!key) return null;
+  return [...mods, key].join("+");
+}
+
+let draft: Hotkeys = { ...hk };
+
+function renderShortcuts() {
+  shortcutRows.replaceChildren();
+  for (const [id, label] of HOTKEY_LABELS) {
+    const row = document.createElement("div");
+    row.className = "shortcut-row";
+    const name = document.createElement("span");
+    name.textContent = label;
+    const field = document.createElement("input");
+    field.type = "text";
+    field.readOnly = true;
+    field.value = keyLabel(draft[id]);
+    field.placeholder = "off";
+    field.title = "Press the keys to use";
+    field.addEventListener("keydown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === "Backspace" || e.key === "Delete") {
+        draft[id] = "";
+        field.value = "";
+        return;
+      }
+      const chord = chordFrom(e);
+      if (!chord) return;
+      if (!/CommandOrControl|Alt/.test(chord)) {
+        toast("Global shortcuts need Ctrl or Alt");
+        return;
+      }
+      draft[id] = chord;
+      field.value = keyLabel(chord);
+    });
+    const clear = document.createElement("button");
+    clear.className = "quiet small";
+    clear.textContent = "Clear";
+    clear.addEventListener("click", () => {
+      draft[id] = "";
+      field.value = "";
+    });
+    row.append(name, field, clear);
+    shortcutRows.append(row);
+  }
+}
+
+async function showShortcuts() {
+  hk = await invoke<Hotkeys>("get_hotkeys");
+  draft = { ...hk };
+  renderShortcuts();
+  showPanel(shortcuts);
+}
+
+async function saveShortcuts() {
+  const dupes = new Set<string>();
+  const seen = new Map<string, string>();
+  for (const [id] of HOTKEY_LABELS) {
+    const v = draft[id];
+    if (!v) continue;
+    if (seen.has(v)) dupes.add(keyLabel(v));
+    seen.set(v, id);
+  }
+  if (dupes.size) {
+    toast(`Used twice: ${[...dupes].join(", ")}`);
+    return;
+  }
+  try {
+    const problems = await invoke<string[]>("set_hotkeys", { hotkeys: draft });
+    hk = { ...draft };
+    toast(problems.length ? problems.map(keyLabel).join(". ") : "Shortcuts saved");
+  } catch (err) {
+    toast(String(err));
+  }
+}
 const exported = document.getElementById("exported") as HTMLDivElement;
 const exportedLabel = document.getElementById("exported-label") as HTMLElement;
 const exportedPath = document.getElementById("exported-path") as HTMLElement;
@@ -405,12 +559,12 @@ async function call(command: string, args?: Record<string, unknown>, done?: stri
 // ------------------------------------------------------------ panels
 
 function showPanel(panel: HTMLElement, focus?: HTMLElement) {
-  for (const p of [bundles, brand, custom]) p.hidden = p !== panel;
+  for (const p of [bundles, brand, custom, shortcuts]) p.hidden = p !== panel;
   focus?.focus();
 }
 
 function hidePanels() {
-  for (const p of [bundles, brand, custom]) p.hidden = true;
+  for (const p of [bundles, brand, custom, shortcuts]) p.hidden = true;
 }
 
 async function showBundles() {
@@ -477,11 +631,11 @@ const menus: Menu[] = [
   {
     title: "Bundle",
     items: () => [
-      { label: "New bundle", keys: "Ctrl+Shift+N", run: () => call("new_bundle", undefined, "Started a new bundle") },
+      { label: "New bundle", keys: keyLabel(hk.new), run: () => call("new_bundle", undefined, "Started a new bundle") },
       { label: "Open bundle…", run: showBundles },
       { label: "Rename bundle", run: () => bundleName.focus() },
       "-",
-      { label: "Finish and copy path", keys: "Ctrl+Shift+Enter", run: () => run("path") },
+      { label: "Finish and copy path", keys: keyLabel(hk.finish), run: () => run("path") },
       { label: "Open bundle folder", run: () => run("open") },
       "-",
       { label: "Close window", keys: "Esc", run: () => getCurrentWindow().close() },
@@ -490,11 +644,11 @@ const menus: Menu[] = [
   {
     title: "Capture",
     items: () => [
-      { label: "Capture region", keys: "Ctrl+Shift+2", run: () => call("start_capture") },
-      { label: "Auto-capture region", keys: "Ctrl+Shift+R", run: () => call("start_record") },
-      { label: "Wrap up group", keys: "Ctrl+Shift+G", run: () => call("start_group") },
+      { label: "Capture region", keys: keyLabel(hk.capture), run: () => call("start_capture") },
+      { label: "Auto-capture region", keys: keyLabel(hk.record), run: () => call("start_record") },
+      { label: "Wrap up group", keys: keyLabel(hk.group), run: () => call("start_group") },
       "-",
-      { label: "Studio recording", keys: "Ctrl+Shift+3", run: () => call("start_studio_from_menu") },
+      { label: "Studio recording", keys: keyLabel(hk.studio), run: () => call("start_studio_from_menu") },
     ],
   },
   {
@@ -514,7 +668,8 @@ const menus: Menu[] = [
   {
     title: "Help",
     items: () => [
-      { label: "Show bundle window", keys: "Ctrl+Shift+Q", run: () => toast("You are looking at it") },
+      { label: "Show bundle window", keys: keyLabel(hk.peek), run: () => toast("You are looking at it") },
+      { label: "Keyboard shortcuts…", run: showShortcuts },
       { label: "Open QACut folder", run: () => call("open_base_folder") },
       "-",
       { label: "Quit QACut", run: () => call("quit") },
@@ -595,6 +750,21 @@ copyPrompt.addEventListener("click", () => void run("prompt"));
 close.addEventListener("click", () => void getCurrentWindow().close());
 bundlesClose.addEventListener("click", hidePanels);
 brandClose.addEventListener("click", hidePanels);
+(document.getElementById("shortcuts-close") as HTMLButtonElement).addEventListener("click", hidePanels);
+(document.getElementById("shortcuts-save") as HTMLButtonElement).addEventListener("click", () => void saveShortcuts());
+(document.getElementById("shortcuts-reset") as HTMLButtonElement).addEventListener("click", () => {
+  draft = {
+    capture: "CommandOrControl+Shift+2",
+    record: "CommandOrControl+Shift+R",
+    studio: "CommandOrControl+Shift+3",
+    zoom: "CommandOrControl+Shift+Z",
+    group: "CommandOrControl+Shift+G",
+    peek: "CommandOrControl+Shift+Q",
+    finish: "CommandOrControl+Shift+Enter",
+    new: "CommandOrControl+Shift+N",
+  };
+  renderShortcuts();
+});
 
 bundleName.addEventListener("change", async () => {
   try {
@@ -639,7 +809,7 @@ window.addEventListener("keydown", (e) => {
     closeMenu();
     return;
   }
-  if (!bundles.hidden || !brand.hidden) {
+  if (!bundles.hidden || !brand.hidden || !shortcuts.hidden) {
     hidePanels();
     return;
   }
@@ -648,8 +818,13 @@ window.addEventListener("keydown", (e) => {
 
 void listen("session-changed", () => void render());
 
+void invoke<Hotkeys>("get_hotkeys").then((h) => {
+  hk = h;
+});
+
 void render().then(() => {
   const focus = new URLSearchParams(location.search).get("focus");
   if (focus === "name") bundleName.focus();
   if (focus === "open") void showBundles();
+  if (focus === "shortcuts") void showShortcuts();
 });

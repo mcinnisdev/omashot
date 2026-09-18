@@ -65,6 +65,18 @@
           placeholder="Your own instructions for the agent. {root} becomes the bundle folder path and {name} the bundle name. Saved to ~/QACut/custom-prompt.txt and reused for every bundle."
         ></textarea>
       </div>
+      <div class="shortcuts" id="shortcuts" hidden>
+        <div class="panel-head">
+          <span>Keyboard shortcuts</span>
+          <button class="quiet" id="shortcuts-close">Close</button>
+        </div>
+        <p class="hint">Click a field and press the keys you want. Global shortcuts need a modifier. Leave a field empty to turn that shortcut off.</p>
+        <div class="shortcut-rows" id="shortcut-rows"></div>
+        <div class="row">
+          <button class="btn primary" id="shortcuts-save">Save</button>
+          <button class="quiet" id="shortcuts-reset">Reset to defaults</button>
+        </div>
+      </div>
       <div class="exported" id="exported">
         <span id="exported-label">Bundle written to</span>
         <code id="exported-path"></code>

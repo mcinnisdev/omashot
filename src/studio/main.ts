@@ -4,7 +4,7 @@
 // the export.
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { buildTrack, draw, layout, viewAt, type Track } from "./compositor";
+import { buildTrack, draw, layout, setOwnHotkeys, viewAt, type Track } from "./compositor";
 import { exportVideo, SourceFrames, type Cancel } from "./export";
 import {
   DEFAULT_ZOOM_SCALE,
@@ -1080,6 +1080,9 @@ src.addEventListener("ended", () => pause());
 window.addEventListener("resize", fitCanvas);
 new ResizeObserver(fitCanvas).observe(stage);
 new ResizeObserver(drawFilm).observe(timeline);
+
+// The keystroke filter should know the user's own chords, whatever they are.
+void invoke<Record<string, string>>("get_hotkeys").then((h) => setOwnHotkeys(Object.values(h)));
 
 const initial = params.get("project");
 if (initial) {

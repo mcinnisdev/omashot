@@ -50,8 +50,10 @@ export function buildTrack(project: Project, events: Events, edits: Edits): Trac
   };
 }
 
-/// QACut's own chords never belong in a walkthrough.
-const OWN_HOTKEYS = new Set([
+/// QACut's own chords never belong in a walkthrough. Set from settings by
+/// the studio at start-up; the defaults cover a recording made before the
+/// user changed anything.
+let OWN_HOTKEYS = new Set([
   "Ctrl+Shift+2",
   "Ctrl+Shift+3",
   "Ctrl+Shift+R",
@@ -61,6 +63,22 @@ const OWN_HOTKEYS = new Set([
   "Ctrl+Shift+N",
   "Ctrl+Shift+Enter",
 ]);
+
+/// Specs in the shortcut parser's spelling; normalised to how the keystroke
+/// hook names them ("Ctrl+Shift+N").
+export function setOwnHotkeys(specs: string[]) {
+  OWN_HOTKEYS = new Set(
+    specs
+      .filter((s) => s.trim() !== "")
+      .map((s) =>
+        s
+          .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl")
+          .replace(/Super|Meta/g, "Win")
+          .replace(/Option/g, "Alt")
+          .replace(/Return/g, "Enter"),
+      ),
+  );
+}
 
 const SPECIAL_KEYS = new Set([
   "Enter", "Esc", "Tab", "Delete", "Insert", "Home", "End", "PageUp", "PageDown", "PrintScreen",

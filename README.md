@@ -268,8 +268,11 @@ remove button fills solid on hover.
 
 ## Changing things
 
-- Hotkeys: the six `HK_*` constants at the top of `src-tauri/src/main.rs`.
-  Anything the Tauri shortcut parser accepts works.
+- Hotkeys: **Help > Keyboard shortcuts…** in the bundle window (also in
+  the tray). Click a field, press the chord, Save; a shortcut another app
+  already owns is reported and the rest still apply. They are stored in
+  `~/QACut/settings.json` and the defaults live in
+  `src-tauri/src/studio/settings.rs`.
 - Output location: `base_dir()` in the same file.
 - Markdown shape: `render_markdown()` in `src-tauri/src/export.rs`. This is
   the function to edit if you want the bundle to match a prompt format you

@@ -22,18 +22,9 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 use tauri_plugin_opener::OpenerExt;
 
-// Change these to retune the hotkeys; they are parsed at startup and any that
-// fail to register are reported once in the console rather than killing boot.
-const HK_CAPTURE: &str = "CommandOrControl+Shift+2";
-const HK_GROUP: &str = "CommandOrControl+Shift+G";
-const HK_PEEK: &str = "CommandOrControl+Shift+Q";
-const HK_FINISH: &str = "CommandOrControl+Shift+Enter";
-const HK_RECORD: &str = "CommandOrControl+Shift+R";
-const HK_NEW: &str = "CommandOrControl+Shift+N";
-/// QACut Studio: record a source for the studio rather than a GIF.
-const HK_STUDIO: &str = "CommandOrControl+Shift+3";
-/// During a studio recording: mark "zoom in here" / "zoom out".
-const HK_ZOOM: &str = "CommandOrControl+Shift+Z";
+// Hotkeys are user settings (see studio::settings::Hotkeys for the
+// defaults); they are registered from settings at boot and whenever the
+// user changes them.
 
 /// Time between confirming a recording region and the first frame, so the
 /// user can get windows and the mouse into place.
@@ -60,6 +51,8 @@ struct Inner {
     studio_finishing: Option<studio::Finishing>,
     /// An export file being written by the studio, chunk by chunk.
     export: Option<(std::path::PathBuf, std::fs::File)>,
+    /// Registered shortcuts, canonical spelling to action.
+    hotkeys: Vec<Binding>,
     /// True when the session has changed since it was last written out, so
     /// "New bundle" knows whether there is anything to save first.
     dirty: bool,
@@ -77,6 +70,8 @@ struct AppState {
 }
 
 type Shared = Mutex<Inner>;
+/// A registered shortcut: its canonical spelling and what it triggers.
+type Binding = (String, fn(&AppHandle));
 
 fn base_dir(app: &AppHandle) -> std::path::PathBuf {
     app.path()
@@ -442,6 +437,116 @@ fn trigger_finish(app: &AppHandle) {
             let _ = overlay::toggle_peek(app);
         }
         Err(e) => eprintln!("qacut: finish failed: {e}"),
+    }
+}
+
+// ------------------------------------------------------------ hotkeys
+
+fn action_for(id: &str) -> Option<fn(&AppHandle)> {
+    Some(match id {
+        "capture" => trigger_capture,
+        "record" => trigger_record,
+        "studio" => trigger_studio,
+        "zoom" => trigger_zoom_mark,
+        "group" => trigger_group,
+        "peek" => trigger_peek,
+        "finish" => trigger_finish,
+        "new" => trigger_new_bundle,
+        _ => return None,
+    })
+}
+
+/// Registers the shortcuts from settings, replacing whatever was
+/// registered before. Returns a line per key that could not be used.
+fn apply_hotkeys(app: &AppHandle, hk: &studio::settings::Hotkeys) -> Vec<String> {
+    let mut problems = Vec::new();
+    let mut registered = Vec::new();
+    let _ = app.global_shortcut().unregister_all();
+    for (id, spec) in hk.entries() {
+        let spec = spec.trim();
+        if spec.is_empty() {
+            continue;
+        }
+        let Some(action) = action_for(id) else { continue };
+        match Shortcut::from_str(spec) {
+            Ok(sc) => match app.global_shortcut().register(sc) {
+                Ok(()) => registered.push((sc.to_string(), action)),
+                Err(e) => {
+                    eprintln!("qacut: hotkey {spec} is taken by something else ({e})");
+                    problems.push(format!("{spec} is already taken by another app"));
+                }
+            },
+            Err(e) => {
+                eprintln!("qacut: hotkey {spec} is not valid ({e})");
+                problems.push(format!("{spec} is not a valid shortcut"));
+            }
+        }
+    }
+    let state: State<Shared> = app.state();
+    state.lock().unwrap().hotkeys = registered;
+    problems
+}
+
+/// The tray menu, built from settings so accelerator labels and toggles
+/// are always current. Two products in one tray: QACut, the lightweight
+/// bundle tool, and QACut Studio; disabled items serve as headers.
+fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
+    let st = studio::settings::Settings::load(&base_dir(app));
+    let hk = &st.hotkeys;
+    let acc = |s: &str| if s.trim().is_empty() { None } else { Some(s.trim().to_string()) };
+
+    let head_qacut = MenuItem::with_id(app, "h1", "QACut", false, None::<&str>)?;
+    let capture_i = MenuItem::with_id(app, "capture", "Capture region", true, acc(&hk.capture))?;
+    let record_i = MenuItem::with_id(app, "record", "Auto-capture region / stop", true, acc(&hk.record))?;
+    let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, acc(&hk.group))?;
+    let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, acc(&hk.peek))?;
+    let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, acc(&hk.finish))?;
+    let new_i = MenuItem::with_id(app, "new", "New bundle", true, acc(&hk.new))?;
+    let open_i = MenuItem::with_id(app, "open", "Open bundle...", true, None::<&str>)?;
+    let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
+
+    let head_studio = MenuItem::with_id(app, "h2", "QACut Studio", false, None::<&str>)?;
+    let studio_i = MenuItem::with_id(app, "studio", "Studio recording / stop", true, acc(&hk.studio))?;
+    let zoom_i = MenuItem::with_id(app, "zoom", "Zoom in here / zoom out (while recording)", true, acc(&hk.zoom))?;
+    let keys_i = CheckMenuItem::with_id(app, "st_keys", "Capture keystrokes", true, st.keystrokes, None::<&str>)?;
+    let mic_i = CheckMenuItem::with_id(app, "st_mic", "Record microphone", true, st.mic, None::<&str>)?;
+    let cam_i = CheckMenuItem::with_id(app, "st_cam", "Record camera", true, st.camera, None::<&str>)?;
+    let open_studio_i = MenuItem::with_id(app, "open_studio", "Open Studio", true, None::<&str>)?;
+    let studio_folder_i = MenuItem::with_id(app, "studio_folder", "Open Studio folder", true, None::<&str>)?;
+
+    let shortcuts_i = MenuItem::with_id(app, "shortcuts", "Keyboard shortcuts...", true, None::<&str>)?;
+    let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
+    let sep1 = PredefinedMenuItem::separator(app)?;
+    let sep2 = PredefinedMenuItem::separator(app)?;
+    Menu::with_items(
+        app,
+        &[
+            &head_qacut, &capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i,
+            &open_i, &folder_i,
+            &sep1,
+            &head_studio, &studio_i, &zoom_i, &open_studio_i, &keys_i, &mic_i, &cam_i, &studio_folder_i,
+            &sep2,
+            &shortcuts_i, &quit_i,
+        ],
+    )
+}
+
+fn refresh_tray_menu(app: &AppHandle) {
+    if let Some(tray) = app.tray_by_id("main") {
+        match build_tray_menu(app) {
+            Ok(menu) => {
+                if let Err(e) = tray.set_menu(Some(menu)) {
+                    eprintln!("qacut: could not update the tray menu: {e}");
+                }
+            }
+            Err(e) => eprintln!("qacut: could not build the tray menu: {e}"),
+        }
+    }
+}
+
+fn trigger_shortcuts(app: &AppHandle) {
+    if let Err(e) = overlay::open_peek(app, Some("shortcuts")) {
+        eprintln!("qacut: could not open bundle window: {e}");
     }
 }
 
@@ -1020,6 +1125,23 @@ fn set_studio_settings(app: AppHandle, settings: studio::settings::Settings) -> 
     settings.save(&base_dir(&app)).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn get_hotkeys(app: AppHandle) -> studio::settings::Hotkeys {
+    studio::settings::Settings::load(&base_dir(&app)).hotkeys
+}
+
+/// Saves and applies new shortcuts. Returns a line per key that could not
+/// be registered; the others are live immediately.
+#[tauri::command]
+fn set_hotkeys(app: AppHandle, hotkeys: studio::settings::Hotkeys) -> Result<Vec<String>, String> {
+    let mut st = studio::settings::Settings::load(&base_dir(&app));
+    st.hotkeys = hotkeys;
+    st.save(&base_dir(&app)).map_err(|e| e.to_string())?;
+    let problems = apply_hotkeys(&app, &st.hotkeys);
+    refresh_tray_menu(&app);
+    Ok(problems)
+}
+
 /// Lets a window that is about to close report why something failed.
 #[tauri::command]
 fn log_error(message: String) {
@@ -1510,29 +1632,16 @@ fn main() {
                         return;
                     }
                     let pressed = shortcut.to_string();
-                    let app = app.clone();
-                    let matches = |spec: &str| {
-                        Shortcut::from_str(spec)
-                            .map(|s| s.to_string() == pressed)
-                            .unwrap_or(false)
-                    };
-
-                    if matches(HK_CAPTURE) {
-                        off_main(&app, trigger_capture);
-                    } else if matches(HK_GROUP) {
-                        off_main(&app, trigger_group);
-                    } else if matches(HK_PEEK) {
-                        off_main(&app, trigger_peek);
-                    } else if matches(HK_FINISH) {
-                        off_main(&app, trigger_finish);
-                    } else if matches(HK_RECORD) {
-                        off_main(&app, trigger_record);
-                    } else if matches(HK_NEW) {
-                        off_main(&app, trigger_new_bundle);
-                    } else if matches(HK_STUDIO) {
-                        off_main(&app, trigger_studio);
-                    } else if matches(HK_ZOOM) {
-                        off_main(&app, trigger_zoom_mark);
+                    let state: State<Shared> = app.state();
+                    let action = state
+                        .lock()
+                        .unwrap()
+                        .hotkeys
+                        .iter()
+                        .find(|(spec, _)| *spec == pressed)
+                        .map(|(_, a)| *a);
+                    if let Some(a) = action {
+                        off_main(app, a);
                     }
                 })
                 .build(),
@@ -1559,6 +1668,8 @@ fn main() {
             list_brand_images,
             get_studio_settings,
             set_studio_settings,
+            get_hotkeys,
+            set_hotkeys,
             log_error,
             cancel_capture,
             save_note,
@@ -1596,56 +1707,9 @@ fn main() {
         ])
         .setup(|app| {
             let handle = app.handle().clone();
-
-            for spec in [HK_CAPTURE, HK_RECORD, HK_STUDIO, HK_ZOOM, HK_GROUP, HK_PEEK, HK_FINISH, HK_NEW] {
-                match Shortcut::from_str(spec) {
-                    Ok(sc) => {
-                        if let Err(e) = handle.global_shortcut().register(sc) {
-                            eprintln!("qacut: hotkey {spec} is taken by something else ({e})");
-                        }
-                    }
-                    Err(e) => eprintln!("qacut: hotkey {spec} is not valid ({e})"),
-                }
-            }
-
-            // Two products in one tray: QACut, the lightweight bundle tool,
-            // and QACut Studio, the polished-recording suite. Disabled items
-            // serve as section headers.
-            let head_qacut = MenuItem::with_id(app, "h1", "QACut", false, None::<&str>)?;
-            let capture_i = MenuItem::with_id(app, "capture", "Capture region", true, Some(HK_CAPTURE))?;
-            let record_i = MenuItem::with_id(app, "record", "Auto-capture region / stop", true, Some(HK_RECORD))?;
-            let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, Some(HK_GROUP))?;
-            let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, Some(HK_PEEK))?;
-            let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, Some(HK_FINISH))?;
-            let new_i = MenuItem::with_id(app, "new", "New bundle", true, Some(HK_NEW))?;
-            let open_i = MenuItem::with_id(app, "open", "Open bundle...", true, None::<&str>)?;
-            let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
-
-            let head_studio = MenuItem::with_id(app, "h2", "QACut Studio", false, None::<&str>)?;
-            let studio_i = MenuItem::with_id(app, "studio", "Studio recording / stop", true, Some(HK_STUDIO))?;
-            let zoom_i = MenuItem::with_id(app, "zoom", "Zoom in here / zoom out (while recording)", true, Some(HK_ZOOM))?;
-            let st = studio::settings::Settings::load(&base_dir(&handle));
-            let keys_i = CheckMenuItem::with_id(app, "st_keys", "Capture keystrokes", true, st.keystrokes, None::<&str>)?;
-            let mic_i = CheckMenuItem::with_id(app, "st_mic", "Record microphone", true, st.mic, None::<&str>)?;
-            let cam_i = CheckMenuItem::with_id(app, "st_cam", "Record camera", true, st.camera, None::<&str>)?;
-            let toggles = (keys_i.clone(), mic_i.clone(), cam_i.clone());
-            let open_studio_i = MenuItem::with_id(app, "open_studio", "Open Studio", true, None::<&str>)?;
-            let studio_folder_i = MenuItem::with_id(app, "studio_folder", "Open Studio folder", true, None::<&str>)?;
-
-            let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
-            let sep1 = PredefinedMenuItem::separator(app)?;
-            let sep2 = PredefinedMenuItem::separator(app)?;
-            let menu = Menu::with_items(
-                app,
-                &[
-                    &head_qacut, &capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i,
-                    &open_i, &folder_i,
-                    &sep1,
-                    &head_studio, &studio_i, &zoom_i, &open_studio_i, &keys_i, &mic_i, &cam_i, &studio_folder_i,
-                    &sep2,
-                    &quit_i,
-                ],
-            )?;
+            let settings = studio::settings::Settings::load(&base_dir(&handle));
+            apply_hotkeys(&handle, &settings.hotkeys);
+            let menu = build_tray_menu(&handle)?;
 
             // A trimmed copy of the mark rather than the app icon, whose
             // margins cost a third of the glyph at menubar size.
@@ -1656,23 +1720,26 @@ fn main() {
                 .tooltip("QACut")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
-                .on_menu_event(move |app, event| match event.id().as_ref() {
+                .on_menu_event(|app, event| match event.id().as_ref() {
                     "capture" => off_main(app, trigger_capture),
                     "record" => off_main(app, trigger_record),
                     "studio" => off_main(app, trigger_studio),
                     "open_studio" => off_main(app, trigger_open_studio),
                     "zoom" => off_main(app, trigger_zoom_mark),
                     "st_keys" | "st_mic" | "st_cam" => {
-                        // The item toggled itself; persist what it shows.
-                        let s = studio::settings::Settings {
-                            keystrokes: toggles.0.is_checked().unwrap_or(false),
-                            mic: toggles.1.is_checked().unwrap_or(false),
-                            camera: toggles.2.is_checked().unwrap_or(false),
-                        };
+                        // Flip the setting and rebuild the menu from it.
+                        let mut s = studio::settings::Settings::load(&base_dir(app));
+                        match event.id().as_ref() {
+                            "st_keys" => s.keystrokes = !s.keystrokes,
+                            "st_mic" => s.mic = !s.mic,
+                            _ => s.camera = !s.camera,
+                        }
                         if let Err(e) = s.save(&base_dir(app)) {
                             eprintln!("qacut: could not save settings: {e}");
                         }
+                        refresh_tray_menu(app);
                     }
+                    "shortcuts" => off_main(app, trigger_shortcuts),
                     "group" => off_main(app, trigger_group),
                     "peek" => off_main(app, trigger_peek),
                     "finish" => off_main(app, trigger_finish),

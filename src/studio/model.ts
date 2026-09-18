@@ -92,6 +92,9 @@ export interface Edits {
   zooms_seeded: boolean;
   /// Whether new zooms (marks and "Add zoom here") follow the cursor.
   zoom_follow: boolean;
+  /// 0 lazy (big dead zone, long lag) to 1 tight (small dead zone, short
+  /// lag). Applies to every follow zoom.
+  follow_tightness: number;
 }
 
 export const DEFAULT_EDITS: Edits = {
@@ -103,6 +106,7 @@ export const DEFAULT_EDITS: Edits = {
   zooms: [],
   zooms_seeded: false,
   zoom_follow: true,
+  follow_tightness: 0.6,
 };
 
 export const DEFAULT_ZOOM_SCALE = 2;
@@ -121,6 +125,7 @@ export function withDefaults(e: Partial<Edits> | undefined): Edits {
     zooms: e?.zooms ?? [],
     zooms_seeded: e?.zooms_seeded ?? false,
     zoom_follow: e?.zoom_follow ?? true,
+    follow_tightness: e?.follow_tightness ?? 0.6,
   };
 }
 

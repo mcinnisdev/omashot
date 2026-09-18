@@ -175,35 +175,40 @@ function smoothstep(f: number) {
   return x * x * (3 - 2 * x);
 }
 
-/// Camera lag when following the cursor.
-const FOLLOW_TAU_MS = 260;
-/// The cursor may roam this fraction of the zoomed view (each axis, about
-/// the centre) before the camera moves.
-const FOLLOW_DEAD = 0.5;
-
 /// The camera path for a follow block: starts on (cx, cy), then chases
-/// the cursor with a dead zone and a critically damped lag. Sampled at
-/// 120 Hz over the block.
-function followPath(z: Zoom, track: Track, region: { width: number; height: number }) {
+/// the cursor. Inside the dead zone the camera still drifts a little
+/// toward the cursor, so the pan is under way before the cursor reaches
+/// the edge; past the dead zone it moves just enough to keep up, with a
+/// critically damped lag. `tightness` 0..1 sets dead zone and lag.
+/// Sampled at 120 Hz over the block.
+function followPath(
+  z: Zoom,
+  track: Track,
+  region: { width: number; height: number },
+  tightness: number,
+) {
   const cached = track.follow.get(z);
   if (cached) return cached;
+  const k = Math.min(1, Math.max(0, tightness));
+  const dead = 0.45 - 0.3 * k; // fraction of the half-view: 0.45 lazy, 0.15 tight
+  const tau = 300 - 170 * k; // ms: 300 lazy, 130 tight
+  const drift = 0.1 + 0.3 * k; // pull toward the cursor inside the dead zone
   const out: { t: number; x: number; y: number }[] = [];
   const step = 1000 / 120;
   const halfW = region.width / (2 * z.scale);
   const halfH = region.height / (2 * z.scale);
-  const deadX = halfW * FOLLOW_DEAD;
-  const deadY = halfH * FOLLOW_DEAD;
+  const deadX = halfW * dead;
+  const deadY = halfH * dead;
   let x = z.cx;
   let y = z.cy;
   let vx = 0;
   let vy = 0;
-  const w = 1000 / FOLLOW_TAU_MS;
+  const w = 1000 / tau;
   const dt = step / 1000;
   for (let t = z.start; t <= z.end; t += step) {
     const c = cursorAt(track.path, t) ?? { x, y };
-    // Move only enough to bring the cursor back inside the dead zone.
-    let tx = x;
-    let ty = y;
+    let tx = x + (c.x - x) * drift;
+    let ty = y + (c.y - y) * drift;
     if (c.x > x + deadX) tx = c.x - deadX;
     else if (c.x < x - deadX) tx = c.x + deadX;
     if (c.y > y + deadY) ty = c.y - deadY;
@@ -229,6 +234,7 @@ export function viewAt(
   t: number,
   region: { width: number; height: number },
   track?: Track,
+  tightness = 0.6,
 ): View {
   let scale = 1;
   let cx = region.width / 2;
@@ -242,7 +248,7 @@ export function viewAt(
     let tx = z.cx;
     let ty = z.cy;
     if (z.follow && track) {
-      const p = cursorAt(followPath(z, track, region), t);
+      const p = cursorAt(followPath(z, track, region, tightness), t);
       if (p) {
         tx = p.x;
         ty = p.y;
@@ -357,7 +363,7 @@ export function draw(
   roundRect(ctx, L.x, L.y, L.w, L.h, radius);
   ctx.clip();
   const r = project.region;
-  const view = viewAt(edits.zooms, t, r, track);
+  const view = viewAt(edits.zooms, t, r, track, edits.follow_tightness);
   const k = L.s * view.scale;
   ctx.drawImage(
     frame.source,

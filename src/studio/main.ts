@@ -204,6 +204,7 @@ function selectZoom(z: Zoom | null) {
     $<HTMLInputElement>("zoom-follow").checked = z.follow ?? false;
   }
   $<HTMLInputElement>("zoom-follow-default").checked = edits.zoom_follow;
+  $<HTMLInputElement>("follow-tightness").value = String(edits.follow_tightness);
   renderTimeline();
   scheduleRender();
 }
@@ -311,7 +312,7 @@ canvas.addEventListener("mousedown", (e) => {
   if (t < z.start || t > z.end) seekMs(z.start + Math.min(700, (z.end - z.start) / 2));
   const rect = canvas.getBoundingClientRect();
   const L = layout(canvas.width, canvas.height, project, edits);
-  const view = viewAt(edits.zooms, currentMs(), project.region, track ?? undefined);
+  const view = viewAt(edits.zooms, currentMs(), project.region, track ?? undefined, edits.follow_tightness);
   const perPx = (canvas.width / rect.width) / (L.s * view.scale);
   let last = { x: e.clientX, y: e.clientY };
   canvas.style.cursor = "grabbing";
@@ -379,6 +380,13 @@ $<HTMLInputElement>("zoom-follow").addEventListener("change", (e) => {
 });
 $<HTMLInputElement>("zoom-follow-default").addEventListener("change", (e) => {
   edits.zoom_follow = (e.target as HTMLInputElement).checked;
+  saveSoon();
+});
+$<HTMLInputElement>("follow-tightness").addEventListener("input", (e) => {
+  edits.follow_tightness = Number((e.target as HTMLInputElement).value);
+  // Every follow path depends on it.
+  if (track) track.follow = new WeakMap();
+  scheduleRender();
   saveSoon();
 });
 

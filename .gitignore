@@ -12,3 +12,8 @@ Thumbs.db
 .vscode/
 .idea/
 *.log
+
+# Spike crates build in place
+spikes/**/target/
+spikes/**/Cargo.lock
+spikes/**/*.mp4

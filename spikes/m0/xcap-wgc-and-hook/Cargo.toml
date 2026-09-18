@@ -1,0 +1,8 @@
+[package]
+name = "spike"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+xcap = { version = "0.9", features = ["wgc"] }
+windows-sys = { version = "0.60", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_Threading"] }

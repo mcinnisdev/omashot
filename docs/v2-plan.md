@@ -169,6 +169,45 @@ built: one feature at a time, tried on a real recording each step.
    from a recording's "Open in Studio" and from a new hotkey, with v1's
    windows untouched. The `v1` branch is the rollback.
 
+## Milestone 0 results (2026-09-18, Nick's machine)
+
+Machine: Windows 11 25H2, Intel Arc 140V, 1920 x 1200 at 60 Hz, WebView2
+runtime 153 (same build as Edge 153). Spike sources are in `spikes/m0/`.
+
+**WebCodecs in the WebView2 engine: yes.** In a headed Edge window (the
+headless mode has no GPU and is not representative):
+
+- H.264 encode, High profile (`avc1.640028`), hardware and software: supported.
+  Baseline and Main at levels 3.0/3.1 report unsupported only because those
+  levels cannot hold 1080p60 by spec; ask for High or raise the level.
+- H.264, VP9 and AV1 decode: supported. VP9 and AV1 encode: supported.
+- AAC (`mp4a.40.2`) and Opus audio encode: supported.
+- MediaRecorder with `video/mp4;codecs=avc1,mp4a.40.2` and WebM VP9/Opus:
+  supported. A microphone and a camera were enumerated.
+
+So the export path (canvas compositor, `VideoEncoder` H.264, `AudioEncoder`
+AAC, small muxer) and the mic and camera path (getUserMedia into
+MediaRecorder) both stand. The permission prompt inside a Tauri window is
+the one thing still to confirm, in milestone 1.
+
+**Windows.Graphics.Capture: yes, but not through xcap.** xcap's WGC recorder
+copies every frame through the CPU; it managed 27 fps on a static screen and
+fell to 10 fps with a spinning animation on screen. The `windows-capture`
+crate keeps frames on the GPU and hands them to Media Foundation directly:
+with the same animation it delivered 199 frames in 5 s (median gap 20 ms,
+95th percentile 36 ms) at 1920 x 1200 with the cursor hidden, and wrote a
+valid 60 fps, 9 Mbit/s MP4 in real time on the built-in H.264 encoder. WGC
+only produces a frame when the screen changes, so a still screen yields
+fewer frames and the recorder repeats the last one at the output rate.
+Decision: milestone 1 builds on `windows-capture` (its encoder for the
+source MP4; v1's Media Foundation writer stays for the GIF-mode MP4).
+
+**Low-level keyboard hook: yes.** `WH_KEYBOARD_LL` installs without
+elevation and saw every synthetic and real key press during the test, with
+the injected flag set on synthetic ones so they can be filtered. The
+endpoint-security check on client machines is still to do before it is on
+by default.
+
 ## Non-goals for v2
 
 Live streaming, cloud upload, collaborative editing, a timeline for audio

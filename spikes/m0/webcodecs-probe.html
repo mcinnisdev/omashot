@@ -1,0 +1,39 @@
+<!doctype html><html><body><style>@keyframes spin{to{transform:rotate(360deg)}} .s{width:320px;height:320px;border:48px solid #f00;border-top-color:#00f;border-radius:50%;animation:spin 0.8s linear infinite;margin:20px}</style><div class="s"></div><pre id="out">running</pre><script>
+(async () => {
+  const lines = [];
+  const say = (k, v) => { lines.push(`${k}: ${v}`); console.log(`PROBE ${k}: ${v}`); };
+  say("userAgent", navigator.userAgent);
+  say("VideoEncoder", typeof VideoEncoder);
+  say("VideoDecoder", typeof VideoDecoder);
+  say("AudioEncoder", typeof AudioEncoder);
+  say("getUserMedia", typeof navigator.mediaDevices?.getUserMedia);
+  say("MediaRecorder", typeof MediaRecorder);
+  const vcodecs = ["avc1.42E01E", "avc1.4D401F", "avc1.640028", "vp09.00.10.08", "av01.0.04M.08"];
+  for (const codec of vcodecs) {
+    for (const hw of ["prefer-hardware", "prefer-software"]) {
+      try {
+        const r = await VideoEncoder.isConfigSupported({ codec, width: 1920, height: 1080, bitrate: 8_000_000, framerate: 60, hardwareAcceleration: hw, ...(codec.startsWith("avc1") ? { avc: { format: "avc" } } : {}) });
+        say(`encode ${codec} ${hw}`, r.supported);
+      } catch (e) { say(`encode ${codec} ${hw}`, "error " + e.message); }
+    }
+    try {
+      const r = await VideoDecoder.isConfigSupported({ codec, codedWidth: 1920, codedHeight: 1080 });
+      say(`decode ${codec}`, r.supported);
+    } catch (e) { say(`decode ${codec}`, "error " + e.message); }
+  }
+  for (const codec of ["mp4a.40.2", "opus"]) {
+    try {
+      const r = await AudioEncoder.isConfigSupported({ codec, sampleRate: 48000, numberOfChannels: 1, bitrate: 96000 });
+      say(`audio encode ${codec}`, r.supported);
+    } catch (e) { say(`audio encode ${codec}`, "error " + e.message); }
+  }
+  for (const t of ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/mp4;codecs=avc1,mp4a.40.2", "audio/webm;codecs=opus"]) {
+    say(`MediaRecorder ${t}`, MediaRecorder.isTypeSupported(t));
+  }
+  try {
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    say("devices", devs.map(d => d.kind).join(","));
+  } catch (e) { say("devices", "error " + e.message); }
+  document.getElementById("out").textContent = lines.join("\n");
+})();
+</script></body></html>

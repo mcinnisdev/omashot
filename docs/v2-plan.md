@@ -208,6 +208,26 @@ the injected flag set on synthetic ones so they can be filtered. The
 endpoint-security check on client machines is still to do before it is on
 by default.
 
+## Milestone 1 result (2026-09-18)
+
+Shipped as "Studio recording" (`Ctrl+Shift+3`) in the QACut Studio section
+of the tray. Nick's first real recording, 12 s at 1920 x 1200 with keystrokes,
+microphone and camera on, produced:
+
+- `source.mp4`: 60 fps declared, 11.8 Mbit/s, 465 frames delivered (WGC only
+  produces a frame when the screen changes), cursor hidden.
+- `events.json`: 781 cursor samples, 60 cursor-shape changes, the foreground
+  window title, and the key presses of the stop chord.
+- `camera.webm`: video and audio, with a 252 ms offset to the first source
+  frame recorded in `project.json`. No permission prompt appeared; the
+  preview showed in a free corner.
+
+Two notes for milestone 2. MediaRecorder writes a WebM with no duration or
+cues, so `<video>` seeking in it is poor; the studio should decode it with
+WebCodecs or remux it once. And the key that triggers the stop hotkey is
+not in the events, because the hook is stopped before it delivers, which is
+harmless.
+
 ## Non-goals for v2
 
 Live streaming, cloud upload, collaborative editing, a timeline for audio

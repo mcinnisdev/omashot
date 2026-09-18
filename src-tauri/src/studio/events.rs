@@ -307,6 +307,9 @@ mod hook {
     use windows_sys::Win32::UI::WindowsAndMessaging::*;
 
     static TX: Mutex<Option<mpsc::Sender<KeyEvent>>> = Mutex::new(None);
+    /// Keys currently held, so auto-repeat (a stream of key-down messages
+    /// while a key stays pressed) is recorded once, as one press.
+    static HELD: Mutex<Vec<u32>> = Mutex::new(Vec::new());
 
     unsafe extern "system" fn hook_proc(code: i32, wparam: usize, lparam: isize) -> isize {
         if code >= 0 {
@@ -316,7 +319,17 @@ mod hook {
             if down || up {
                 let k = &*(lparam as *const KBDLLHOOKSTRUCT);
                 // Injected keys are QACut's own or another tool's; skip.
-                if k.flags & 0x10 == 0 {
+                let repeat = {
+                    let mut held = HELD.lock().unwrap();
+                    let was = held.contains(&k.vkCode);
+                    if down && !was {
+                        held.push(k.vkCode);
+                    } else if up {
+                        held.retain(|v| *v != k.vkCode);
+                    }
+                    down && was
+                };
+                if k.flags & 0x10 == 0 && !repeat {
                     let is_down = |vk: i32| GetAsyncKeyState(vk) as u16 & 0x8000 != 0;
                     let mut mods = Vec::new();
                     if is_down(0x11) { mods.push("Ctrl"); }
@@ -379,6 +392,7 @@ mod hook {
             }
             let _ = self.handle.join();
             *TX.lock().unwrap() = None;
+            HELD.lock().unwrap().clear();
             self.rx.try_iter().collect()
         }
     }

@@ -488,14 +488,10 @@ async fn start_recording(
     };
     capture::clear_scratch();
 
-    // Badge just above the region, or just below if that is off-screen.
-    let bx = (frame.x as f64 + x)
-        .min(frame.x as f64 + frame.width as f64 - 240.0)
-        .max(frame.x as f64);
-    let above = frame.y as f64 + y - 42.0;
-    let by = if above >= frame.y as f64 { above } else { frame.y as f64 + y + height + 8.0 };
-    if let Err(e) = overlay::open_rec_badge(&app, bx, by, RECORD_COUNTDOWN_MS) {
-        eprintln!("qacut: could not show recording badge: {e}");
+    if let Err(e) =
+        overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS)
+    {
+        eprintln!("qacut: could not show recording overlay: {e}");
     }
 
     let started = std::time::Instant::now();

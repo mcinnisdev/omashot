@@ -30,8 +30,10 @@ The two workflows from the brief map to this:
 
 Recordings are for showing a process rather than a fault. After the drag the
 box can be moved and its edges pulled; Record (or `Enter`) then starts a
-three-second countdown, shown in the badge, so windows and the mouse can be
-put in place. The hotkey cancels during the countdown. The region is
+three-second countdown so windows and the mouse can be put in place. While
+it counts down and records, everything outside the region stays tinted and
+the region is outlined, so it is obvious when something has drifted out of
+shot. The hotkey cancels during the countdown. The region is
 grabbed at ten frames a second with the cursor drawn on as a ring, scaled to
 at most 720 px wide and streamed into a looping GIF, so stopping is instant.
 Every two seconds a still is saved beside it (thinned to twelve at most).

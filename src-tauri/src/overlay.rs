@@ -123,17 +123,35 @@ pub fn close_peek(app: &AppHandle) {
     }
 }
 
-/// The small badge shown while a recording counts down and then runs. It
-/// ignores the mouse so it never gets in the way of what is being shown.
-pub fn open_rec_badge(app: &AppHandle, x: f64, y: f64, countdown_ms: u64) -> Result<()> {
+/// The recording overlay: a transparent, click-through window over the
+/// whole monitor that tints everything outside the region, outlines the
+/// region (just outside its edge, so the line is not recorded), and shows
+/// the countdown and then the elapsed time. `x, y, w, h` are the region in
+/// logical pixels relative to the monitor.
+pub fn open_rec_badge(
+    app: &AppHandle,
+    frame: &Frame,
+    x: f64,
+    y: f64,
+    w: f64,
+    h: f64,
+    countdown_ms: u64,
+) -> Result<()> {
     close_rec_badge(app);
-    let url = format!("rec.html?countdown={countdown_ms}");
+    let url = format!(
+        "rec.html?countdown={countdown_ms}&x={}&y={}&w={}&h={}",
+        x.round(),
+        y.round(),
+        w.round(),
+        h.round()
+    );
     let win = WebviewWindowBuilder::new(app, REC, WebviewUrl::App(url.into()))
         .title("QACut recording")
-        .inner_size(232.0, 34.0)
-        .position(x, y)
+        .position(frame.x as f64, frame.y as f64)
+        .inner_size(frame.width as f64, frame.height as f64)
         .decorations(false)
         .resizable(false)
+        .transparent(true)
         .always_on_top(true)
         .skip_taskbar(true)
         .shadow(false)

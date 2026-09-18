@@ -562,8 +562,6 @@ fn trigger_new_bundle(app: &AppHandle) {
     }
 }
 
-}
-
 /// Puts the current session away: unsaved work is written out, a session
 /// with no shots is deleted rather than left as an empty folder.
 fn stash_session(app: &AppHandle, inner: &mut Inner) -> Result<(), String> {

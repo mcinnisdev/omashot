@@ -9,6 +9,26 @@ pub const PEEK: &str = "peek";
 pub const REC: &str = "rec";
 pub const EDIT: &str = "edit";
 
+/// Every window gets the same browser arguments (WebView2 fixes them for
+/// the process at the first window). Tauri's defaults, plus: no permission
+/// prompt for the microphone and camera, since the only pages that ask are
+/// QACut's own, and no gesture needed for the camera preview to play.
+#[cfg(windows)]
+const BROWSER_ARGS: &str = "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection \
+                            --use-fake-ui-for-media-stream \
+                            --autoplay-policy=no-user-gesture-required";
+
+fn builder<'a>(
+    app: &'a AppHandle,
+    label: &str,
+    url: WebviewUrl,
+) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle> {
+    let b = WebviewWindowBuilder::new(app, label, url);
+    #[cfg(windows)]
+    let b = b.additional_browser_args(BROWSER_ARGS);
+    b
+}
+
 fn capture_label(monitor_id: &str) -> String {
     format!("capture-{monitor_id}")
 }
@@ -25,7 +45,7 @@ pub fn open_capture(app: &AppHandle, frames: &[Frame], mode: &str) -> Result<()>
         let label = capture_label(&frame.monitor_id);
         let url = format!("capture.html?m={}&mode={mode}", frame.monitor_id);
 
-        let win = WebviewWindowBuilder::new(app, &label, WebviewUrl::App(url.into()))
+        let win = builder(app, &label, WebviewUrl::App(url.into()))
             .title("QACut capture")
             .position(frame.x as f64, frame.y as f64)
             .inner_size(frame.width as f64, frame.height as f64)
@@ -67,7 +87,7 @@ pub fn open_note(app: &AppHandle, mode: &str, anchor: Option<(f64, f64)>) -> Res
     let (w, h) = if mode == "group" { (480.0, 236.0) } else { (480.0, 190.0) };
     let url = format!("note.html?mode={mode}");
 
-    let win = WebviewWindowBuilder::new(app, NOTE, WebviewUrl::App(url.into()))
+    let win = builder(app, NOTE, WebviewUrl::App(url.into()))
         .title("QACut note")
         .inner_size(w, h)
         .decorations(false)
@@ -115,7 +135,7 @@ pub fn open_peek(app: &AppHandle, focus: Option<&str>) -> Result<()> {
         Some(f) => format!("peek.html?focus={f}"),
         None => "peek.html".to_string(),
     };
-    let win = WebviewWindowBuilder::new(app, PEEK, WebviewUrl::App(url.into()))
+    let win = builder(app, PEEK, WebviewUrl::App(url.into()))
         .title("QACut bundle")
         .inner_size(900.0, 640.0)
         .min_inner_size(620.0, 420.0)
@@ -142,6 +162,7 @@ pub fn close_peek(app: &AppHandle) {
 /// region (just outside its edge, so the line is not recorded), and shows
 /// the countdown and then the elapsed time. `x, y, w, h` are the region in
 /// logical pixels relative to the monitor.
+#[allow(clippy::too_many_arguments)]
 pub fn open_rec_badge(
     app: &AppHandle,
     frame: &Frame,
@@ -150,16 +171,18 @@ pub fn open_rec_badge(
     w: f64,
     h: f64,
     countdown_ms: u64,
+    studio: bool,
 ) -> Result<()> {
     close_rec_badge(app);
     let url = format!(
-        "rec.html?countdown={countdown_ms}&x={}&y={}&w={}&h={}",
+        "rec.html?countdown={countdown_ms}&x={}&y={}&w={}&h={}&studio={}",
         x.round(),
         y.round(),
         w.round(),
-        h.round()
+        h.round(),
+        if studio { 1 } else { 0 }
     );
-    let win = WebviewWindowBuilder::new(app, REC, WebviewUrl::App(url.into()))
+    let win = builder(app, REC, WebviewUrl::App(url.into()))
         .title("QACut recording")
         .position(frame.x as f64, frame.y as f64)
         .inner_size(frame.width as f64, frame.height as f64)
@@ -194,7 +217,7 @@ pub fn open_editor(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: 
         urlencode(path),
         urlencode(label)
     );
-    let win = WebviewWindowBuilder::new(app, EDIT, WebviewUrl::App(url.into()))
+    let win = builder(app, EDIT, WebviewUrl::App(url.into()))
         .title("QACut edit")
         .inner_size(w, h)
         .min_inner_size(480.0, 320.0)

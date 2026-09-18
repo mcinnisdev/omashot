@@ -15,6 +15,15 @@ use std::time::Instant;
 use crate::capture::Frame;
 use project::{Project, Rect};
 
+/// What the overlay reported when its microphone/camera recorder started.
+#[derive(Clone, Copy, Debug)]
+pub struct CameraStart {
+    /// On the frames' clock (100 ns units).
+    pub ts: i64,
+    pub has_video: bool,
+    pub has_audio: bool,
+}
+
 /// A studio recording in progress.
 pub struct Active {
     pub dir: PathBuf,
@@ -22,6 +31,37 @@ pub struct Active {
     events: events::EventRecorder,
     project: Project,
     started: Instant,
+    pub camera: Option<CameraStart>,
+}
+
+/// A recording whose screen side has stopped while the overlay flushes
+/// the last camera chunks.
+pub struct Finishing {
+    pub dir: PathBuf,
+    pub camera: Option<CameraStart>,
+}
+
+impl Finishing {
+    /// Fills in the camera track from what landed in `camera.webm` and the
+    /// start timestamp, then saves the project.
+    pub fn finalize(&self) -> Result<()> {
+        let mut project = Project::load(&self.dir)?;
+        let file = self.dir.join("camera.webm");
+        let has_file = std::fs::metadata(&file).map(|m| m.len() > 0).unwrap_or(false);
+        project.camera = match (self.camera, has_file) {
+            (Some(c), true) => Some(project::Camera {
+                file: "camera.webm".into(),
+                offset_ms: (c.ts - project.first_frame_ts) / 10_000,
+                has_video: c.has_video,
+                has_audio: c.has_audio,
+            }),
+            _ => {
+                let _ = std::fs::remove_file(&file);
+                None
+            }
+        };
+        project.save(&self.dir)
+    }
 }
 
 /// Starts capturing the monitor under the region. The region is in CSS
@@ -67,13 +107,14 @@ pub fn begin(
         events,
         project,
         started: Instant::now(),
+        camera: None,
     })
 }
 
 impl Active {
     /// Stops both recorders, writes `events.json` and `project.json`, and
-    /// returns the project folder.
-    pub fn stop(self) -> Result<PathBuf> {
+    /// returns what is left to do once the overlay has flushed the camera.
+    pub fn stop(self) -> Result<Finishing> {
         let (first_ts, frames) = self.capture.stop()?;
         let events = self.events.stop();
         let duration_ms = self.started.elapsed().as_millis() as u64;
@@ -89,7 +130,10 @@ impl Active {
             serde_json::to_string(&out)?,
         )?;
         project.save(&self.dir)?;
-        Ok(self.dir)
+        Ok(Finishing {
+            dir: self.dir,
+            camera: self.camera,
+        })
     }
 }
 
@@ -122,10 +166,13 @@ mod tests {
 
         let active = begin(&base, &frame, 10.0, 10.0, 400.0, 300.0, false).unwrap();
         std::thread::sleep(std::time::Duration::from_secs(3));
-        let dir = active.stop().unwrap();
+        let finishing = active.stop().unwrap();
+        finishing.finalize().unwrap();
+        let dir = finishing.dir.clone();
 
         let project = Project::load(&dir).unwrap();
         assert!(project.frames > 0, "no frames captured");
+        assert!(project.camera.is_none());
         assert!(project.first_frame_ts > 0);
         assert_eq!(project.region.x, (10.0 * scale).round() as i32);
         assert_eq!(project.monitor.width, pw);

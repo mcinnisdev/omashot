@@ -53,6 +53,9 @@ struct Inner {
     countdown: Option<Arc<AtomicBool>>,
     /// A studio recording in progress.
     studio: Option<studio::Active>,
+    /// A studio recording whose screen side has stopped; the overlay is
+    /// flushing the camera track before the project is finalised.
+    studio_finishing: Option<studio::Finishing>,
     /// True when the session has changed since it was last written out, so
     /// "New bundle" knows whether there is anything to save first.
     dirty: bool,
@@ -259,19 +262,43 @@ fn trigger_studio(app: &AppHandle) {
     }
 }
 
-/// Stops the studio recording, writes the project, and shows the folder.
+/// Stops the studio recording's screen side and asks the overlay to flush
+/// the camera track; `finalize_studio` completes it when that is done, or
+/// after a grace period if the overlay never answers.
 fn finish_studio(app: &AppHandle) {
     let state: State<Shared> = app.state();
     let Some(active) = state.lock().unwrap().studio.take() else {
         return;
     };
-    overlay::close_rec_badge(app);
     match active.stop() {
-        Ok(dir) => {
-            eprintln!("qacut: studio recording saved to {}", dir.display());
-            let _ = app.opener().reveal_item_in_dir(dir.join("source.mp4"));
+        Ok(finishing) => {
+            state.lock().unwrap().studio_finishing = Some(finishing);
+            let _ = app.emit("recording-stop", ());
+            let app2 = app.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_secs(5));
+                finalize_studio(&app2);
+            });
         }
-        Err(e) => eprintln!("qacut: studio recording failed: {e}"),
+        Err(e) => {
+            overlay::close_rec_badge(app);
+            eprintln!("qacut: studio recording failed: {e}");
+        }
+    }
+}
+
+fn finalize_studio(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let Some(finishing) = state.lock().unwrap().studio_finishing.take() else {
+        return;
+    };
+    overlay::close_rec_badge(app);
+    match finishing.finalize() {
+        Ok(()) => {
+            eprintln!("qacut: studio recording saved to {}", finishing.dir.display());
+            let _ = app.opener().reveal_item_in_dir(finishing.dir.join("source.mp4"));
+        }
+        Err(e) => eprintln!("qacut: studio recording could not be finalised: {e}"),
     }
 }
 
@@ -649,7 +676,7 @@ async fn start_recording(
     capture::clear_scratch();
 
     if let Err(e) =
-        overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS)
+        overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS, false)
     {
         eprintln!("qacut: could not show recording overlay: {e}");
     }
@@ -748,7 +775,7 @@ async fn start_studio(
     capture::clear_scratch();
 
     if let Err(e) =
-        overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS)
+        overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS, true)
     {
         eprintln!("qacut: could not show recording overlay: {e}");
     }
@@ -784,6 +811,55 @@ async fn start_studio(
 #[tauri::command]
 async fn start_studio_from_menu(app: AppHandle) {
     trigger_studio(&app);
+}
+
+/// The overlay's microphone/camera recorder has started. Its wall-clock
+/// time is mapped onto the frames' clock through the two clocks read
+/// together here; the error is the IPC latency, a few milliseconds.
+#[tauri::command]
+fn camera_started(state: State<Shared>, at_unix_ms: f64, has_video: bool, has_audio: bool) {
+    let now_q = studio::events::now_100ns();
+    let now_unix = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs_f64() * 1000.0)
+        .unwrap_or(at_unix_ms);
+    let ts = now_q + ((at_unix_ms - now_unix) * 10_000.0) as i64;
+    let mut inner = state.lock().unwrap();
+    if let Some(active) = inner.studio.as_mut() {
+        active.camera = Some(studio::CameraStart { ts, has_video, has_audio });
+    } else if let Some(f) = inner.studio_finishing.as_mut() {
+        f.camera = Some(studio::CameraStart { ts, has_video, has_audio });
+    }
+}
+
+/// One MediaRecorder chunk, appended in order to camera.webm.
+#[tauri::command]
+fn append_camera(state: State<Shared>, request: tauri::ipc::Request<'_>) -> Result<(), String> {
+    use std::io::Write as _;
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
+        return Err("expected raw bytes".into());
+    };
+    let dir = {
+        let inner = state.lock().unwrap();
+        inner
+            .studio
+            .as_ref()
+            .map(|a| a.dir.clone())
+            .or_else(|| inner.studio_finishing.as_ref().map(|f| f.dir.clone()))
+            .ok_or("no studio recording")?
+    };
+    let mut f = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(dir.join("camera.webm"))
+        .map_err(|e| e.to_string())?;
+    f.write_all(bytes).map_err(|e| e.to_string())
+}
+
+/// The overlay has flushed its last chunk (or had nothing to record).
+#[tauri::command]
+async fn camera_stopped(app: AppHandle) {
+    finalize_studio(&app);
 }
 
 #[tauri::command]
@@ -1264,7 +1340,9 @@ async fn quit(app: AppHandle) {
         let _ = rec.stop();
     }
     if let Some(active) = st {
-        let _ = active.stop();
+        if let Ok(f) = active.stop() {
+            let _ = f.finalize();
+        }
     }
     capture::clear_scratch();
     app.exit(0);
@@ -1316,6 +1394,9 @@ fn main() {
             stop_recording,
             start_studio,
             start_studio_from_menu,
+            camera_started,
+            append_camera,
+            camera_stopped,
             get_studio_settings,
             set_studio_settings,
             log_error,
@@ -1435,7 +1516,9 @@ fn main() {
                             let _ = rec.stop();
                         }
                         if let Some(active) = st {
-                            let _ = active.stop();
+                            if let Ok(f) = active.stop() {
+                                let _ = f.finalize();
+                            }
                         }
                         capture::clear_scratch();
                         app.exit(0);

@@ -1084,6 +1084,18 @@ body.rec {
   pointer-events: none;
 }
 
+/* Live camera preview during a studio recording. */
+#cam {
+  position: fixed;
+  width: 200px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  background: var(--base);
+}
+
 .rec-pill {
   position: fixed;
   display: flex;

@@ -3390,6 +3390,7 @@ dependencies = [
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-opener",
+ "windows 0.62.2",
  "windows-sys 0.60.2",
  "xcap",
  "zip",

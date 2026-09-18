@@ -11,6 +11,7 @@ use std::time::{Duration, Instant};
 use tauri::AppHandle;
 
 use crate::model::KeyFrame;
+use crate::mp4::{even, Mp4Writer};
 
 /// One monitor's frozen frame. Geometry is in logical points (what Tauri
 /// uses to place windows); `scale` converts to the physical pixels the
@@ -146,6 +147,8 @@ pub struct Recorded {
     pub height: u32,
     pub duration_ms: u64,
     pub frames: Vec<KeyFrame>,
+    /// True when the MP4 beside the GIF was written.
+    pub video: bool,
 }
 
 /// A recording in progress. Frames are captured, cursor-marked, scaled and
@@ -207,6 +210,19 @@ pub fn start_recording(
         } else {
             (pw, ph)
         };
+        // Even dimensions keep the MP4 and the GIF the same size.
+        let (out_w, out_h) = (even(out_w), even(out_h));
+
+        // The MP4 is a bonus: if the encoder is missing, say so once and
+        // carry on with the GIF and stills.
+        let mp4_path = gif.with_extension("mp4");
+        let mut mp4 = match Mp4Writer::new(&mp4_path, out_w, out_h) {
+            Ok(w) => Some(w),
+            Err(e) => {
+                eprintln!("qacut: no MP4 for this recording ({e})");
+                None
+            }
+        };
         // Drawn before downscaling, so size it to land at 12 px afterwards.
         let ring = (12.0 * pw as f64 / out_w as f64).round().max(6.0) as i64;
 
@@ -255,7 +271,7 @@ pub fn start_recording(
                 mark_cursor(&mut img, cx, cy, ring, filled);
             }
 
-            let img = if out_w != pw {
+            let img = if out_w != pw || out_h != ph {
                 image::imageops::resize(&img, out_w, out_h, image::imageops::FilterType::Triangle)
             } else {
                 img
@@ -289,6 +305,13 @@ pub fn start_recording(
             // took, so the GIF keeps wall-clock time even if capture lags.
             let delay_ms = ((now - last).as_millis() as u32).max(20);
             last = now;
+            if let Some(w) = mp4.as_mut() {
+                let at = (now - start).as_millis() as u64;
+                if let Err(e) = w.write(&img, at, FRAME_INTERVAL.as_millis() as u64) {
+                    eprintln!("qacut: MP4 write failed, dropping it ({e})");
+                    mp4 = None;
+                }
+            }
             last_img = Some(img.clone());
             enc.encode_frame(GifFrame::from_parts(
                 img,
@@ -342,6 +365,20 @@ pub fn start_recording(
             }
         }
         drop(enc);
+        let video = match mp4.take() {
+            Some(w) => match w.finish() {
+                Ok(()) => true,
+                Err(e) => {
+                    eprintln!("qacut: MP4 finalise failed ({e})");
+                    let _ = std::fs::remove_file(&mp4_path);
+                    false
+                }
+            },
+            None => {
+                let _ = std::fs::remove_file(&mp4_path);
+                false
+            }
+        };
 
         let frames = choose_keyframes(frames, &frames_dir);
 
@@ -350,6 +387,7 @@ pub fn start_recording(
             height: out_h,
             duration_ms: start.elapsed().as_millis() as u64,
             frames,
+            video,
         })
     });
 

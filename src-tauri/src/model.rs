@@ -114,19 +114,46 @@ pub struct Shot {
     /// Recording only: stills at regular intervals, oldest first.
     #[serde(default)]
     pub frames: Vec<KeyFrame>,
+    /// Recording only: the MP4 beside the GIF, relative to the group
+    /// directory, when the encoder was available.
+    #[serde(default)]
+    pub video: Option<String>,
 }
 
-/// The two files the markup editor keeps beside an annotated PNG: the
-/// untouched original and the marks as JSON, so edits can be reopened.
-pub fn sidecars(png: &Path) -> [PathBuf; 2] {
-    let stem = png
+/// Files that travel with a shot's main file: the markup editor's untouched
+/// original and marks JSON beside an annotated PNG, and the MP4 beside a
+/// recording's GIF.
+pub fn sidecars(file: &Path) -> [PathBuf; 3] {
+    let stem = file
         .file_stem()
         .map(|s| s.to_string_lossy().to_string())
         .unwrap_or_default();
     [
-        png.with_file_name(format!("{stem}.orig.png")),
-        png.with_file_name(format!("{stem}.marks.json")),
+        file.with_file_name(format!("{stem}.orig.png")),
+        file.with_file_name(format!("{stem}.marks.json")),
+        file.with_file_name(format!("{stem}.mp4")),
     ]
+}
+
+/// What the agent is asked to produce for a "document" bundle.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DocFormat {
+    /// A markdown file next to the folder's images.
+    #[default]
+    Markdown,
+    /// One self-contained HTML page with the clips playing inline.
+    Html,
+}
+
+impl DocFormat {
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "markdown" => Some(DocFormat::Markdown),
+            "html" => Some(DocFormat::Html),
+            _ => None,
+        }
+    }
 }
 
 impl Shot {
@@ -194,6 +221,8 @@ pub struct Session {
     pub current: usize,
     #[serde(default)]
     pub purpose: Purpose,
+    #[serde(default)]
+    pub doc_format: DocFormat,
     /// Whether the brand kit in `~/QACut/brand/` is copied into this bundle.
     #[serde(default = "default_true")]
     pub include_brand: bool,
@@ -233,6 +262,7 @@ impl Session {
             root,
             current: 1,
             purpose: Purpose::Fix,
+            doc_format: DocFormat::Markdown,
             include_brand: true,
             groups: vec![first],
         })
@@ -481,6 +511,7 @@ mod tests {
             kind: ShotKind::Image,
             duration_ms: 0,
             frames: Vec::new(),
+            video: None,
         }
     }
 
@@ -602,6 +633,7 @@ mod recording_tests {
             kind: ShotKind::Recording,
             duration_ms: 1000,
             frames: Vec::new(),
+            video: None,
         };
         let dir = sh.frames_dir().unwrap();
         assert!(dir.ends_with("01-frames"));
@@ -650,6 +682,7 @@ mod reopen_tests {
             kind: ShotKind::Image,
             duration_ms: 0,
             frames: Vec::new(),
+            video: None,
         });
         std::fs::write(
             s.root.join("manifest.json"),

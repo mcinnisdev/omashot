@@ -7,6 +7,7 @@ const body = document.getElementById("body") as HTMLDivElement;
 const count = document.getElementById("count") as HTMLSpanElement;
 const bundleName = document.getElementById("bundle-name") as HTMLInputElement;
 const purpose = document.getElementById("purpose") as HTMLSelectElement;
+const docFormat = document.getElementById("doc-format") as HTMLSelectElement;
 const custom = document.getElementById("custom") as HTMLDivElement;
 const customPrompt = document.getElementById("custom-prompt") as HTMLTextAreaElement;
 const menubar = document.getElementById("menubar") as HTMLElement;
@@ -75,6 +76,10 @@ async function render() {
   // backend starts a session on demand.
   bundleName.value = session?.name ?? "";
   purpose.value = session?.purpose ?? "fix";
+  docFormat.value = session?.doc_format ?? "markdown";
+  // The format only matters for a document, and the web page variant is
+  // what makes recordings pay off: clips play inline instead of stills.
+  docFormat.hidden = purpose.value !== "document";
   custom.hidden = purpose.value !== "custom";
   customPrompt.value = state.custom_prompt;
 
@@ -228,7 +233,7 @@ async function render() {
       const meta = document.createElement("div");
       meta.className = "meta";
       meta.textContent = isRec
-        ? `${label}  ${clock(s.duration_ms)}  ${s.width}x${s.height}`
+        ? `${label}  ${clock(s.duration_ms)}  ${s.width}x${s.height}${s.video ? "  GIF+MP4" : "  GIF"}`
         : `${label}  ${s.width}x${s.height}`;
       left.append(img, meta);
 
@@ -604,8 +609,13 @@ bundleName.addEventListener("keydown", (e) => {
 
 purpose.addEventListener("change", async () => {
   await invoke("set_purpose", { purpose: purpose.value });
+  docFormat.hidden = purpose.value !== "document";
   if (purpose.value === "custom") showPanel(custom, customPrompt);
   else custom.hidden = true;
+});
+
+docFormat.addEventListener("change", () => {
+  void invoke("set_doc_format", { format: docFormat.value });
 });
 
 customPrompt.addEventListener("change", () => {

@@ -37,7 +37,10 @@ the region is outlined, so it is obvious when something has drifted out of
 shot. The hotkey cancels during the countdown. The region is
 grabbed at ten frames a second with the cursor drawn on as a ring, scaled to
 at most 720 px wide and streamed into a looping GIF, so stopping is instant.
-A still is saved beside it at the start, at every click or Enter (the mouse
+An H.264 MP4 of the same clip is written beside the GIF through the encoder
+that ships with Windows, full colour and roughly a tenth of the size, for
+embedding in a page; if the encoder is unavailable the recording still has
+its GIF. A still is saved beside it at the start, at every click or Enter (the mouse
 is polled every 15 ms, so the still is at most one frame after the click,
 and the ring fills solid in the GIF for a moment), and at the end. Each
 still records what happened and where the click landed. Agents cannot play
@@ -49,7 +52,10 @@ only for now; elsewhere you get the interval stills.
 A bundle has a purpose, chosen in the bundle window: **Fix issues** (the
 default), **Write process doc**, or **Custom prompt**. It only changes the
 prompt that "Copy agent prompt" produces, so one bundle of shots and
-recordings can be handed off any way you like. The custom template is
+recordings can be handed off any way you like. A process doc can be asked
+for **as Markdown** or **as web page**: the web page is one self-contained
+`process.html` with each recording playing inline from its MP4, which is
+where five steps in one clip replace five screenshots. The custom template is
 written in the bundle window and kept in `~/QACut/custom-prompt.txt` for
 every bundle after that; `{root}` becomes the folder path and `{name}` the
 bundle name, and a template that never mentions `{root}` gets the path

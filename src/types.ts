@@ -12,6 +12,7 @@ export interface Frame {
 
 export type ShotKind = "image" | "recording";
 export type Purpose = "fix" | "document" | "custom";
+export type DocFormat = "markdown" | "html";
 
 export interface KeyFrame {
   file: string;
@@ -33,6 +34,7 @@ export interface Shot {
   kind: ShotKind;
   duration_ms: number;
   frames: KeyFrame[];
+  video: string | null;
 }
 
 export interface Group {
@@ -50,6 +52,7 @@ export interface Session {
   root: string;
   current: number;
   purpose: Purpose;
+  doc_format: DocFormat;
   include_brand: boolean;
   groups: Group[];
 }

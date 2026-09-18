@@ -26,6 +26,8 @@ anyhow = "1"
 [target.'cfg(windows)'.dependencies]
 # Mouse and Enter polling while recording; no hooks, no permissions.
 windows-sys = { version = "0.60", features = ["Win32_UI_Input_KeyboardAndMouse"] }
+# H.264 MP4 output through the encoder that ships with Windows.
+windows = { version = "0.62", features = ["Win32_Media_MediaFoundation", "Win32_System_Com", "Win32_Foundation"] }
 
 [profile.release]
 codegen-units = 1

@@ -272,7 +272,8 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
         "at the start, at every click or Enter (with where the click landed), and at ",
         "the end, so each one is an action. Read them in order if you cannot play it. ",
         "A file ending .orig.png is the unedited original behind an annotated image; ",
-        "use the annotated one.\n"
+        "use the annotated one. Where a recording lists a Video, that MP4 is the same ",
+        "clip in full colour for embedding in a page.\n"
     ));
 
     if let Some(kit) = brand {
@@ -340,6 +341,9 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
                     "_Recording, {secs} s, {} × {} px, captured {when}._",
                     shot.width, shot.height
                 );
+                if let Some(v) = &shot.video {
+                    let _ = write!(md, " Video: [{}/{v}]({}/{v}) (H.264 MP4, same clip).", g.dir, g.dir);
+                }
                 let _ = writeln!(md);
                 if !shot.frames.is_empty() {
                     let _ = writeln!(md);
@@ -388,6 +392,7 @@ mod tests {
             kind: ShotKind::Image,
             duration_ms: 0,
             frames: Vec::new(),
+            video: None,
         });
         s.current().shots.push(Shot {
             id: "b".into(),
@@ -405,6 +410,7 @@ mod tests {
                 KeyFrame { file: "02-frames/02.png".into(), at_ms: 3140, event: "click".into(), x: Some(412), y: Some(188) },
                 KeyFrame { file: "02-frames/03.png".into(), at_ms: 12400, event: "end".into(), x: None, y: None },
             ],
+            video: Some("02.mp4".into()),
         });
 
         let md = render_markdown(&s, None);
@@ -419,7 +425,7 @@ mod tests {
         assert!(md.contains("Save button is clipped"));
         assert!(md.contains("_640 × 200 px, captured 14:56:50_"));
         assert!(md.contains("![1.2](01/02.gif)"));
-        assert!(md.contains("_Recording, 12 s, 720 × 400 px, captured 14:57:10._"));
+        assert!(md.contains("_Recording, 12 s, 720 × 400 px, captured 14:57:10._ Video: [01/02.mp4](01/02.mp4)"));
         assert!(md.contains("- [0 s, start](01/02-frames/01.png)"));
         assert!(md.contains("- [3 s, click at 412,188](01/02-frames/02.png)"));
         assert!(md.contains("- [12 s, end](01/02-frames/03.png)"));
@@ -489,6 +495,7 @@ mod layout_tests {
             kind,
             duration_ms: 0,
             frames: Vec::new(),
+            video: None,
         };
         if kind == ShotKind::Recording {
             let dir = sh.frames_dir().unwrap();
@@ -585,6 +592,7 @@ mod zip_tests {
             kind: ShotKind::Image,
             duration_ms: 0,
             frames: Vec::new(),
+            video: None,
         });
         write_bundle(&mut s, &base.join("nobrand")).unwrap();
         let zip_path = write_zip(&s).unwrap();

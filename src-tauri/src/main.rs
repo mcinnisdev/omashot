@@ -3,12 +3,13 @@
 mod capture;
 mod export;
 mod model;
+mod mp4;
 mod overlay;
 
 use capture::Frame;
 use export::{BrandKit, Export};
 use image::RgbaImage;
-use model::{BundleInfo, Purpose, Session, Shot, ShotKind};
+use model::{BundleInfo, DocFormat, Purpose, Session, Shot, ShotKind};
 use serde::Serialize;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -141,6 +142,7 @@ fn agent_prompt(
     root: &str,
     name: &str,
     purpose: Purpose,
+    doc_format: DocFormat,
     custom: &str,
     brand: bool,
     target: Target,
@@ -159,20 +161,39 @@ fn agent_prompt(
             "changing anything.",
         ]
         .concat(),
-        Purpose::Document => [
-            &opening("Using"),
-            "write a step-by-step process document ",
-            "for the workflow it shows. Read bundle.md first: each group is a stage, the ",
-            "quoted note under it describes that stage, and each screenshot or recording ",
-            "is one step with the reviewer's note saying what is happening. A recording's ",
-            "key frames are stills taken at each click, with where the click landed, so ",
-            "each click frame is one action to describe. Open every screenshot and every ",
-            "key frame before writing. Write the steps ",
-            "in second person, embed each image and GIF where it belongs using its ",
-            "relative path, and keep the file names so the document can live next to ",
-            "the folder.",
-        ]
-        .concat(),
+        Purpose::Document => {
+            let deliverable = match doc_format {
+                DocFormat::Markdown => [
+                    "Write the steps in second person and embed each image and GIF where it ",
+                    "belongs using its relative path. Save the result as process.md inside the ",
+                    "bundle folder and keep the file names, so the document works next to its ",
+                    "images.",
+                ]
+                .concat(),
+                DocFormat::Html => [
+                    "Deliver one self-contained web page, process.html, saved inside the bundle ",
+                    "folder: inline CSS, images by relative path, and each recording embedded ",
+                    "with a <video> tag pointing at its MP4 (controls, muted, loop, playsinline; ",
+                    "fall back to the GIF as an <img> if there is no MP4). Let the clips carry ",
+                    "the steps they show; write only what a reader needs between them, so five ",
+                    "steps on one screen become one clip and a sentence, not five screenshots. ",
+                    "Write in second person and keep the file names.",
+                ]
+                .concat(),
+            };
+            [
+                &opening("Using"),
+                "write a step-by-step process document ",
+                "for the workflow it shows. Read bundle.md first: each group is a stage, the ",
+                "quoted note under it describes that stage, and each screenshot or recording ",
+                "is one step with the reviewer's note saying what is happening. A recording's ",
+                "key frames are stills taken at each click, with where the click landed, so ",
+                "each click frame is one action to describe. Open every screenshot and every ",
+                "key frame before writing. ",
+                &deliverable,
+            ]
+            .concat()
+        }
     };
     if brand {
         base + BRAND_LINE
@@ -278,6 +299,12 @@ fn finish_recording(app: &AppHandle) {
                     shot.height = done.height;
                     shot.duration_ms = done.duration_ms;
                     shot.frames = done.frames;
+                    shot.video = done.video.then(|| {
+                        std::path::Path::new(&shot.file)
+                            .with_extension("mp4")
+                            .to_string_lossy()
+                            .to_string()
+                    });
                 }
             }
             inner.pending = Some((group, id));
@@ -409,19 +436,19 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
     };
 
     let prompt_for = |target: Target| -> Result<String, String> {
-        let (purpose, name, include_brand) = state
+        let (purpose, doc_format, name, include_brand) = state
             .lock()
             .unwrap()
             .session
             .as_ref()
-            .map(|s| (s.purpose, s.title(), s.include_brand))
-            .unwrap_or((Purpose::Fix, String::new(), false));
+            .map(|s| (s.purpose, s.doc_format, s.title(), s.include_brand))
+            .unwrap_or((Purpose::Fix, DocFormat::Markdown, String::new(), false));
         let custom = load_custom_prompt(app);
         if purpose == Purpose::Custom && custom.trim().is_empty() {
             return Err("write a custom prompt first".into());
         }
         let brand = include_brand && !BrandKit::load(&brand_dir(app)).is_empty();
-        Ok(agent_prompt(&result.root, &name, purpose, &custom, brand, target))
+        Ok(agent_prompt(&result.root, &name, purpose, doc_format, &custom, brand, target))
     };
 
     match action {
@@ -526,6 +553,7 @@ async fn commit_selection(
             kind: ShotKind::Image,
             duration_ms: 0,
             frames: Vec::new(),
+            video: None,
         });
 
         inner.pending = Some((group, id));
@@ -629,6 +657,7 @@ async fn start_recording(
             kind: ShotKind::Recording,
             duration_ms: 0,
             frames: Vec::new(),
+            video: None,
         });
         inner.recording = Some((rec, group, id));
         inner.dirty = true;
@@ -837,6 +866,19 @@ async fn open_bundle(app: AppHandle, path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn set_doc_format(app: AppHandle, state: State<Shared>, format: String) -> Result<(), String> {
+    let f = DocFormat::parse(&format).ok_or("unknown format")?;
+    {
+        let mut inner = state.lock().unwrap();
+        let session = ensure_session(&app, &mut inner)?;
+        session.doc_format = f;
+        inner.dirty = true;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
+#[tauri::command]
 fn set_purpose(app: AppHandle, state: State<Shared>, purpose: String) -> Result<(), String> {
     let p = Purpose::parse(&purpose).ok_or("unknown purpose")?;
     {
@@ -938,7 +980,7 @@ fn load_markup(path: String) -> Result<Markup, String> {
     if !png.exists() {
         return Err("that image is gone".into());
     }
-    let [orig, marks] = model::sidecars(png);
+    let [orig, marks, _] = model::sidecars(png);
     let original = if orig.exists() { orig } else { png.to_path_buf() };
     let marks = std::fs::read_to_string(marks)
         .ok()
@@ -961,7 +1003,7 @@ async fn save_markup(
 ) -> Result<(), String> {
     use base64::Engine as _;
     let png = std::path::Path::new(&path);
-    let [orig, marks_path] = model::sidecars(png);
+    let [orig, marks_path, _] = model::sidecars(png);
     if !orig.exists() {
         std::fs::copy(png, &orig).map_err(|e| e.to_string())?;
     }
@@ -1119,6 +1161,7 @@ fn main() {
             list_bundles,
             open_bundle,
             set_purpose,
+            set_doc_format,
             set_custom_prompt,
             set_brand_notes,
             set_include_brand,
@@ -1258,13 +1301,17 @@ mod tests {
 
     #[test]
     fn built_in_prompts_switch_between_folder_and_zip() {
-        let cli = agent_prompt("C:/b", "n", Purpose::Fix, "", false, Target::Cli);
+        let cli = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", false, Target::Cli);
         assert!(cli.starts_with("Work through the QA bundle at C:/b. "));
-        let chat = agent_prompt("C:/b", "n", Purpose::Fix, "", true, Target::Chat);
+        let chat = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", true, Target::Chat);
         assert!(chat.starts_with("Work through the QA bundle in the attached ZIP. Unzip it first. "));
         assert!(!chat.contains("C:/b"));
         assert!(chat.ends_with("match them in anything you produce."));
-        let doc = agent_prompt("C:/b", "n", Purpose::Document, "", false, Target::Chat);
+        let doc = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Markdown, "", false, Target::Chat);
         assert!(doc.starts_with("Using the QA bundle in the attached ZIP. Unzip it first. write a step-by-step"));
+        assert!(doc.contains("process.md"));
+        let page = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Html, "", false, Target::Cli);
+        assert!(page.contains("process.html"));
+        assert!(page.contains("<video>"));
     }
 }

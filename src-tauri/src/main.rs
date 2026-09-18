@@ -521,10 +521,11 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     Menu::with_items(
         app,
         &[
-            &head_qacut, &capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i,
-            &open_i, &folder_i,
+            &head_qacut, &peek_i, &new_i, &open_i, &capture_i, &record_i, &group_i, &finish_i,
+            &folder_i,
             &sep1,
-            &head_studio, &studio_i, &zoom_i, &open_studio_i, &keys_i, &mic_i, &cam_i, &studio_folder_i,
+            &head_studio, &open_studio_i, &studio_i, &zoom_i, &keys_i, &mic_i, &cam_i,
+            &studio_folder_i,
             &sep2,
             &shortcuts_i, &quit_i,
         ],
@@ -1015,13 +1016,35 @@ fn load_studio_project(dir: String) -> Result<StudioLoad, String> {
     Ok(StudioLoad { project, events })
 }
 
+/// Saves edits and name. Naming a recording renames its folder to
+/// `<timestamp>-<slug>`, like a bundle, so the Studio folder reads at a
+/// glance. Returns the folder's (possibly new) path.
 #[tauri::command]
-fn save_studio_edits(dir: String, edits: serde_json::Value, name: String) -> Result<(), String> {
-    let d = std::path::Path::new(&dir);
-    let mut project = studio::project::Project::load(d).map_err(|e| e.to_string())?;
+fn save_studio_edits(dir: String, edits: serde_json::Value, name: String) -> Result<String, String> {
+    let d = std::path::PathBuf::from(&dir);
+    let mut project = studio::project::Project::load(&d).map_err(|e| e.to_string())?;
     project.edits = edits;
     project.name = name.trim().to_string();
-    project.save(d).map_err(|e| e.to_string())
+
+    let slug = model::slug(&project.name);
+    let stamp = project.id.clone();
+    let desired = if slug.is_empty() { stamp } else { format!("{stamp}-{slug}") };
+    let target = d.parent().map(|p| p.join(&desired)).unwrap_or_else(|| d.clone());
+    let final_dir = if target != d && !target.exists() {
+        match std::fs::rename(&d, &target) {
+            Ok(()) => target,
+            // A file in use (an export being written, a player open) keeps
+            // the old name; the name itself is still saved.
+            Err(e) => {
+                eprintln!("qacut: could not rename recording folder: {e}");
+                d
+            }
+        }
+    } else {
+        d
+    };
+    project.save(&final_dir).map_err(|e| e.to_string())?;
+    Ok(final_dir.to_string_lossy().to_string())
 }
 
 #[tauri::command]

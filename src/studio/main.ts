@@ -855,9 +855,23 @@ function showInspector() {
 
 function saveSoon() {
   window.clearTimeout(saveTimer);
-  saveTimer = window.setTimeout(() => {
+  saveTimer = window.setTimeout(async () => {
     if (!dir) return;
-    void invoke("save_studio_edits", { dir, edits, name: nameInput.value });
+    try {
+      const newDir = await invoke<string>("save_studio_edits", { dir, edits, name: nameInput.value });
+      if (newDir !== dir && project) {
+        // The folder was renamed after the recording; point the source at
+        // its new home without losing the playhead.
+        const at = currentMs();
+        dir = newDir;
+        filmFor = newDir;
+        src.src = convertFileSrc(`${newDir}/${project.source}`);
+        await new Promise<void>((resolve) => src.addEventListener("loadeddata", () => resolve(), { once: true }));
+        seekMs(at);
+      }
+    } catch (e) {
+      toast(String(e));
+    }
   }, 400);
 }
 

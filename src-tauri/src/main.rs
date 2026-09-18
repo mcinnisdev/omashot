@@ -502,7 +502,6 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, acc(&hk.peek))?;
     let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, acc(&hk.finish))?;
     let new_i = MenuItem::with_id(app, "new", "New bundle", true, acc(&hk.new))?;
-    let open_i = MenuItem::with_id(app, "open", "Open bundle...", true, None::<&str>)?;
     let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
 
     let head_studio = MenuItem::with_id(app, "h2", "QACut Studio", false, None::<&str>)?;
@@ -521,7 +520,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     Menu::with_items(
         app,
         &[
-            &head_qacut, &peek_i, &new_i, &open_i, &capture_i, &record_i, &group_i, &finish_i,
+            &head_qacut, &peek_i, &new_i, &capture_i, &record_i, &group_i, &finish_i,
             &folder_i,
             &sep1,
             &head_studio, &open_studio_i, &studio_i, &zoom_i, &keys_i, &mic_i, &cam_i,
@@ -563,10 +562,6 @@ fn trigger_new_bundle(app: &AppHandle) {
     }
 }
 
-fn trigger_open_bundle(app: &AppHandle) {
-    if let Err(e) = overlay::open_peek(app, Some("open")) {
-        eprintln!("qacut: could not open bundle window: {e}");
-    }
 }
 
 /// Puts the current session away: unsaved work is written out, a session
@@ -1767,7 +1762,6 @@ fn main() {
                     "peek" => off_main(app, trigger_peek),
                     "finish" => off_main(app, trigger_finish),
                     "new" => off_main(app, trigger_new_bundle),
-                    "open" => off_main(app, trigger_open_bundle),
                     "folder" => {
                         let dir = base_dir(app);
                         let _ = std::fs::create_dir_all(&dir);

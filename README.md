@@ -73,7 +73,11 @@ monitor under the region at up to 60 fps into a high-bitrate H.264 MP4 with
 the cursor hidden, plus `events.json` with the cursor path at 120 Hz, cursor
 shapes, clicks, keystrokes (opt-in) and foreground window titles, all on the
 same clock as the frames. Each recording is a folder under `~/QACut/Studio/`
-with `project.json` describing it. With the tray toggles on, the microphone
+with `project.json` describing it. When the recording stops, QACut Studio
+opens on it: a composited preview with a padded background, the cursor
+drawn back in and smoothed, click ripples, keystroke badges and the camera
+bubble, playing with narration, and an inspector whose settings are saved
+into `project.json`. "Open Studio" in the tray lists past recordings. With the tray toggles on, the microphone
 and camera are recorded too, into `camera.webm` beside the source, with a
 live camera preview in a corner of the screen the region does not cover;
 `project.json` carries the offset between the two tracks. The studio that

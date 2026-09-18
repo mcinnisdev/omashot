@@ -296,9 +296,19 @@ fn finalize_studio(app: &AppHandle) {
     match finishing.finalize() {
         Ok(()) => {
             eprintln!("qacut: studio recording saved to {}", finishing.dir.display());
-            let _ = app.opener().reveal_item_in_dir(finishing.dir.join("source.mp4"));
+            let dir = finishing.dir.to_string_lossy().to_string();
+            if let Err(e) = overlay::open_studio(app, Some(&dir)) {
+                eprintln!("qacut: could not open the studio: {e}");
+                let _ = app.opener().reveal_item_in_dir(finishing.dir.join("source.mp4"));
+            }
         }
         Err(e) => eprintln!("qacut: studio recording could not be finalised: {e}"),
+    }
+}
+
+fn trigger_open_studio(app: &AppHandle) {
+    if let Err(e) = overlay::open_studio(app, None) {
+        eprintln!("qacut: could not open the studio: {e}");
     }
 }
 
@@ -862,6 +872,42 @@ async fn camera_stopped(app: AppHandle) {
     finalize_studio(&app);
 }
 
+#[derive(Clone, Serialize)]
+struct StudioLoad {
+    project: studio::project::Project,
+    events: serde_json::Value,
+}
+
+#[tauri::command]
+fn list_studio_projects(app: AppHandle) -> Vec<studio::project::StudioInfo> {
+    studio::project::list(&base_dir(&app))
+}
+
+#[tauri::command]
+fn load_studio_project(dir: String) -> Result<StudioLoad, String> {
+    let d = std::path::Path::new(&dir);
+    let project = studio::project::Project::load(d).map_err(|e| e.to_string())?;
+    let events = std::fs::read_to_string(d.join(&project.events))
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok())
+        .unwrap_or_else(|| serde_json::json!({ "version": 1, "cursor": [], "shapes": [], "buttons": [], "keys": [], "windows": [] }));
+    Ok(StudioLoad { project, events })
+}
+
+#[tauri::command]
+fn save_studio_edits(dir: String, edits: serde_json::Value, name: String) -> Result<(), String> {
+    let d = std::path::Path::new(&dir);
+    let mut project = studio::project::Project::load(d).map_err(|e| e.to_string())?;
+    project.edits = edits;
+    project.name = name.trim().to_string();
+    project.save(d).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn open_studio(app: AppHandle, dir: Option<String>) -> Result<(), String> {
+    overlay::open_studio(&app, dir.as_deref()).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn get_studio_settings(app: AppHandle) -> studio::settings::Settings {
     studio::settings::Settings::load(&base_dir(&app))
@@ -1397,6 +1443,10 @@ fn main() {
             camera_started,
             append_camera,
             camera_stopped,
+            list_studio_projects,
+            load_studio_project,
+            save_studio_edits,
+            open_studio,
             get_studio_settings,
             set_studio_settings,
             log_error,
@@ -1468,6 +1518,7 @@ fn main() {
             let mic_i = CheckMenuItem::with_id(app, "st_mic", "Record microphone", true, st.mic, None::<&str>)?;
             let cam_i = CheckMenuItem::with_id(app, "st_cam", "Record camera", true, st.camera, None::<&str>)?;
             let toggles = (keys_i.clone(), mic_i.clone(), cam_i.clone());
+            let open_studio_i = MenuItem::with_id(app, "open_studio", "Open Studio", true, None::<&str>)?;
             let studio_folder_i = MenuItem::with_id(app, "studio_folder", "Open Studio folder", true, None::<&str>)?;
 
             let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
@@ -1479,7 +1530,7 @@ fn main() {
                     &head_qacut, &capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i,
                     &open_i, &folder_i,
                     &sep1,
-                    &head_studio, &studio_i, &keys_i, &mic_i, &cam_i, &studio_folder_i,
+                    &head_studio, &studio_i, &open_studio_i, &keys_i, &mic_i, &cam_i, &studio_folder_i,
                     &sep2,
                     &quit_i,
                 ],
@@ -1498,6 +1549,7 @@ fn main() {
                     "capture" => off_main(app, trigger_capture),
                     "record" => off_main(app, trigger_record),
                     "studio" => off_main(app, trigger_studio),
+                    "open_studio" => off_main(app, trigger_open_studio),
                     "st_keys" | "st_mic" | "st_cam" => {
                         // The item toggled itself; persist what it shows.
                         let s = studio::settings::Settings {

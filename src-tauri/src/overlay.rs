@@ -8,6 +8,7 @@ pub const NOTE: &str = "note";
 pub const PEEK: &str = "peek";
 pub const REC: &str = "rec";
 pub const EDIT: &str = "edit";
+pub const STUDIO: &str = "studio";
 
 /// Every window gets the same browser arguments (WebView2 fixes them for
 /// the process at the first window). Tauri's defaults, plus: no permission
@@ -257,4 +258,25 @@ fn urlencode(s: &str) -> String {
         }
     }
     out
+}
+
+/// QACut Studio, on a project folder or on the list of recordings.
+pub fn open_studio(app: &AppHandle, project_dir: Option<&str>) -> Result<()> {
+    if let Some(w) = app.get_webview_window(STUDIO) {
+        let _ = w.close();
+    }
+    let url = match project_dir {
+        Some(d) => format!("studio.html?project={}", urlencode(d)),
+        None => "studio.html".to_string(),
+    };
+    let win = builder(app, STUDIO, WebviewUrl::App(url.into()))
+        .title("QACut Studio")
+        .inner_size(1360.0, 860.0)
+        .min_inner_size(960.0, 600.0)
+        .decorations(false)
+        .focused(true)
+        .build()?;
+    let _ = win.center();
+    let _ = win.set_focus();
+    Ok(())
 }

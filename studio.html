@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>QACut Studio</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="studio">
+    <div class="studio-wrap">
+      <div class="studio-head" data-tauri-drag-region>
+        <span class="studio-brand" data-tauri-drag-region>QACut Studio</span>
+        <input class="studio-name" id="name" placeholder="Name this recording" aria-label="Recording name" />
+        <span class="spacer" data-tauri-drag-region></span>
+        <button class="quiet" id="open-list">Recordings</button>
+        <button class="quiet" id="open-folder">Open folder</button>
+        <button class="icon-btn" id="close" title="Close (Esc)" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="studio-body">
+        <div class="studio-stage" id="stage">
+          <canvas id="canvas"></canvas>
+          <div class="studio-empty" id="empty" hidden>
+            <h2>No recording open</h2>
+            <p>Press <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>3</kbd> to make one, or pick one from Recordings.</p>
+          </div>
+        </div>
+
+        <aside class="inspector" id="inspector">
+          <section>
+            <h3>Frame</h3>
+            <label>Padding <input type="range" id="padding" min="0" max="0.2" step="0.01" /></label>
+            <label>Corners <input type="range" id="radius" min="0" max="40" step="1" /></label>
+            <label>Background
+              <select id="background">
+                <option value="midnight">Midnight</option>
+                <option value="sunset">Sunset</option>
+                <option value="ocean">Ocean</option>
+                <option value="slate">Slate</option>
+                <option value="plain">Plain</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" id="shadow" /> Shadow</label>
+          </section>
+          <section>
+            <h3>Cursor</h3>
+            <label>Size <input type="range" id="cursor-size" min="1" max="3" step="0.1" /></label>
+            <label>Smoothing <input type="range" id="smoothing" min="0" max="1" step="0.05" /></label>
+            <label class="check"><input type="checkbox" id="ripple" /> Click ripple</label>
+          </section>
+          <section>
+            <h3>Keystrokes</h3>
+            <label class="check"><input type="checkbox" id="show-keys" /> Show keys pressed</label>
+          </section>
+          <section id="camera-section">
+            <h3>Camera</h3>
+            <label class="check"><input type="checkbox" id="cam-show" /> Show camera bubble</label>
+            <label>Size <input type="range" id="cam-size" min="0.12" max="0.4" step="0.01" /></label>
+            <label>Corner
+              <select id="cam-corner">
+                <option value="br">Bottom right</option>
+                <option value="bl">Bottom left</option>
+                <option value="tr">Top right</option>
+                <option value="tl">Top left</option>
+              </select>
+            </label>
+            <label>Shape
+              <select id="cam-shape">
+                <option value="circle">Circle</option>
+                <option value="rounded">Rounded</option>
+              </select>
+            </label>
+          </section>
+          <section>
+            <h3>Recording</h3>
+            <div class="facts" id="facts"></div>
+          </section>
+        </aside>
+      </div>
+
+      <div class="transport">
+        <button class="btn" id="play" title="Play / pause (Space)">Play</button>
+        <span class="time" id="time">0:00.0 / 0:00.0</span>
+        <input type="range" id="scrub" min="0" max="1000" step="1" value="0" aria-label="Position" />
+      </div>
+
+      <div class="recordings" id="recordings" hidden>
+        <div class="panel-head">
+          <span>Recordings</span>
+          <button class="quiet" id="list-close">Close</button>
+        </div>
+        <div class="recordings-list" id="recordings-list"></div>
+      </div>
+
+      <video id="src" muted playsinline preload="auto" hidden></video>
+      <video id="cam" playsinline preload="auto" hidden></video>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+    <script type="module" src="/src/studio/main.ts"></script>
+  </body>
+</html>

@@ -20,6 +20,7 @@ export default defineConfig({
         peek: resolve(__dirname, "peek.html"),
         rec: resolve(__dirname, "rec.html"),
         edit: resolve(__dirname, "edit.html"),
+        studio: resolve(__dirname, "studio.html"),
       },
     },
   },

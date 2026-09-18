@@ -91,9 +91,6 @@ impl Project {
         Ok(())
     }
 
-    /// Used by the studio once it exists; kept beside `save` so the two
-    /// cannot drift apart.
-    #[allow(dead_code)]
     pub fn load(dir: &Path) -> Result<Self> {
         Ok(serde_json::from_str(&std::fs::read_to_string(dir.join("project.json"))?)?)
     }
@@ -102,6 +99,42 @@ impl Project {
 /// Studio projects live beside the bundles, under `~/QACut/Studio/`.
 pub fn studio_dir(base: &Path) -> PathBuf {
     base.join("Studio")
+}
+
+/// A recording as listed in the studio's Recordings panel.
+#[derive(Clone, Debug, Serialize)]
+pub struct StudioInfo {
+    pub dir: String,
+    pub id: String,
+    pub name: String,
+    pub created_at: String,
+    pub duration_ms: u64,
+    pub frames: u64,
+    pub has_camera: bool,
+}
+
+/// Every finished recording under the studio folder, newest first.
+pub fn list(base: &Path) -> Vec<StudioInfo> {
+    let mut out = Vec::new();
+    let Ok(entries) = std::fs::read_dir(studio_dir(base)) else { return out };
+    for entry in entries.flatten() {
+        let dir = entry.path();
+        let Ok(p) = Project::load(&dir) else { continue };
+        if p.frames == 0 {
+            continue;
+        }
+        out.push(StudioInfo {
+            dir: dir.to_string_lossy().to_string(),
+            id: p.id,
+            name: p.name,
+            created_at: p.created_at,
+            duration_ms: p.duration_ms,
+            frames: p.frames,
+            has_camera: p.camera.is_some(),
+        });
+    }
+    out.sort_by(|a, b| b.id.cmp(&a.id));
+    out
 }
 
 /// Creates `~/QACut/Studio/<timestamp>/`.

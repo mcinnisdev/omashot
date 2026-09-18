@@ -223,8 +223,9 @@ pub fn start_recording(
                 None
             }
         };
-        // Drawn before downscaling, so size it to land at 12 px afterwards.
-        let ring = (12.0 * pw as f64 / out_w as f64).round().max(6.0) as i64;
+        // Drawn after downscaling, in output pixels.
+        let ring: i64 = 12;
+        let scale = out_w as f64 / pw as f64;
 
         std::fs::create_dir_all(&frames_dir)?;
         let file = BufWriter::new(std::fs::File::create(&gif)?);
@@ -250,7 +251,7 @@ pub fn start_recording(
 
         loop {
             let tick = Instant::now();
-            let mut img = match monitor.capture_region(px, py, pw, ph) {
+            let img = match monitor.capture_region(px, py, pw, ph) {
                 Ok(i) => i,
                 // A transient failure (screen lock, resolution change)
                 // should not end the recording; just skip the frame.
@@ -265,12 +266,13 @@ pub fn start_recording(
 
             let now = Instant::now();
             let filled = flash_until.is_some_and(|t| now < t);
-            if let Ok(pos) = app.cursor_position() {
-                let cx = pos.x.round() as i64 - mon_x as i64 - px as i64;
-                let cy = pos.y.round() as i64 - mon_y as i64 - py as i64;
-                mark_cursor(&mut img, cx, cy, ring, filled);
-            }
+            let cursor = app.cursor_position().ok().map(|pos| {
+                let cx = (pos.x.round() as i64 - mon_x as i64 - px as i64) as f64 * scale;
+                let cy = (pos.y.round() as i64 - mon_y as i64 - py as i64) as f64 * scale;
+                (cx.round() as i64, cy.round() as i64)
+            });
 
+            // The raw frame, no cursor: stills are cut from this.
             let img = if out_w != pw || out_h != ph {
                 image::imageops::resize(&img, out_w, out_h, image::imageops::FilterType::Triangle)
             } else {
@@ -278,18 +280,40 @@ pub fn start_recording(
             };
 
             // Stills: one for the start, one per action, and an interval
-            // fallback that only survives if no action ever happens.
-            let mut save = |img: &RgbaImage, event: &str, at: Option<(u32, u32)>, frames: &mut Vec<KeyFrame>| {
+            // fallback that only survives if no action ever happens. Only a
+            // click gets a ring, at the click point, and the ring is saved
+            // as a mark beside the untouched image so it can be moved in the
+            // editor rather than being paint.
+            let mut save = |raw: &RgbaImage, event: &str, at: Option<(u32, u32)>, frames: &mut Vec<KeyFrame>| {
                 saved += 1;
                 let name = format!("{saved:02}.png");
-                if img.save(frames_dir.join(&name)).is_ok() {
-                    let scale = out_w as f64 / pw as f64;
+                let png = frames_dir.join(&name);
+                let at_out = at.map(|(x, y)| {
+                    ((x as f64 * scale).round() as u32, (y as f64 * scale).round() as u32)
+                });
+                let is_click = matches!(event, "click" | "right-click" | "middle-click");
+                let ok = match (is_click, at_out) {
+                    (true, Some((x, y))) => {
+                        let mut composite = raw.clone();
+                        mark_cursor(&mut composite, x as i64, y as i64, ring, true);
+                        let [orig, marks, _] = crate::model::sidecars(&png);
+                        raw.save(&orig).is_ok()
+                            && std::fs::write(
+                                &marks,
+                                format!(r#"[{{"kind":"click","x":{x},"y":{y}}}]"#),
+                            )
+                            .is_ok()
+                            && composite.save(&png).is_ok()
+                    }
+                    _ => raw.save(&png).is_ok(),
+                };
+                if ok {
                     frames.push(KeyFrame {
                         file: format!("{rel_dir}/{name}"),
                         at_ms: (now - start).as_millis() as u64,
                         event: event.to_string(),
-                        x: at.map(|(x, _)| (x as f64 * scale).round() as u32),
-                        y: at.map(|(_, y)| (y as f64 * scale).round() as u32),
+                        x: if is_click { at_out.map(|p| p.0) } else { None },
+                        y: if is_click { at_out.map(|p| p.1) } else { None },
                     });
                 }
             };
@@ -299,6 +323,12 @@ pub fn start_recording(
             } else if last_interval.map_or(true, |t| now - t >= KEYFRAME_EVERY) {
                 save(&img, "interval", None, &mut frames);
                 last_interval = Some(now);
+            }
+
+            // The live cursor goes on the GIF and MP4 frame only.
+            let mut img = img;
+            if let Some((cx, cy)) = cursor {
+                mark_cursor(&mut img, cx, cy, ring, filled);
             }
 
             // Each frame is shown for as long as the previous one really

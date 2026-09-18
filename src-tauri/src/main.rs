@@ -1011,10 +1011,45 @@ async fn save_markup(
         .decode(png_base64.as_bytes())
         .map_err(|e| e.to_string())?;
     std::fs::write(png, bytes).map_err(|e| e.to_string())?;
-    std::fs::write(&marks_path, marks).map_err(|e| e.to_string())?;
+    std::fs::write(&marks_path, &marks).map_err(|e| e.to_string())?;
+
+    // If this is a recording's still and its click mark was moved (or
+    // removed), the "click at x,y" in bundle.md follows.
+    let click = serde_json::from_str::<serde_json::Value>(&marks)
+        .ok()
+        .and_then(|v| v.as_array().cloned())
+        .and_then(|items| {
+            items
+                .iter()
+                .find(|m| m.get("kind").and_then(|k| k.as_str()) == Some("click"))
+                .and_then(|m| {
+                    Some((
+                        m.get("x")?.as_f64()?.round() as u32,
+                        m.get("y")?.as_f64()?.round() as u32,
+                    ))
+                })
+        });
     {
         let state: State<Shared> = app.state();
-        state.lock().unwrap().dirty = true;
+        let mut inner = state.lock().unwrap();
+        if let Some(session) = inner.session.as_mut() {
+            'find: for g in &mut session.groups {
+                for shot in &mut g.shots {
+                    let dir = std::path::Path::new(&shot.abs_path)
+                        .parent()
+                        .map(std::path::Path::to_path_buf)
+                        .unwrap_or_default();
+                    for f in &mut shot.frames {
+                        if dir.join(&f.file) == png {
+                            f.x = click.map(|c| c.0);
+                            f.y = click.map(|c| c.1);
+                            break 'find;
+                        }
+                    }
+                }
+            }
+        }
+        inner.dirty = true;
     }
     let _ = app.emit("session-changed", ());
     Ok(())

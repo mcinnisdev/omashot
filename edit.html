@@ -10,6 +10,7 @@
       <div class="edit-head" data-tauri-drag-region>
         <span class="edit-title" id="title" data-tauri-drag-region>Edit</span>
         <div class="tools" id="tools">
+          <button class="tool" data-tool="move" title="Move a mark (M)">Move</button>
           <button class="tool" data-tool="arrow" title="Arrow (A)">Arrow</button>
           <button class="tool" data-tool="rect" title="Highlight (H)">Highlight</button>
           <button class="tool" data-tool="blur" title="Blur (B)">Blur</button>
@@ -25,8 +26,8 @@
         <canvas id="canvas"></canvas>
       </div>
       <div class="edit-foot">
-        <span><kbd>A</kbd> arrow <kbd>H</kbd> highlight <kbd>B</kbd> blur <kbd>S</kbd> step</span>
-        <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo <kbd>Enter</kbd> save <kbd>Esc</kbd> cancel</span>
+        <span><kbd>M</kbd> move <kbd>A</kbd> arrow <kbd>H</kbd> highlight <kbd>B</kbd> blur <kbd>S</kbd> step</span>
+        <span><kbd>←↑↓→</kbd> nudge <kbd>Del</kbd> remove <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo <kbd>Enter</kbd> save <kbd>Esc</kbd> cancel</span>
       </div>
     </div>
     <script type="module" src="/src/edit.ts"></script>

@@ -102,10 +102,12 @@ step 1, whatever order things were captured in.
 
 ## Markup and the recording timeline
 
-**Edit** under a screenshot opens a small editor with four tools: arrow,
-highlight, blur and step counter (`A`, `H`, `B`, `S`; `Ctrl+Z` undo, `Enter`
-save, `Esc` cancel). Blur is pixelation, which actually removes the text
-rather than softening it. The first save keeps the untouched original as
+**Edit** under a screenshot opens a small editor with five tools: move,
+arrow, highlight, blur and step counter (`M`, `A`, `H`, `B`, `S`; `Ctrl+Z`
+undo, `Enter` save, `Esc` cancel). Move drags any mark; with a mark
+selected the arrow keys nudge it a pixel (`Shift` for ten) and `Delete`
+removes it. Blur is pixelation, which actually removes the text rather than
+softening it. The first save keeps the untouched original as
 `NN.orig.png` and the marks as `NN.marks.json` beside the image, so an edit
 can be reopened and changed rather than painted over. Those files travel
 with the shot and `bundle.md` tells the agent to ignore the originals.
@@ -113,7 +115,10 @@ with the shot and `bundle.md` tells the agent to ignore the originals.
 A recording shows its stills as a strip under it, each with its label.
 Click one to edit it (blur a password field, add a step number), or use
 its × to drop it before the bundle goes anywhere, so a bad frame never
-costs an agent tokens. Blur applies to stills only, not to the GIF: if a
+costs an agent tokens. Only click stills carry the cursor ring, at the
+click point; it is a mark like any other, so it can be moved if the
+pointer was somewhere unhelpful, and moving it updates the "click at x,y"
+in `bundle.md`. Blur applies to stills only, not to the GIF: if a
 recording shows something sensitive, delete it and re-record.
 
 ## Output

@@ -11,12 +11,12 @@ Tauri 2 (Rust backend, vanilla TS frontend). Windows, macOS and Linux.
 | Key | Does |
 | --- | --- |
 | `Ctrl/Cmd + Shift + 2` | Freeze the screen, drag a region, then type a note |
-| `Ctrl/Cmd + Shift + R` | Drag a region, adjust it, Record; press again to stop, then type a note |
+| `Ctrl/Cmd + Shift + R` | Auto-capture: drag a region, adjust it, Record; press again to stop, then type a note |
 | `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |
 | `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
 | `Ctrl/Cmd + Shift + N` | Start a new bundle and open the window to name it and its first group |
-| `Ctrl/Cmd + Shift + 3` | v2 preview: record a source for the studio; press again to stop |
+| `Ctrl/Cmd + Shift + 3` | QACut Studio: record a source for the studio; press again to stop |
 
 Inside the note box: `Enter` saves, `Shift + Enter` adds a line, `Esc` keeps
 the screenshot with no note. The header reads "Group 1 / Shot 1"; click either
@@ -30,7 +30,9 @@ The two workflows from the brief map to this:
   hotkey to wrap that group up with a master note, carry on in the next one,
   finish hotkey at the end.
 
-Recordings are for showing a process rather than a fault. After the drag the
+Auto-capture recordings are for showing a process rather than a fault, in
+the lightweight way: a GIF, an MP4, and a still at every click, with nothing
+more to edit afterwards. After the drag the
 box can be moved and its edges pulled; Record (or `Enter`) then starts a
 three-second countdown so windows and the mouse can be put in place. While
 it counts down and records, everything outside the region stays tinted and
@@ -62,8 +64,10 @@ every bundle after that; `{root}` becomes the folder path and `{name}` the
 bundle name, and a template that never mentions `{root}` gets the path
 appended so the agent can always find the folder.
 
-## Recording for people (v2, in progress)
+## QACut Studio (v2, in progress)
 
+QACut Studio is the second half of the app: recordings meant to be watched
+by a person, polished afterwards. It has its own section in the tray menu.
 `Ctrl+Shift+3` records a *source* for the studio instead of a GIF: the whole
 monitor under the region at up to 60 fps into a high-bitrate H.264 MP4 with
 the cursor hidden, plus `events.json` with the cursor path at 120 Hz, cursor

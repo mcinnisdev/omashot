@@ -27,9 +27,9 @@ async function boot() {
     note.placeholder = "Master note, e.g. problems on the settings page";
     secondary.textContent = "Cancel";
   } else if (isRecording) {
-    label.textContent = "Recording";
-    note.placeholder = "What is happening in this recording?";
-    secondary.textContent = "Discard recording";
+    label.textContent = "Auto-capture";
+    note.placeholder = "What is happening in this clip?";
+    secondary.textContent = "Discard clip";
   } else {
     label.textContent = "Note";
     secondary.textContent = "Discard shot";

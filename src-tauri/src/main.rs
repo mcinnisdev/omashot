@@ -15,7 +15,7 @@ use serde::Serialize;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use tauri::menu::{CheckMenuItem, Menu, MenuItem};
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_clipboard_manager::ClipboardExt;
@@ -30,7 +30,7 @@ const HK_PEEK: &str = "CommandOrControl+Shift+Q";
 const HK_FINISH: &str = "CommandOrControl+Shift+Enter";
 const HK_RECORD: &str = "CommandOrControl+Shift+R";
 const HK_NEW: &str = "CommandOrControl+Shift+N";
-/// v2: record a source for the studio ("for people") rather than a GIF.
+/// QACut Studio: record a source for the studio rather than a GIF.
 const HK_STUDIO: &str = "CommandOrControl+Shift+3";
 
 /// Time between confirming a recording region and the first frame, so the
@@ -1448,26 +1448,40 @@ fn main() {
                 }
             }
 
+            // Two products in one tray: QACut, the lightweight bundle tool,
+            // and QACut Studio, the polished-recording suite. Disabled items
+            // serve as section headers.
+            let head_qacut = MenuItem::with_id(app, "h1", "QACut", false, None::<&str>)?;
             let capture_i = MenuItem::with_id(app, "capture", "Capture region", true, Some(HK_CAPTURE))?;
-            let record_i = MenuItem::with_id(app, "record", "Record region / stop", true, Some(HK_RECORD))?;
-            let studio_i = MenuItem::with_id(app, "studio", "Record for people / stop", true, Some(HK_STUDIO))?;
-            let st = studio::settings::Settings::load(&base_dir(&handle));
-            let keys_i = CheckMenuItem::with_id(app, "st_keys", "Studio: capture keystrokes", true, st.keystrokes, None::<&str>)?;
-            let mic_i = CheckMenuItem::with_id(app, "st_mic", "Studio: record microphone", true, st.mic, None::<&str>)?;
-            let cam_i = CheckMenuItem::with_id(app, "st_cam", "Studio: record camera", true, st.camera, None::<&str>)?;
-            let toggles = (keys_i.clone(), mic_i.clone(), cam_i.clone());
+            let record_i = MenuItem::with_id(app, "record", "Auto-capture region / stop", true, Some(HK_RECORD))?;
             let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, Some(HK_GROUP))?;
             let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, Some(HK_PEEK))?;
             let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, Some(HK_FINISH))?;
             let new_i = MenuItem::with_id(app, "new", "New bundle", true, Some(HK_NEW))?;
             let open_i = MenuItem::with_id(app, "open", "Open bundle...", true, None::<&str>)?;
             let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
+
+            let head_studio = MenuItem::with_id(app, "h2", "QACut Studio", false, None::<&str>)?;
+            let studio_i = MenuItem::with_id(app, "studio", "Studio recording / stop", true, Some(HK_STUDIO))?;
+            let st = studio::settings::Settings::load(&base_dir(&handle));
+            let keys_i = CheckMenuItem::with_id(app, "st_keys", "Capture keystrokes", true, st.keystrokes, None::<&str>)?;
+            let mic_i = CheckMenuItem::with_id(app, "st_mic", "Record microphone", true, st.mic, None::<&str>)?;
+            let cam_i = CheckMenuItem::with_id(app, "st_cam", "Record camera", true, st.camera, None::<&str>)?;
+            let toggles = (keys_i.clone(), mic_i.clone(), cam_i.clone());
+            let studio_folder_i = MenuItem::with_id(app, "studio_folder", "Open Studio folder", true, None::<&str>)?;
+
             let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
+            let sep1 = PredefinedMenuItem::separator(app)?;
+            let sep2 = PredefinedMenuItem::separator(app)?;
             let menu = Menu::with_items(
                 app,
                 &[
-                    &capture_i, &record_i, &studio_i, &group_i, &peek_i, &finish_i, &new_i,
-                    &open_i, &folder_i, &keys_i, &mic_i, &cam_i, &quit_i,
+                    &head_qacut, &capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i,
+                    &open_i, &folder_i,
+                    &sep1,
+                    &head_studio, &studio_i, &keys_i, &mic_i, &cam_i, &studio_folder_i,
+                    &sep2,
+                    &quit_i,
                 ],
             )?;
 
@@ -1502,6 +1516,11 @@ fn main() {
                     "open" => off_main(app, trigger_open_bundle),
                     "folder" => {
                         let dir = base_dir(app);
+                        let _ = std::fs::create_dir_all(&dir);
+                        let _ = app.opener().open_path(dir.to_string_lossy().to_string(), None::<&str>);
+                    }
+                    "studio_folder" => {
+                        let dir = studio::project::studio_dir(&base_dir(app));
                         let _ = std::fs::create_dir_all(&dir);
                         let _ = app.opener().open_path(dir.to_string_lossy().to_string(), None::<&str>);
                     }

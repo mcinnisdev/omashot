@@ -491,8 +491,10 @@ const menus: Menu[] = [
     title: "Capture",
     items: () => [
       { label: "Capture region", keys: "Ctrl+Shift+2", run: () => call("start_capture") },
-      { label: "Record region", keys: "Ctrl+Shift+R", run: () => call("start_record") },
+      { label: "Auto-capture region", keys: "Ctrl+Shift+R", run: () => call("start_record") },
       { label: "Wrap up group", keys: "Ctrl+Shift+G", run: () => call("start_group") },
+      "-",
+      { label: "Studio recording", keys: "Ctrl+Shift+3", run: () => call("start_studio_from_menu") },
     ],
   },
   {

@@ -1,6 +1,6 @@
 [package]
 name = "qacut"
-version = "1.0.0"
+version = "2.0.0"
 description = "Capture, group and note screenshots, then hand the bundle to an agent"
 edition = "2021"
 rust-version = "1.80"

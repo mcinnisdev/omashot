@@ -85,9 +85,12 @@ follow the cursor, holding still while it moves inside the middle of the
 view and easing after it near the edges; "Add zoom here" makes one after
 the fact. Keystroke badges default to shortcuts
 only, and any badge can be hidden by clicking its marker on the timeline.
-Trim sets where the video starts and ends (`I` and `O`, or drag the
-handles) and `X` twice cuts a stretch out of the middle; playback skips
-removed material and the timeline shades it. A title and subtitle can sit in the
+Trim sets where the video starts and ends (the buttons under the preview,
+`I` and `O`, or drag the handles) and Cut twice removes a stretch from the
+middle; a cut can then be dragged, resized at its edges, or removed.
+Playback skips removed material, the timeline shades it, a filmstrip of
+thumbnails sits behind the timeline, and the preview follows whatever is
+being dragged. A title and subtitle can sit in the
 padding above or below the frame and a logo from the brand folder in a
 corner of it. **Export…** renders every
 kept frame through the same compositor at 720p, 1080p or 1440p and 30 or

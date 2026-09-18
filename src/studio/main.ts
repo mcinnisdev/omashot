@@ -5,7 +5,7 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { buildTrack, draw, layout, viewAt, type Track } from "./compositor";
-import { exportVideo, type Cancel } from "./export";
+import { exportVideo, SourceFrames, type Cancel } from "./export";
 import {
   DEFAULT_ZOOM_SCALE,
   withDefaults,
@@ -40,6 +40,8 @@ const tlCuts = $<HTMLDivElement>("tl-cuts");
 const tlZooms = $<HTMLDivElement>("tl-zooms");
 const tlMarks = $<HTMLDivElement>("tl-marks");
 const tlHead = $<HTMLDivElement>("tl-head");
+const tlFilm = $<HTMLCanvasElement>("tl-film");
+const tlLabel = $<HTMLDivElement>("tl-label");
 
 let dir: string | null = null;
 let project: Project | null = null;
@@ -96,6 +98,7 @@ function loadLogo(path: string | null) {
 }
 /// A cut being made: its start, waiting for the end.
 let cutFrom: number | null = null;
+let selectedCut: { start: number; end: number } | null = null;
 
 function toast(text: string) {
   toastEl.textContent = text;
@@ -230,13 +233,33 @@ function pause() {
   render();
 }
 
+// Seeks are queued one at a time: a seek into an HEVC group of pictures
+// can take a while, and piling them up is what made dragging feel dead.
+// The latest requested time always wins.
+let seekInFlight = false;
+let seekWanted: number | null = null;
+
 function seekMs(ms: number) {
   if (!project) return;
-  src.currentTime = Math.max(0, Math.min(project.duration_ms, ms)) / 1000;
+  const clamped = Math.max(0, Math.min(project.duration_ms, ms));
+  if (seekInFlight) {
+    seekWanted = clamped;
+    return;
+  }
+  seekInFlight = true;
+  src.currentTime = clamped / 1000;
   syncCamera(true);
-  // The frame arrives asynchronously; draw when it does.
-  src.requestVideoFrameCallback(() => render());
 }
+
+src.addEventListener("seeked", () => {
+  seekInFlight = false;
+  render();
+  if (seekWanted !== null) {
+    const w = seekWanted;
+    seekWanted = null;
+    seekMs(w);
+  }
+});
 
 // --------------------------------------------------------------- edits
 
@@ -316,6 +339,10 @@ function msAt(clientX: number) {
 
 function selectZoom(z: Zoom | null) {
   selectedZoom = z;
+  if (z && selectedCut) {
+    selectedCut = null;
+    $<HTMLElement>("cut-edit").hidden = true;
+  }
   $<HTMLElement>("zoom-none").hidden = z !== null;
   $<HTMLElement>("zoom-edit").hidden = z === null;
   if (z) {
@@ -328,36 +355,122 @@ function selectZoom(z: Zoom | null) {
   scheduleRender();
 }
 
+function showLabel(clientX: number, ms: number) {
+  const r = timeline.getBoundingClientRect();
+  tlLabel.hidden = false;
+  tlLabel.textContent = fmt(ms);
+  tlLabel.style.left = `${Math.min(Math.max(clientX - r.left, 24), r.width - 24)}px`;
+}
+
+function hideLabel() {
+  tlLabel.hidden = true;
+}
+
+/// Generic drag on the timeline: `apply(ms, dms)` updates the model, then
+/// the preview seeks to `follow(ms)` and the label shows it.
+function dragOnTimeline(
+  e: MouseEvent,
+  apply: (ms: number, dms: number) => number,
+  onEnd: () => void,
+) {
+  e.stopPropagation();
+  e.preventDefault();
+  const fromX = e.clientX;
+  const onMove = (m: MouseEvent) => {
+    const ms = msAt(m.clientX);
+    const shown = apply(ms, msAt(m.clientX) - msAt(fromX));
+    seekMs(shown);
+    showLabel(m.clientX, shown);
+  };
+  const onUp = () => {
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    hideLabel();
+    onEnd();
+  };
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+}
+
+function selectCut(c: { start: number; end: number } | null) {
+  selectedCut = c;
+  if (c) selectedZoom = null;
+  $<HTMLElement>("cut-edit").hidden = c === null;
+  if (c) $<HTMLElement>("cut-times").textContent = `${fmt(c.start)} to ${fmt(c.end)}`;
+  renderTimeline();
+}
+
 function renderTimeline() {
   if (!project || !track) return;
   tlZooms.replaceChildren();
   tlMarks.replaceChildren();
   tlCuts.replaceChildren();
-
-  // Removed material: the head before in, the tail after out, and cuts.
   const D = project.duration_ms;
-  const dim = (from: number, to: number, cut?: { start: number; end: number }) => {
+
+  // Removed material: head before in, tail after out, and cuts. Cuts can be
+  // selected, moved and resized; the head and tail are set by the handles.
+  const dim = (from: number, to: number) => {
     if (to <= from) return;
     const el = document.createElement("div");
-    el.className = "tl-dim" + (cut ? " tl-cut" : "");
+    el.className = "tl-dim";
     el.style.left = pct(from);
     el.style.width = pct(to - from);
-    if (cut) {
-      el.title = `Cut ${fmt(cut.start)} to ${fmt(cut.end)}. Click to remove.`;
-      el.addEventListener("mousedown", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        edits.cuts = edits.cuts.filter((c) => c !== cut);
-        saveSoon();
-        renderTimeline();
-        scheduleRender();
-      });
-    }
     tlCuts.append(el);
   };
   dim(0, edits.trim.in_ms);
   dim(outMs(), D);
-  for (const c of edits.cuts) dim(c.start, c.end, c);
+
+  for (const cut of edits.cuts) {
+    const el = document.createElement("div");
+    el.className = "tl-dim tl-cut" + (cut === selectedCut ? " selected" : "");
+    el.style.left = pct(cut.start);
+    el.style.width = pct(cut.end - cut.start);
+    el.title = `Cut ${fmt(cut.start)} to ${fmt(cut.end)}. Drag to move, drag an edge to resize.`;
+    const l = document.createElement("div");
+    l.className = "edge l";
+    const r = document.createElement("div");
+    r.className = "edge r";
+    el.append(l, r);
+    const from = { start: cut.start, end: cut.end };
+    const finish = () => {
+      edits.cuts.sort((a, b) => a.start - b.start);
+      saveSoon();
+      selectCut(cut);
+      scheduleRender();
+    };
+    el.addEventListener("mousedown", (e) => {
+      selectCut(cut);
+      Object.assign(from, cut);
+      dragOnTimeline(e, (_ms, dms) => {
+        const len = from.end - from.start;
+        cut.start = Math.min(Math.max(0, from.start + dms), D - len);
+        cut.end = cut.start + len;
+        el.style.left = pct(cut.start);
+        return cut.start;
+      }, finish);
+    });
+    l.addEventListener("mousedown", (e) => {
+      selectCut(cut);
+      Object.assign(from, cut);
+      dragOnTimeline(e, (ms) => {
+        cut.start = Math.min(Math.max(0, ms), cut.end - 100);
+        el.style.left = pct(cut.start);
+        el.style.width = pct(cut.end - cut.start);
+        return cut.start;
+      }, finish);
+    });
+    r.addEventListener("mousedown", (e) => {
+      selectCut(cut);
+      Object.assign(from, cut);
+      dragOnTimeline(e, (ms) => {
+        cut.end = Math.max(Math.min(D, ms), cut.start + 100);
+        el.style.width = pct(cut.end - cut.start);
+        return cut.end;
+      }, finish);
+    });
+    tlCuts.append(el);
+  }
+
   if (cutFrom !== null) {
     const el = document.createElement("div");
     el.className = "tl-dim tl-cut pending";
@@ -366,29 +479,22 @@ function renderTimeline() {
     tlCuts.append(el);
   }
 
-  // In and out handles.
+  // In and out handles: wide grips, and the preview follows while dragging.
   for (const which of ["in", "out"] as const) {
     const h = document.createElement("div");
     h.className = `tl-handle ${which}`;
     h.style.left = pct(which === "in" ? edits.trim.in_ms : outMs());
-    h.title = which === "in" ? "Start of the video (drag, or press I here)" : "End of the video (drag, or press O here)";
+    h.title = which === "in" ? "Where the video starts. Drag, or press I at the playhead." : "Where the video ends. Drag, or press O at the playhead.";
     h.addEventListener("mousedown", (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      const onMove = (m: MouseEvent) => {
-        const ms = msAt(m.clientX);
+      dragOnTimeline(e, (ms) => {
         if (which === "in") edits.trim.in_ms = Math.min(ms, outMs() - 500);
         else edits.trim.out_ms = Math.max(ms, edits.trim.in_ms + 500);
-        seekMs(ms);
-        renderTimeline();
-      };
-      const onUp = () => {
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
+        h.style.left = pct(which === "in" ? edits.trim.in_ms : outMs());
+        return which === "in" ? edits.trim.in_ms : outMs();
+      }, () => {
         saveSoon();
-      };
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
+        renderTimeline();
+      });
     });
     tlCuts.append(h);
   }
@@ -404,43 +510,41 @@ function renderTimeline() {
     const r = document.createElement("div");
     r.className = "edge r";
     el.append(l, r);
-
-    // Drag the body to move, an edge to retime; a click selects.
-    const startDrag = (e: MouseEvent, mode: "move" | "l" | "r") => {
-      e.stopPropagation();
-      e.preventDefault();
+    const from = { start: z.start, end: z.end };
+    const finish = () => {
+      edits.zooms.sort((a, b) => a.start - b.start);
+      track?.follow.delete(z);
+      saveSoon();
+      renderTimeline();
+    };
+    el.addEventListener("mousedown", (e) => {
       selectZoom(z);
-      const from = { x: e.clientX, start: z.start, end: z.end };
-      const onMove = (m: MouseEvent) => {
-        const dms = msAt(m.clientX) - msAt(from.x);
-        const D = project!.duration_ms;
-        if (mode === "move") {
-          const len = from.end - from.start;
-          z.start = Math.min(Math.max(0, from.start + dms), D - len);
-          z.end = z.start + len;
-        } else if (mode === "l") {
-          z.start = Math.min(Math.max(0, from.start + dms), from.end - 300);
-        } else {
-          z.end = Math.max(Math.min(D, from.end + dms), from.start + 300);
-        }
+      Object.assign(from, z);
+      dragOnTimeline(e, (_ms, dms) => {
+        const len = from.end - from.start;
+        z.start = Math.min(Math.max(0, from.start + dms), D - len);
+        z.end = z.start + len;
+        el.style.left = pct(z.start);
+        return z.start + Math.min(700, len / 2);
+      }, finish);
+    });
+    l.addEventListener("mousedown", (e) => {
+      selectZoom(z);
+      dragOnTimeline(e, (ms) => {
+        z.start = Math.min(Math.max(0, ms), z.end - 300);
         el.style.left = pct(z.start);
         el.style.width = pct(z.end - z.start);
-        seekMs(mode === "r" ? z.end - 1 : z.start + 1);
-      };
-      const onUp = () => {
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
-        edits.zooms.sort((a, b) => a.start - b.start);
-        track?.follow.delete(z);
-        saveSoon();
-        renderTimeline();
-      };
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
-    };
-    el.addEventListener("mousedown", (e) => startDrag(e, "move"));
-    l.addEventListener("mousedown", (e) => startDrag(e, "l"));
-    r.addEventListener("mousedown", (e) => startDrag(e, "r"));
+        return z.start + 1;
+      }, finish);
+    });
+    r.addEventListener("mousedown", (e) => {
+      selectZoom(z);
+      dragOnTimeline(e, (ms) => {
+        z.end = Math.max(Math.min(D, ms), z.start + 300);
+        el.style.width = pct(z.end - z.start);
+        return z.end - 1;
+      }, finish);
+    });
     tlZooms.append(el);
   }
 
@@ -455,7 +559,7 @@ function renderTimeline() {
     const k = document.createElement("div");
     k.className = "tl-key" + (hidden.has(b.t) ? " hidden-key" : "");
     k.style.left = pct(b.t);
-    k.title = `${b.text} at ${fmt(b.t)}${hidden.has(b.t) ? " (hidden)" : ""}`;
+    k.title = `${b.text} at ${fmt(b.t)}${hidden.has(b.t) ? " (hidden)" : ""}. Click to ${hidden.has(b.t) ? "show" : "hide"}.`;
     k.addEventListener("mousedown", (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -469,15 +573,90 @@ function renderTimeline() {
   }
 }
 
-// Clicking the empty timeline seeks; clicking away deselects a zoom.
+// ------------------------------------------------------------ filmstrip
+//
+// Thumbnails behind the timeline, decoded once per recording through the
+// export's frame reader, so handles and blocks can be placed by eye before
+// the preview catches up.
+
+let film: { t: number; bmp: ImageBitmap }[] = [];
+let filmFor: string | null = null;
+
+async function buildFilmstrip() {
+  if (!project || !dir || filmFor === dir) return;
+  const forDir = dir;
+  filmFor = dir;
+  film = [];
+  drawFilm();
+  try {
+    const reader = await SourceFrames.open(src.src, () => {});
+    const n = Math.max(24, Math.min(160, Math.floor(timeline.clientWidth / 40)));
+    const r = project.region;
+    const th = 64;
+    const tw = Math.max(1, Math.round((th * r.width) / r.height));
+    const c = document.createElement("canvas");
+    c.width = tw;
+    c.height = th;
+    const g = c.getContext("2d") as CanvasRenderingContext2D;
+    for (let i = 0; i < n; i++) {
+      if (dir !== forDir) break;
+      const t = ((i + 0.5) / n) * project.duration_ms;
+      const f = await reader.at(t);
+      if (!f) continue;
+      g.drawImage(f, r.x, r.y, r.width, r.height, 0, 0, tw, th);
+      film.push({ t, bmp: await createImageBitmap(c) });
+      if (i % 8 === 0) drawFilm();
+    }
+    reader.close();
+  } catch (e) {
+    console.warn("filmstrip", e);
+  }
+  drawFilm();
+}
+
+function drawFilm() {
+  const w = timeline.clientWidth;
+  const h = timeline.clientHeight;
+  const dpr = window.devicePixelRatio || 1;
+  tlFilm.width = Math.round(w * dpr);
+  tlFilm.height = Math.round(h * dpr);
+  const g = tlFilm.getContext("2d") as CanvasRenderingContext2D;
+  g.scale(dpr, dpr);
+  g.clearRect(0, 0, w, h);
+  if (!project || film.length === 0) return;
+  const D = project.duration_ms;
+  const slot = w / film.length;
+  g.globalAlpha = 0.6;
+  film.forEach(({ t, bmp }, i) => {
+    const x0 = i * slot;
+    const cx = (t / D) * w;
+    const tw = (h * bmp.width) / bmp.height;
+    g.save();
+    g.beginPath();
+    g.rect(x0, 0, slot + 0.5, h);
+    g.clip();
+    g.drawImage(bmp, cx - tw / 2, 0, tw, h);
+    g.restore();
+  });
+  g.globalAlpha = 1;
+}
+
+// Clicking or dragging the empty timeline scrubs; it also deselects.
 timeline.addEventListener("mousedown", (e) => {
   if (!project) return;
   selectZoom(null);
-  const move = (m: MouseEvent) => seekMs(msAt(m.clientX));
+  selectCut(null);
+  const move = (m: MouseEvent) => {
+    const ms = msAt(m.clientX);
+    seekMs(ms);
+    showLabel(m.clientX, ms);
+    if (cutFrom !== null) renderTimeline();
+  };
   move(e);
   const up = () => {
     window.removeEventListener("mousemove", move);
     window.removeEventListener("mouseup", up);
+    hideLabel();
   };
   window.addEventListener("mousemove", move);
   window.addEventListener("mouseup", up);
@@ -512,7 +691,8 @@ canvas.addEventListener("mousedown", (e) => {
   window.addEventListener("mouseup", onUp);
 });
 
-// Trim and cut buttons; I, O and X do the same from the keyboard.
+// Trim and cut actions on the transport bar; I, O and X do the same from
+// the keyboard.
 function setIn() {
   if (!project) return;
   edits.trim.in_ms = Math.min(currentMs(), outMs() - 500);
@@ -530,31 +710,48 @@ function setOut() {
 function toggleCut() {
   if (!project) return;
   const t = currentMs();
+  const btn = $<HTMLButtonElement>("cut-toggle");
   if (cutFrom === null) {
     cutFrom = t;
-    toast(`Cut from ${fmt(t)}. Move to where it should resume and press X again.`);
+    btn.textContent = "Cut to here";
+    btn.classList.add("on");
+    toast(`Cutting from ${fmt(t)}. Move the playhead to where it should resume, then press Cut to here.`);
   } else {
     const start = Math.min(cutFrom, t);
     const end = Math.max(cutFrom, t);
     cutFrom = null;
+    btn.textContent = "Cut";
+    btn.classList.remove("on");
     if (end - start >= 100) {
-      edits.cuts.push({ start, end });
+      const cut = { start, end };
+      edits.cuts.push(cut);
       edits.cuts.sort((a, b) => a.start - b.start);
       saveSoon();
-      toast(`Cut ${fmt(start)} to ${fmt(end)}`);
+      selectCut(cut);
+      toast(`Cut ${fmt(start)} to ${fmt(end)}. Drag it or its edges to adjust.`);
     }
   }
-  $<HTMLButtonElement>("cut-toggle").textContent = cutFrom === null ? "Cut from here" : "Cut to here";
   renderTimeline();
+}
+function removeSelectedCut() {
+  if (!selectedCut) return;
+  edits.cuts = edits.cuts.filter((c) => c !== selectedCut);
+  selectCut(null);
+  saveSoon();
+  scheduleRender();
 }
 $("trim-in").addEventListener("click", setIn);
 $("trim-out").addEventListener("click", setOut);
 $("cut-toggle").addEventListener("click", toggleCut);
+$("cut-remove").addEventListener("click", removeSelectedCut);
 $("trim-reset").addEventListener("click", () => {
   edits.trim = { in_ms: 0, out_ms: null };
   edits.cuts = [];
   cutFrom = null;
-  $<HTMLButtonElement>("cut-toggle").textContent = "Cut from here";
+  const btn = $<HTMLButtonElement>("cut-toggle");
+  btn.textContent = "Cut";
+  btn.classList.remove("on");
+  selectCut(null);
   saveSoon();
   renderTimeline();
   scheduleRender();
@@ -584,6 +781,7 @@ $("zoom-add").addEventListener("click", () => {
   selectZoom(z);
   saveSoon();
 });
+$("zoom-add-bar").addEventListener("click", () => $("zoom-add").click());
 $("zoom-remove").addEventListener("click", () => {
   if (!selectedZoom) return;
   edits.zooms = edits.zooms.filter((z) => z !== selectedZoom);
@@ -701,7 +899,9 @@ async function open(projectDir: string) {
     src.addEventListener("loadeddata", () => resolve(), { once: true });
   });
   seekMs(edits.trim.in_ms);
+  selectCut(null);
   renderTimeline();
+  void buildFilmstrip();
 }
 
 async function showRecordings() {
@@ -842,10 +1042,23 @@ window.addEventListener("keydown", (e) => {
   const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement;
   if (e.key === "Escape") {
     if (!recordings.hidden) recordings.hidden = true;
-    else void getCurrentWindow().close();
+    else if (!exportPanel.hidden) exportPanel.hidden = true;
+    else if (selectedCut || selectedZoom) {
+      selectCut(null);
+      selectZoom(null);
+    } else void getCurrentWindow().close();
     return;
   }
   if (typing) return;
+  if (e.key === "Delete" || e.key === "Backspace") {
+    if (selectedCut) removeSelectedCut();
+    else if (selectedZoom) {
+      edits.zooms = edits.zooms.filter((z) => z !== selectedZoom);
+      selectZoom(null);
+      saveSoon();
+    }
+    return;
+  }
   if (e.key === " ") {
     e.preventDefault();
     if (src.paused) void play();
@@ -866,6 +1079,7 @@ window.addEventListener("keydown", (e) => {
 src.addEventListener("ended", () => pause());
 window.addEventListener("resize", fitCanvas);
 new ResizeObserver(fitCanvas).observe(stage);
+new ResizeObserver(drawFilm).observe(timeline);
 
 const initial = params.get("project");
 if (initial) {

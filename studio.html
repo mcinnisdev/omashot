@@ -76,15 +76,12 @@
           </section>
           <section>
             <h3>Trim</h3>
-            <div class="row">
-              <button class="btn" id="trim-in" title="I">Start here</button>
-              <button class="btn" id="trim-out" title="O">End here</button>
+            <p class="hint">Use the buttons under the preview, or <kbd>I</kbd> start, <kbd>O</kbd> end, <kbd>Cut</kbd> twice for a stretch in the middle. Drag the white handles and the cut blocks on the timeline; the preview follows.</p>
+            <div id="cut-edit" hidden>
+              <label>Cut <span id="cut-times" class="facts"></span></label>
+              <button class="btn" id="cut-remove">Remove this cut</button>
             </div>
-            <div class="row">
-              <button class="btn" id="cut-toggle" title="X">Cut from here</button>
-              <button class="quiet" id="trim-reset">Reset</button>
-            </div>
-            <p class="hint"><kbd>I</kbd> start, <kbd>O</kbd> end, <kbd>X</kbd> twice to cut a stretch out of the middle. Drag the handles on the timeline; click a cut to remove it.</p>
+            <button class="quiet" id="trim-reset">Reset trim and cuts</button>
           </section>
           <section>
             <h3>Branding</h3>
@@ -142,9 +139,17 @@
         <button class="btn" id="play" title="Play / pause (Space)">Play</button>
         <span class="time" id="time">0:00.0 / 0:00.0</span>
         <input type="range" id="scrub" min="0" max="1000" step="1" value="0" aria-label="Position" />
+        <span class="tools-sep"></span>
+        <button class="quiet" id="trim-in" title="Video starts at the playhead (I)">Start here</button>
+        <button class="quiet" id="trim-out" title="Video ends at the playhead (O)">End here</button>
+        <button class="quiet" id="cut-toggle" title="Remove a stretch: press at its start, then at its end (X)">Cut</button>
+        <button class="quiet" id="zoom-add-bar" title="Add a zoom at the playhead">Add zoom</button>
       </div>
-      <!-- Timeline: zoom blocks, then clicks and key badges as markers. -->
+      <!-- Timeline: filmstrip behind, removed material and handles, zoom
+           blocks, then clicks and key badges as markers. -->
       <div class="timeline" id="timeline">
+        <canvas class="tl-film" id="tl-film"></canvas>
+        <div class="tl-label" id="tl-label" hidden></div>
         <div class="tl-track tl-cuts" id="tl-cuts"></div>
         <div class="tl-track tl-zooms" id="tl-zooms"></div>
         <div class="tl-track tl-marks" id="tl-marks"></div>

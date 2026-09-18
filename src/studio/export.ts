@@ -78,9 +78,13 @@ class SourceFrames {
   private firstUs = 0;
   private error: Error | null = null;
 
-  static async open(url: string): Promise<SourceFrames> {
+  static async open(url: string, step: (phase: string) => void): Promise<SourceFrames> {
     const s = new SourceFrames();
-    const buf = await (await fetch(url)).arrayBuffer();
+    step("Loading source");
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`source fetch failed: ${resp.status}`);
+    const buf = await resp.arrayBuffer();
+    step(`Parsing source (${(buf.byteLength / 1048576).toFixed(0)} MB)`);
     const file = createFile();
     let config: VideoDecoderConfig | null = null;
     const ready = new Promise<void>((resolve, reject) => {
@@ -113,6 +117,7 @@ class SourceFrames {
     await ready;
     if (s.samples.length === 0) throw new Error("no frames in source");
     s.firstUs = (s.samples[0].cts * 1e6) / s.samples[0].timescale;
+    step(`Configuring decoder (${config!.codec}, ${s.samples.length} frames)`);
 
     s.decoder = new VideoDecoder({
       output: (frame) => s.queue.push(frame),
@@ -262,10 +267,15 @@ export async function exportVideo(
   const frameUs = 1e6 / opts.fps;
   const totalFrames = Math.max(1, Math.floor((totalMs * 1000) / frameUs));
 
-  onProgress({ phase: "Opening source", done: 0, total: totalFrames });
-  const source = await SourceFrames.open(sourceUrl);
+  // Each stage reports, and logs to the terminal, so a stall is locatable.
+  const step = (phase: string) => {
+    onProgress({ phase, done: 0, total: totalFrames });
+    void invoke("log_error", { message: `export: ${phase}` });
+  };
+  const source = await SourceFrames.open(sourceUrl, step);
 
   // Output file, streamed to Rust as the muxer produces bytes.
+  step("Opening output file");
   const path = await invoke<string>("export_open", { dir, name });
   let writes: Promise<void> = Promise.resolve();
   let failed: Error | null = null;
@@ -285,7 +295,9 @@ export async function exportVideo(
     chunkSize: 4 * 1024 * 1024,
   });
 
+  if (cameraUrl) step("Decoding narration");
   const audio = cameraUrl ? await narration(project, cameraUrl, segs) : null;
+  step(audio ? "Configuring encoders (with narration)" : "Configuring encoders (no narration)");
   const muxer = new Muxer({
     target,
     video: { codec: "avc", width: opts.width, height: opts.height, frameRate: opts.fps },
@@ -328,6 +340,7 @@ export async function exportVideo(
   const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
   const showCam = !!(cam && project.camera?.has_video && edits.camera.show);
+  step(`Rendering ${totalFrames} frames`);
   try {
     // Video: walk the kept segments at the output frame rate.
     let i = 0;
@@ -356,7 +369,8 @@ export async function exportVideo(
       }
       i++;
       segPos += 1000 / opts.fps;
-      if (i % 5 === 0) onProgress({ phase: "Rendering", done: i, total: totalFrames });
+      if (i === 1 || i % 5 === 0) onProgress({ phase: "Rendering", done: i, total: totalFrames });
+      if (i === 1 || i % 300 === 0) void invoke("log_error", { message: `export: frame ${i} of ${totalFrames}` });
     }
     await encoder.flush();
 
@@ -410,6 +424,7 @@ export async function exportVideo(
   } catch (e) {
     await writes.catch(() => {});
     await invoke("export_abort").catch(() => {});
+    void invoke("log_error", { message: `export failed: ${String(e instanceof Error ? e.message : e)}` });
     throw e;
   } finally {
     try {

@@ -53,22 +53,46 @@ let selectedZoom: Zoom | null = null;
 let logoImg: HTMLImageElement | null = null;
 let logoPath: string | null = null;
 
+// Anything drawn onto the export canvas must be same-origin, or the
+// canvas is tainted and cannot become a video frame. Files are therefore
+// fetched and handed to elements as blob URLs.
+async function blobUrl(path: string) {
+  const resp = await fetch(`${convertFileSrc(path)}?v=${Date.now()}`);
+  if (!resp.ok) throw new Error(`could not read ${path}`);
+  return URL.createObjectURL(await resp.blob());
+}
+
+let logoUrl: string | null = null;
+
 function loadLogo(path: string | null) {
   if (path === logoPath) return;
   logoPath = path;
+  if (logoUrl) {
+    URL.revokeObjectURL(logoUrl);
+    logoUrl = null;
+  }
   if (!path) {
     logoImg = null;
     scheduleRender();
     return;
   }
-  const img = new Image();
-  img.onload = () => {
-    if (logoPath === path) {
-      logoImg = img;
-      scheduleRender();
-    }
-  };
-  img.src = `${convertFileSrc(path)}?v=${Date.now()}`;
+  void blobUrl(path)
+    .then((url) => {
+      if (logoPath !== path) {
+        URL.revokeObjectURL(url);
+        return;
+      }
+      logoUrl = url;
+      const img = new Image();
+      img.onload = () => {
+        if (logoPath === path) {
+          logoImg = img;
+          scheduleRender();
+        }
+      };
+      img.src = url;
+    })
+    .catch((e) => toast(String(e)));
 }
 /// A cut being made: its start, waiting for the end.
 let cutFrom: number | null = null;
@@ -661,8 +685,9 @@ async function open(projectDir: string) {
   nameInput.value = project.name;
 
   src.src = convertFileSrc(`${projectDir}/${project.source}`);
+  if (cam.src.startsWith("blob:")) URL.revokeObjectURL(cam.src);
   if (project.camera) {
-    cam.src = convertFileSrc(`${projectDir}/${project.camera.file}`);
+    cam.src = await blobUrl(`${projectDir}/${project.camera.file}`);
     cam.muted = !project.camera.has_audio;
   } else {
     cam.removeAttribute("src");
@@ -764,7 +789,7 @@ $("export-start").addEventListener("click", async () => {
       dir,
       nameInput.value || project.id,
       src.src,
-      project.camera ? cam.src : null,
+      project.camera ? convertFileSrc(`${dir}/${project.camera.file}`) : null,
       project.camera?.has_video ? cam : null,
       logoImg,
       (p) => {

@@ -45,9 +45,10 @@ function placePill() {
   pill.style.top = `${top}px`;
 }
 
-// The camera preview sits in a corner of the monitor that the region does
-// not cover; if every corner is covered it stays hidden (the camera still
-// records) rather than land in the shot.
+// The camera preview prefers a corner of the monitor the region does not
+// cover, so it is not in the operator's way, and otherwise sits inside the
+// region's bottom-right. Either way it is never in the source: the studio
+// overlay is excluded from capture.
 function placeCam() {
   const w = 200;
   const h = 150;
@@ -65,11 +66,10 @@ function placeCam() {
     c.left >= region.x + region.w ||
     c.top + h <= region.y ||
     c.top >= region.y + region.h;
-  const spot = corners.find(clear);
-  if (!spot) {
-    cam.hidden = true;
-    return;
-  }
+  const spot = corners.find(clear) ?? {
+    left: Math.max(m, region.x + region.w - w - m),
+    top: Math.max(m, region.y + region.h - h - m),
+  };
   cam.hidden = false;
   cam.style.left = `${spot.left}px`;
   cam.style.top = `${spot.top}px`;

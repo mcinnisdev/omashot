@@ -195,6 +195,23 @@ pub fn open_rec_badge(
         .focused(false)
         .build()?;
     let _ = win.set_ignore_cursor_events(true);
+
+    // A studio source is the whole monitor, so keep this window out of it:
+    // the tint, the outline, the badge and the camera preview stay on the
+    // screen for the operator and off the recording. (Auto-capture grabs
+    // only the region, which the overlay never covers.)
+    #[cfg(windows)]
+    if studio {
+        if let Ok(hwnd) = win.hwnd() {
+            use windows_sys::Win32::UI::WindowsAndMessaging::{
+                SetWindowDisplayAffinity, WDA_EXCLUDEFROMCAPTURE,
+            };
+            let ok = unsafe { SetWindowDisplayAffinity(hwnd.0 as _, WDA_EXCLUDEFROMCAPTURE) };
+            if ok == 0 {
+                eprintln!("qacut: could not exclude the overlay from capture; it will be in the source");
+            }
+        }
+    }
     Ok(())
 }
 

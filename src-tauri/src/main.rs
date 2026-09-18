@@ -8,7 +8,7 @@ mod overlay;
 use capture::Frame;
 use export::{BrandKit, Export};
 use image::RgbaImage;
-use model::{Purpose, Session, Shot, ShotKind};
+use model::{BundleInfo, Purpose, Session, Shot, ShotKind};
 use serde::Serialize;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -27,6 +27,7 @@ const HK_GROUP: &str = "CommandOrControl+Shift+G";
 const HK_PEEK: &str = "CommandOrControl+Shift+Q";
 const HK_FINISH: &str = "CommandOrControl+Shift+Enter";
 const HK_RECORD: &str = "CommandOrControl+Shift+R";
+const HK_NEW: &str = "CommandOrControl+Shift+N";
 
 /// Time between confirming a recording region and the first frame, so the
 /// user can get windows and the mouse into place.
@@ -290,31 +291,68 @@ fn trigger_finish(app: &AppHandle) {
     }
 }
 
+/// Hotkey and tray: start a fresh bundle and open the window on its name.
 fn trigger_new_bundle(app: &AppHandle) {
-    if let Err(e) = do_new_bundle(app) {
-        eprintln!("qacut: new bundle failed: {e}");
+    match do_new_bundle(app) {
+        Ok(()) => {
+            if let Err(e) = overlay::open_peek(app, Some("name")) {
+                eprintln!("qacut: could not open bundle window: {e}");
+            }
+        }
+        Err(e) => eprintln!("qacut: new bundle failed: {e}"),
     }
 }
 
-/// Closes the current session. Unsaved work is written out first; a session
+fn trigger_open_bundle(app: &AppHandle) {
+    if let Err(e) = overlay::open_peek(app, Some("open")) {
+        eprintln!("qacut: could not open bundle window: {e}");
+    }
+}
+
+/// Puts the current session away: unsaved work is written out, a session
 /// with no shots is deleted rather than left as an empty folder.
+fn stash_session(app: &AppHandle, inner: &mut Inner) -> Result<(), String> {
+    let dirty = inner.dirty;
+    if let Some(session) = inner.session.as_mut() {
+        if session.shot_count() == 0 {
+            let _ = std::fs::remove_dir_all(&session.root);
+        } else if dirty {
+            export::write_bundle(session, &brand_dir(app)).map_err(|e| e.to_string())?;
+        }
+    }
+    inner.session = None;
+    inner.pending = None;
+    inner.last_export = None;
+    inner.dirty = false;
+    Ok(())
+}
+
+/// Closes the current session and starts a fresh one, so the bundle window
+/// has something to name straight away.
 fn do_new_bundle(app: &AppHandle) -> Result<(), String> {
     overlay::close_note(app);
     let state: State<Shared> = app.state();
     {
         let mut inner = state.lock().unwrap();
-        let dirty = inner.dirty;
-        if let Some(session) = inner.session.as_mut() {
-            if session.shot_count() == 0 {
-                let _ = std::fs::remove_dir_all(&session.root);
-            } else if dirty {
-                export::write_bundle(session, &brand_dir(app)).map_err(|e| e.to_string())?;
-            }
+        stash_session(app, &mut inner)?;
+        ensure_session(app, &mut inner)?;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
+/// Reopens a bundle from disk as the live session.
+fn do_open_bundle(app: &AppHandle, path: &str) -> Result<(), String> {
+    overlay::close_note(app);
+    let loaded = Session::load(std::path::Path::new(path)).map_err(|e| e.to_string())?;
+    let state: State<Shared> = app.state();
+    {
+        let mut inner = state.lock().unwrap();
+        if inner.session.as_ref().map(|s| s.root == loaded.root).unwrap_or(false) {
+            return Ok(());
         }
-        inner.session = None;
-        inner.pending = None;
-        inner.last_export = None;
-        inner.dirty = false;
+        stash_session(app, &mut inner)?;
+        inner.session = Some(loaded);
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -737,6 +775,16 @@ async fn new_bundle(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn list_bundles(app: AppHandle) -> Vec<BundleInfo> {
+    Session::list(&base_dir(&app))
+}
+
+#[tauri::command]
+async fn open_bundle(app: AppHandle, path: String) -> Result<(), String> {
+    do_open_bundle(&app, &path)
+}
+
+#[tauri::command]
 fn set_purpose(app: AppHandle, state: State<Shared>, purpose: String) -> Result<(), String> {
     let p = Purpose::parse(&purpose).ok_or("unknown purpose")?;
     {
@@ -885,6 +933,8 @@ fn main() {
                         off_main(&app, trigger_finish);
                     } else if matches(HK_RECORD) {
                         off_main(&app, trigger_record);
+                    } else if matches(HK_NEW) {
+                        off_main(&app, trigger_new_bundle);
                     }
                 })
                 .build(),
@@ -904,6 +954,8 @@ fn main() {
             set_current_group,
             rename_bundle,
             new_bundle,
+            list_bundles,
+            open_bundle,
             set_purpose,
             set_custom_prompt,
             set_brand_notes,
@@ -922,7 +974,7 @@ fn main() {
         .setup(|app| {
             let handle = app.handle().clone();
 
-            for spec in [HK_CAPTURE, HK_RECORD, HK_GROUP, HK_PEEK, HK_FINISH] {
+            for spec in [HK_CAPTURE, HK_RECORD, HK_GROUP, HK_PEEK, HK_FINISH, HK_NEW] {
                 match Shortcut::from_str(spec) {
                     Ok(sc) => {
                         if let Err(e) = handle.global_shortcut().register(sc) {
@@ -938,12 +990,16 @@ fn main() {
             let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, Some(HK_GROUP))?;
             let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, Some(HK_PEEK))?;
             let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, Some(HK_FINISH))?;
-            let new_i = MenuItem::with_id(app, "new", "New bundle", true, None::<&str>)?;
+            let new_i = MenuItem::with_id(app, "new", "New bundle", true, Some(HK_NEW))?;
+            let open_i = MenuItem::with_id(app, "open", "Open bundle...", true, None::<&str>)?;
             let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
             let menu = Menu::with_items(
                 app,
-                &[&capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i, &folder_i, &quit_i],
+                &[
+                    &capture_i, &record_i, &group_i, &peek_i, &finish_i, &new_i, &open_i,
+                    &folder_i, &quit_i,
+                ],
             )?;
 
             // A trimmed copy of the mark rather than the app icon, whose
@@ -962,6 +1018,7 @@ fn main() {
                     "peek" => off_main(app, trigger_peek),
                     "finish" => off_main(app, trigger_finish),
                     "new" => off_main(app, trigger_new_bundle),
+                    "open" => off_main(app, trigger_open_bundle),
                     "folder" => {
                         let dir = base_dir(app);
                         let _ = std::fs::create_dir_all(&dir);

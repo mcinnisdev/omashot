@@ -51,6 +51,15 @@ export interface Session {
   groups: Group[];
 }
 
+export interface BundleInfo {
+  path: string;
+  id: string;
+  name: string;
+  started_at: string;
+  groups: number;
+  shots: number;
+}
+
 export interface BrandKit {
   notes: string;
   files: string[];

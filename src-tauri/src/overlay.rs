@@ -100,8 +100,21 @@ pub fn toggle_peek(app: &AppHandle) -> Result<bool> {
         let _ = w.close();
         return Ok(false);
     }
+    open_peek(app, None)?;
+    Ok(true)
+}
 
-    let win = WebviewWindowBuilder::new(app, PEEK, WebviewUrl::App("peek.html".into()))
+/// Opens (or reopens) the bundle window. `focus` is "name" to land in the
+/// bundle name field or "open" to show the list of past bundles.
+pub fn open_peek(app: &AppHandle, focus: Option<&str>) -> Result<()> {
+    if let Some(w) = app.get_webview_window(PEEK) {
+        let _ = w.close();
+    }
+    let url = match focus {
+        Some(f) => format!("peek.html?focus={f}"),
+        None => "peek.html".to_string(),
+    };
+    let win = WebviewWindowBuilder::new(app, PEEK, WebviewUrl::App(url.into()))
         .title("QACut bundle")
         .inner_size(900.0, 640.0)
         .min_inner_size(620.0, 420.0)
@@ -114,7 +127,7 @@ pub fn toggle_peek(app: &AppHandle) -> Result<bool> {
     let _ = win.set_size(LogicalSize::new(900.0, 640.0));
     let _ = win.center();
     let _ = win.set_focus();
-    Ok(true)
+    Ok(())
 }
 
 pub fn close_peek(app: &AppHandle) {

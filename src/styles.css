@@ -556,6 +556,41 @@ body.peek {
   color: var(--signal);
 }
 
+.bundles {
+  padding: 6px 16px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--raised);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.bundle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13px;
+}
+.bundle-row:last-child {
+  border-bottom: none;
+}
+.bundle-row.current .bundle-name-cell {
+  color: var(--signal);
+}
+.bundle-name-cell {
+  flex: 1;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bundle-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
 .brand {
   padding: 10px 16px;
   border-bottom: 1px solid var(--line);

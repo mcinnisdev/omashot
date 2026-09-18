@@ -15,6 +15,7 @@ Tauri 2 (Rust backend, vanilla TS frontend). Windows, macOS and Linux.
 | `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |
 | `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
+| `Ctrl/Cmd + Shift + N` | Start a new bundle and open the window to name it and its first group |
 
 Inside the note box: `Enter` saves, `Shift + Enter` adds a line, `Esc` keeps
 the screenshot with no note. The header reads "Group 1 / Shot 1"; click either
@@ -66,9 +67,16 @@ bundle where it does not apply; the copy is removed on the next finish.
 
 A bundle starts on its own at the first capture. Finishing writes it out but
 does not close it: keep capturing, finish again, and the files are rewritten.
-Only **New bundle** (tray menu or bundle window) ends one and starts the next,
-saving any unwritten changes first. A bundle with no shots is deleted rather
-than left as an empty folder.
+Only **New bundle** (hotkey, tray menu or bundle window) ends one and starts
+the next, saving any unwritten changes first. A bundle with no shots is
+deleted rather than left as an empty folder.
+
+To go back to an earlier bundle, **Open** in the bundle window (or "Open
+bundle..." in the tray) lists everything under `~/QACut/`, newest first.
+Opening one puts the current bundle away the same way New bundle does, then
+reloads the chosen one from its `manifest.json`, so you can add shots,
+reorder, or finish it again. A bundle folder that was moved by hand still
+opens; its paths are rebuilt from wherever it is now.
 
 New shots go into the most recent group by default. To add to an earlier
 group, open the bundle window and press **Capture here** on that group.
@@ -177,7 +185,7 @@ remove button fills solid on hover.
 
 ## Changing things
 
-- Hotkeys: the five `HK_*` constants at the top of `src-tauri/src/main.rs`.
+- Hotkeys: the six `HK_*` constants at the top of `src-tauri/src/main.rs`.
   Anything the Tauri shortcut parser accepts works.
 - Output location: `base_dir()` in the same file.
 - Markdown shape: `render_markdown()` in `src-tauri/src/export.rs`. This is

@@ -17,6 +17,7 @@
           aria-label="Bundle name"
         />
         <span class="count" id="count" data-tauri-drag-region></span>
+        <button class="btn ghost" id="open-toggle">Open</button>
         <button class="btn ghost" id="brand-toggle">Brand kit</button>
         <button class="btn ghost" id="new-bundle">New bundle</button>
         <button class="icon-btn" id="close" title="Close (Esc)" aria-label="Close">
@@ -39,6 +40,9 @@
         <button class="quiet" id="copy-path">Copy path</button>
         <button class="quiet" id="copy-md">Copy markdown</button>
         <button class="quiet" id="open-folder">Open folder</button>
+      </div>
+      <div class="bundles" id="bundles" hidden>
+        <div class="bundles-list" id="bundles-list"></div>
       </div>
       <div class="brand" id="brand" hidden>
         <div class="brand-row">
@@ -71,6 +75,7 @@
         <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> new group</span>
         <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd> show bundle</span>
         <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd> finish</span>
+        <span><kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> new bundle</span>
       </div>
     </div>
     <script type="module" src="/src/peek.ts"></script>

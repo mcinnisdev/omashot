@@ -1,7 +1,7 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import type { AppState, Export } from "./types";
+import type { AppState, BundleInfo, Export } from "./types";
 
 const body = document.getElementById("body") as HTMLDivElement;
 const count = document.getElementById("count") as HTMLSpanElement;
@@ -9,6 +9,9 @@ const bundleName = document.getElementById("bundle-name") as HTMLInputElement;
 const purpose = document.getElementById("purpose") as HTMLSelectElement;
 const custom = document.getElementById("custom") as HTMLDivElement;
 const customPrompt = document.getElementById("custom-prompt") as HTMLTextAreaElement;
+const openToggle = document.getElementById("open-toggle") as HTMLButtonElement;
+const bundles = document.getElementById("bundles") as HTMLDivElement;
+const bundlesList = document.getElementById("bundles-list") as HTMLDivElement;
 const brandToggle = document.getElementById("brand-toggle") as HTMLButtonElement;
 const brand = document.getElementById("brand") as HTMLDivElement;
 const brandInclude = document.getElementById("brand-include") as HTMLInputElement;
@@ -89,14 +92,18 @@ async function render() {
   if (!session || shots === 0) {
     const empty = document.createElement("div");
     empty.className = "empty";
-    empty.textContent =
-      "Nothing captured yet. Press the capture hotkey, drag a region, type what is wrong, and hit Enter. Shots land in the current group until you start a new one.";
+    empty.textContent = session
+      ? "Nothing captured yet. Name the bundle and its first group above if you like, then press the capture hotkey, drag a region, type what is wrong, and hit Enter."
+      : "Nothing captured yet. Press the capture hotkey, drag a region, type what is wrong, and hit Enter. Shots land in the current group until you start a new one.";
     body.append(empty);
-    return;
+    if (!session) return;
   }
 
   for (const g of session.groups) {
-    if (g.shots.length === 0 && !g.title && !g.master_note) continue;
+    // An empty, untitled group is hidden unless it is where the next
+    // capture lands, so a fresh bundle's first group can be named up front.
+    const untouched = g.shots.length === 0 && !g.title && !g.master_note;
+    if (untouched && g.index !== session.current) continue;
 
     const wrap = document.createElement("div");
     wrap.className = "group";
@@ -361,6 +368,56 @@ brandToggle.addEventListener("click", () => {
   brand.hidden = !brand.hidden;
   if (!brand.hidden) brandNotes.focus();
 });
+
+async function showBundles() {
+  const list = await invoke<BundleInfo[]>("list_bundles");
+  const state = await invoke<AppState>("get_state");
+  const currentRoot = state.session?.root ?? "";
+  bundlesList.replaceChildren();
+  if (list.length === 0) {
+    const none = document.createElement("div");
+    none.className = "empty";
+    none.textContent = "No bundles yet.";
+    bundlesList.append(none);
+  }
+  for (const b of list) {
+    const row = document.createElement("div");
+    row.className = "bundle-row";
+    if (b.path === currentRoot) row.classList.add("current");
+
+    const name = document.createElement("span");
+    name.className = "bundle-name-cell";
+    name.textContent = b.name || b.id;
+
+    const meta = document.createElement("span");
+    meta.className = "bundle-meta";
+    const when = b.started_at.slice(0, 16).replace("T", " ");
+    meta.textContent = `${when}  ${b.shots} shot${b.shots === 1 ? "" : "s"} in ${b.groups} group${b.groups === 1 ? "" : "s"}`;
+
+    const open = document.createElement("button");
+    open.className = "btn";
+    open.textContent = b.path === currentRoot ? "Open now" : "Open";
+    open.disabled = b.path === currentRoot;
+    open.addEventListener("click", async () => {
+      try {
+        await invoke("open_bundle", { path: b.path });
+        bundles.hidden = true;
+        await render();
+      } catch (err) {
+        flash(open, String(err));
+      }
+    });
+
+    row.append(name, meta, open);
+    bundlesList.append(row);
+  }
+  bundles.hidden = false;
+}
+
+openToggle.addEventListener("click", () => {
+  if (bundles.hidden) void showBundles();
+  else bundles.hidden = true;
+});
 brandInclude.addEventListener("change", () => {
   void invoke("set_include_brand", { include: brandInclude.checked });
 });
@@ -376,4 +433,8 @@ window.addEventListener("keydown", (e) => {
 
 void listen("session-changed", () => void render());
 
-void render();
+void render().then(() => {
+  const focus = new URLSearchParams(location.search).get("focus");
+  if (focus === "name") bundleName.focus();
+  if (focus === "open") void showBundles();
+});

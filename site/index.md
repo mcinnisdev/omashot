@@ -2,7 +2,7 @@
 layout: page
 sidebar: false
 aside: false
-title: QA Cut
+title: QACut
 titleTemplate: Screen capture that hands off
 ---
 
@@ -11,14 +11,14 @@ titleTemplate: Screen capture that hands off
 <div>
 <span class="eyebrow">Free and open source · Windows</span>
 <h1>Capture what's wrong.<br />Record <em>how it's done.</em></h1>
-<p class="lead">QA Cut turns screenshots and clips into a bundle an AI agent can act on. QA Cut Studio turns a screen recording into a walkthrough worth watching. One tray icon. No account. Nothing leaves your machine unless you send it.</p>
+<p class="lead">QACut turns screenshots and clips into a bundle an AI agent can act on. QACut Studio turns a screen recording into a walkthrough worth watching. One tray icon. No account. Nothing leaves your machine unless you send it.</p>
 <div class="qc-actions">
 <a class="qc-btn primary" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
 <a class="qc-btn outline" href="/docs/getting-started">Getting started</a>
 </div>
 <p class="qc-fine">Windows 10 (2004+) or 11, x64. MIT licensed. No telemetry, no sign-in.</p>
 </div>
-<div class="qc-stage" aria-label="A QA Cut Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
+<div class="qc-stage" aria-label="A QACut Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
 <img class="logo" src="/logo.png" alt="" />
 <div class="title">Unlink OneDrive from this computer</div>
 <div class="win">
@@ -40,7 +40,7 @@ titleTemplate: Screen capture that hands off
 </div>
 <div class="qc-split" style="margin-top: 32px">
 <div class="qc-card">
-<span class="eyebrow">QA Cut</span>
+<span class="eyebrow">QACut</span>
 <h3>Bundles for agents</h3>
 <p>Drag a region, say what's wrong, keep going. Finish, and you have a folder with a markdown file that reads top to bottom, every image linked, the prompt written for you.</p>
 <pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
@@ -58,7 +58,7 @@ Toggle animates but the state never saves.
 <span class="m">Key frames: 0 s start · 3 s click at 412,188 · 9 s end</span></pre>
 </div>
 <div class="qc-card">
-<span class="eyebrow">QA Cut Studio</span>
+<span class="eyebrow">QACut Studio</span>
 <h3>Polished screen recordings</h3>
 <p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble. Trim, cut, export to MP4.</p>
 <div class="visual qc-timeline" aria-label="A studio timeline with zoom blocks, a cut, click and key markers">
@@ -151,7 +151,7 @@ any recording, before changing anything."</pre>
 </div>
 <div class="qc-scroll">
 <table class="qc-compare">
-<thead><tr><th></th><th>QA Cut</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
+<thead><tr><th></th><th>QACut</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
 <tbody>
 <tr><td>Runs on your machine, no upload</td><td class="yes">Yes</td><td class="no">Cloud</td><td class="no">Cloud</td><td class="yes">Yes</td></tr>
 <tr><td>No account required</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="some">License</td></tr>

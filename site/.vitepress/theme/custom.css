@@ -1,4 +1,4 @@
-/* QA Cut site theme: the app's coral on VitePress's defaults, plus the
+/* QACut site theme: the app's coral on VitePress's defaults, plus the
    landing page, which is hand-built HTML in index.md. */
 
 :root {
@@ -273,7 +273,7 @@
 }
 .qc-stage .ripple {
   position: absolute;
-  left: 61.5%;
+  left: 47%;
   top: 68%;
   width: 34px;
   height: 34px;
@@ -305,7 +305,7 @@
 }
 .qc-stage .cursor {
   position: absolute;
-  left: 61.5%;
+  left: 47%;
   top: 68%;
   width: 26px;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));

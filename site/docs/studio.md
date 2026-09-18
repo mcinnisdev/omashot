@@ -1,6 +1,6 @@
 # Polished screen recordings
 
-QA Cut Studio records a source, then renders a finished video from it. The cursor is captured as data, not pixels, so it can be smoothed and enlarged. Every click and key press is on the same clock as the frames. The camera zooms to where the work is. What you see in the preview is what the export produces.
+QACut Studio records a source, then renders a finished video from it. The cursor is captured as data, not pixels, so it can be smoothed and enlarged. Every click and key press is on the same clock as the frames. The camera zooms to where the work is. What you see in the preview is what the export produces.
 
 ## Recording
 

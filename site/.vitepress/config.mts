@@ -6,10 +6,25 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "QACut",
   description:
-    "Capture, record and hand off. Bundles for agents, polished screen recordings. Free and open source.",
+    "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows.",
   cleanUrls: true,
   lastUpdated: true,
-  head: [["link", { rel: "icon", href: "/favicon.png" }]],
+  head: [
+    ["link", { rel: "icon", href: "/favicon.png" }],
+    ["meta", { property: "og:type", content: "website" }],
+    ["meta", { property: "og:site_name", content: "QACut" }],
+    ["meta", { property: "og:title", content: "QACut: capture what's wrong, record how it's done" }],
+    ["meta", { property: "og:description", content: "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows." }],
+    ["meta", { property: "og:url", content: "https://qacut.com/" }],
+    ["meta", { property: "og:image", content: "https://qacut.com/og.png" }],
+    ["meta", { property: "og:image:width", content: "1200" }],
+    ["meta", { property: "og:image:height", content: "630" }],
+    ["meta", { property: "og:image:alt", content: "QACut: capture what's wrong, record how it's done" }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
+    ["meta", { name: "twitter:title", content: "QACut: capture what's wrong, record how it's done" }],
+    ["meta", { name: "twitter:description", content: "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows." }],
+    ["meta", { name: "twitter:image", content: "https://qacut.com/og.png" }],
+  ],
   themeConfig: {
     siteTitle: '<span class="qa">QA</span>Cut',
     logo: "/logo.png",

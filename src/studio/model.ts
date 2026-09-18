@@ -74,6 +74,9 @@ export interface Zoom {
   cx: number;
   cy: number;
   scale: number;
+  /// Camera follows the cursor (with a dead zone and lag) instead of
+  /// staying on (cx, cy), which then only sets where it starts.
+  follow?: boolean;
 }
 
 export interface Edits {
@@ -87,6 +90,8 @@ export interface Edits {
   /// Set once the recorded zoom marks have been turned into blocks, so a
   /// deleted block does not come back on the next open.
   zooms_seeded: boolean;
+  /// Whether new zooms (marks and "Add zoom here") follow the cursor.
+  zoom_follow: boolean;
 }
 
 export const DEFAULT_EDITS: Edits = {
@@ -97,6 +102,7 @@ export const DEFAULT_EDITS: Edits = {
   trim: { in_ms: 0, out_ms: null },
   zooms: [],
   zooms_seeded: false,
+  zoom_follow: true,
 };
 
 export const DEFAULT_ZOOM_SCALE = 2;
@@ -114,6 +120,7 @@ export function withDefaults(e: Partial<Edits> | undefined): Edits {
     trim: { ...d.trim, ...(e?.trim ?? {}) },
     zooms: e?.zooms ?? [],
     zooms_seeded: e?.zooms_seeded ?? false,
+    zoom_follow: e?.zoom_follow ?? true,
   };
 }
 
@@ -123,6 +130,7 @@ export function zoomsFromMarks(
   marks: [number, string, number, number][] | undefined,
   region: Rect,
   duration_ms: number,
+  follow: boolean,
 ): Zoom[] {
   const out: Zoom[] = [];
   let open: Zoom | null = null;
@@ -132,7 +140,7 @@ export function zoomsFromMarks(
         open.end = t;
         out.push(open);
       }
-      open = { start: t, end: duration_ms, cx: x - region.x, cy: y - region.y, scale: DEFAULT_ZOOM_SCALE };
+      open = { start: t, end: duration_ms, cx: x - region.x, cy: y - region.y, scale: DEFAULT_ZOOM_SCALE, follow };
     } else if (open) {
       open.end = Math.max(t, open.start + 200);
       out.push(open);

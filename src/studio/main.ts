@@ -167,6 +167,7 @@ function bindInspector() {
   on("cursor-size", "input", (el) => (edits.cursor.size = Number(el.value)));
   on("smoothing", "input", (el) => {
     edits.cursor.smoothing = Number(el.value);
+    // A new cursor path means new camera paths too.
     if (project && events) track = buildTrack(project, events, edits);
   });
   on("ripple", "change", (el) => (edits.cursor.ripple = (el as HTMLInputElement).checked));
@@ -198,7 +199,11 @@ function selectZoom(z: Zoom | null) {
   selectedZoom = z;
   $<HTMLElement>("zoom-none").hidden = z !== null;
   $<HTMLElement>("zoom-edit").hidden = z === null;
-  if (z) $<HTMLInputElement>("zoom-scale").value = String(z.scale);
+  if (z) {
+    $<HTMLInputElement>("zoom-scale").value = String(z.scale);
+    $<HTMLInputElement>("zoom-follow").checked = z.follow ?? false;
+  }
+  $<HTMLInputElement>("zoom-follow-default").checked = edits.zoom_follow;
   renderTimeline();
   scheduleRender();
 }
@@ -246,6 +251,7 @@ function renderTimeline() {
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
         edits.zooms.sort((a, b) => a.start - b.start);
+        track?.follow.delete(z);
         saveSoon();
         renderTimeline();
       };
@@ -305,7 +311,7 @@ canvas.addEventListener("mousedown", (e) => {
   if (t < z.start || t > z.end) seekMs(z.start + Math.min(700, (z.end - z.start) / 2));
   const rect = canvas.getBoundingClientRect();
   const L = layout(canvas.width, canvas.height, project, edits);
-  const view = viewAt(edits.zooms, currentMs(), project.region);
+  const view = viewAt(edits.zooms, currentMs(), project.region, track ?? undefined);
   const perPx = (canvas.width / rect.width) / (L.s * view.scale);
   let last = { x: e.clientX, y: e.clientY };
   canvas.style.cursor = "grabbing";
@@ -313,6 +319,7 @@ canvas.addEventListener("mousedown", (e) => {
     z.cx = Math.min(Math.max(z.cx - (m.clientX - last.x) * perPx, 0), project!.region.width);
     z.cy = Math.min(Math.max(z.cy - (m.clientY - last.y) * perPx, 0), project!.region.height);
     last = { x: m.clientX, y: m.clientY };
+    track?.follow.delete(z);
     scheduleRender();
   };
   const onUp = () => {
@@ -342,6 +349,7 @@ $("zoom-add").addEventListener("click", () => {
     cx,
     cy,
     scale: DEFAULT_ZOOM_SCALE,
+    follow: edits.zoom_follow,
   };
   edits.zooms.push(z);
   edits.zooms.sort((a, b) => a.start - b.start);
@@ -357,8 +365,20 @@ $("zoom-remove").addEventListener("click", () => {
 $<HTMLInputElement>("zoom-scale").addEventListener("input", (e) => {
   if (!selectedZoom) return;
   selectedZoom.scale = Number((e.target as HTMLInputElement).value);
+  track?.follow.delete(selectedZoom);
   renderTimeline();
   scheduleRender();
+  saveSoon();
+});
+$<HTMLInputElement>("zoom-follow").addEventListener("change", (e) => {
+  if (!selectedZoom) return;
+  selectedZoom.follow = (e.target as HTMLInputElement).checked;
+  track?.follow.delete(selectedZoom);
+  scheduleRender();
+  saveSoon();
+});
+$<HTMLInputElement>("zoom-follow-default").addEventListener("change", (e) => {
+  edits.zoom_follow = (e.target as HTMLInputElement).checked;
   saveSoon();
 });
 
@@ -414,7 +434,7 @@ async function open(projectDir: string) {
   // The operator's zoom marks become blocks once; after that the blocks
   // are theirs to change or delete.
   if (!edits.zooms_seeded) {
-    edits.zooms = zoomsFromMarks(events.zooms, project.region, project.duration_ms);
+    edits.zooms = zoomsFromMarks(events.zooms, project.region, project.duration_ms, edits.zoom_follow);
     edits.zooms_seeded = true;
     saveSoon();
   }

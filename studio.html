@@ -62,11 +62,13 @@
             <h3>Zoom</h3>
             <div id="zoom-none">
               <p class="hint">Marks made with <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> while recording appear as blocks on the timeline. Click one to adjust it.</p>
+              <label class="check"><input type="checkbox" id="zoom-follow-default" /> New zooms follow the cursor</label>
               <button class="btn" id="zoom-add">Add zoom here</button>
             </div>
             <div id="zoom-edit" hidden>
               <label>Closeness <input type="range" id="zoom-scale" min="1.2" max="4" step="0.1" /></label>
-              <p class="hint">Drag in the preview to move where it looks. Drag the block's edges on the timeline to retime it.</p>
+              <label class="check"><input type="checkbox" id="zoom-follow" /> Follow the cursor</label>
+              <p class="hint">Drag in the preview to move where it looks (where it starts, when following). Drag the block's edges on the timeline to retime it.</p>
               <button class="btn" id="zoom-remove">Remove this zoom</button>
             </div>
           </section>

@@ -24,6 +24,9 @@ export interface Track {
   badges: { t: number; text: string }[];
   /// Cursor shape at time t, sorted.
   shapes: { t: number; name: string }[];
+  /// Camera paths for follow zooms, computed on first use and dropped
+  /// when the block changes.
+  follow: WeakMap<Zoom, { t: number; x: number; y: number }[]>;
 }
 
 const RIPPLE_MS = 500;
@@ -41,6 +44,7 @@ export function buildTrack(project: Project, events: Events, edits: Edits): Trac
     clicks,
     badges: badgesFrom(events.keys, edits.keys.mode),
     shapes: events.shapes.map(([t, name]) => ({ t, name })),
+    follow: new WeakMap(),
   };
 }
 
@@ -171,10 +175,61 @@ function smoothstep(f: number) {
   return x * x * (3 - 2 * x);
 }
 
+/// Camera lag when following the cursor.
+const FOLLOW_TAU_MS = 260;
+/// The cursor may roam this fraction of the zoomed view (each axis, about
+/// the centre) before the camera moves.
+const FOLLOW_DEAD = 0.5;
+
+/// The camera path for a follow block: starts on (cx, cy), then chases
+/// the cursor with a dead zone and a critically damped lag. Sampled at
+/// 120 Hz over the block.
+function followPath(z: Zoom, track: Track, region: { width: number; height: number }) {
+  const cached = track.follow.get(z);
+  if (cached) return cached;
+  const out: { t: number; x: number; y: number }[] = [];
+  const step = 1000 / 120;
+  const halfW = region.width / (2 * z.scale);
+  const halfH = region.height / (2 * z.scale);
+  const deadX = halfW * FOLLOW_DEAD;
+  const deadY = halfH * FOLLOW_DEAD;
+  let x = z.cx;
+  let y = z.cy;
+  let vx = 0;
+  let vy = 0;
+  const w = 1000 / FOLLOW_TAU_MS;
+  const dt = step / 1000;
+  for (let t = z.start; t <= z.end; t += step) {
+    const c = cursorAt(track.path, t) ?? { x, y };
+    // Move only enough to bring the cursor back inside the dead zone.
+    let tx = x;
+    let ty = y;
+    if (c.x > x + deadX) tx = c.x - deadX;
+    else if (c.x < x - deadX) tx = c.x + deadX;
+    if (c.y > y + deadY) ty = c.y - deadY;
+    else if (c.y < y - deadY) ty = c.y + deadY;
+    const ax = w * w * (tx - x) - 2 * w * vx;
+    const ay = w * w * (ty - y) - 2 * w * vy;
+    vx += ax * dt;
+    vy += ay * dt;
+    x += vx * dt;
+    y += vy * dt;
+    out.push({ t, x, y });
+  }
+  track.follow.set(z, out);
+  return out;
+}
+
 /// The view at time t: the active block eases in over ZOOM_EASE_MS from
 /// its start and out over the same before its end, clamped so the view
-/// never leaves the region.
-export function viewAt(zooms: Zoom[], t: number, region: { width: number; height: number }): View {
+/// never leaves the region. A follow block's centre comes from its camera
+/// path instead of (cx, cy).
+export function viewAt(
+  zooms: Zoom[],
+  t: number,
+  region: { width: number; height: number },
+  track?: Track,
+): View {
   let scale = 1;
   let cx = region.width / 2;
   let cy = region.height / 2;
@@ -184,9 +239,18 @@ export function viewAt(zooms: Zoom[], t: number, region: { width: number; height
     const fin = ease > 0 ? (t - z.start) / ease : 1;
     const fout = ease > 0 ? (z.end - t) / ease : 1;
     const f = smoothstep(Math.min(fin, fout));
+    let tx = z.cx;
+    let ty = z.cy;
+    if (z.follow && track) {
+      const p = cursorAt(followPath(z, track, region), t);
+      if (p) {
+        tx = p.x;
+        ty = p.y;
+      }
+    }
     scale = 1 + (z.scale - 1) * f;
-    cx = region.width / 2 + (z.cx - region.width / 2) * f;
-    cy = region.height / 2 + (z.cy - region.height / 2) * f;
+    cx = region.width / 2 + (tx - region.width / 2) * f;
+    cy = region.height / 2 + (ty - region.height / 2) * f;
     break;
   }
   const vw = region.width / scale;
@@ -293,7 +357,7 @@ export function draw(
   roundRect(ctx, L.x, L.y, L.w, L.h, radius);
   ctx.clip();
   const r = project.region;
-  const view = viewAt(edits.zooms, t, r);
+  const view = viewAt(edits.zooms, t, r, track);
   const k = L.s * view.scale;
   ctx.drawImage(
     frame.source,

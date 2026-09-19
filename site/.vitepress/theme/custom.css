@@ -663,15 +663,8 @@
 
 /* Nav dropdown: a titled group with roomier, bolder rows. */
 .VPFlyout .VPMenu {
-  min-width: 260px;
-  padding: 10px;
-}
-.VPFlyout .VPMenuGroup .title {
-  padding: 4px 12px 8px;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--vp-c-brand-1);
+  padding: 8px;
+  overflow: hidden;
 }
 .VPFlyout .VPMenuLink .link {
   padding: 8px 12px;

@@ -33,14 +33,9 @@ export default defineConfig({
       {
         text: "Use cases",
         items: [
-          {
-            text: "Three modes",
-            items: [
-              { text: "QACut · Quick shots", link: "/use-cases/quick-shots" },
-              { text: "QACut Bundles · Bigger jobs", link: "/use-cases/bundles" },
-              { text: "QACut Studio · Recordings", link: "/use-cases/studio" },
-            ],
-          },
+          { text: "QACut", link: "/use-cases/quick-shots" },
+          { text: "QACut Bundles", link: "/use-cases/bundles" },
+          { text: "QACut Studio", link: "/use-cases/studio" },
         ],
       },
       { text: "Download", link: "https://github.com/mcinnisdev/qacut/releases/latest" },

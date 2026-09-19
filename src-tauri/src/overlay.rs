@@ -78,9 +78,10 @@ pub fn close_capture(app: &AppHandle) {
     }
 }
 
-/// The note box. `mode` is "shot", "quick", "recording" or "group". Anchored under the selection
-/// when we have one, otherwise centred on the focused monitor.
-pub fn open_note(app: &AppHandle, mode: &str, anchor: Option<(f64, f64)>) -> Result<()> {
+/// The note box. `mode` is "shot", "quick", "recording" or "group". Centred
+/// on `centre` (the middle of the monitor that was captured) when given,
+/// otherwise centred on the focused monitor.
+pub fn open_note(app: &AppHandle, mode: &str, centre: Option<(f64, f64)>) -> Result<()> {
     if let Some(w) = app.get_webview_window(NOTE) {
         let _ = w.close();
     }
@@ -102,9 +103,9 @@ pub fn open_note(app: &AppHandle, mode: &str, anchor: Option<(f64, f64)>) -> Res
         .focused(true)
         .build()?;
 
-    match anchor {
-        Some((x, y)) => {
-            let _ = win.set_position(LogicalPosition::new(x, y));
+    match centre {
+        Some((cx, cy)) => {
+            let _ = win.set_position(LogicalPosition::new(cx - w / 2.0, cy - h / 2.0));
         }
         None => {
             let _ = win.center();

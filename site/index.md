@@ -35,27 +35,30 @@ titleTemplate: Screen capture that hands off
 <section>
 <div class="center">
 <span class="eyebrow">Three tools, one tray</span>
-<h2>Pick the depth. The hotkeys are the same.</h2>
-<p class="lead">A quick shot when it's one fix and you want it gone. A structured bundle for an agent with real work to do. A polished video for a person.</p>
+<h2>Pick the depth. One key each.</h2>
+<p class="lead">Ctrl+Shift+1 for a quick shot when it's one fix and you want it gone. Ctrl+Shift+2 for a structured bundle an agent can work from. Ctrl+Shift+R for a video a person will actually watch.</p>
 </div>
-<div class="qc-split three" style="margin-top: 32px">
+<div class="qc-bento" style="margin-top: 32px">
 <div class="qc-card">
 <span class="eyebrow">QACut</span>
 <h3>Quick shots</h3>
 <p>For one tweak, or three. Drag, note, Enter. Ctrl+Enter puts the path and note on your clipboard, ready to paste into whatever agent you're talking to.</p>
-<pre class="visual qc-bundle"><span class="l">C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png</span>
-The save button is clipped at 125% scaling.
-<span></span>
-<span class="l">C:\Users\nick\QACut\Quick\2026-09-19_101512\02.png</span>
-Toggle animates but the state never saves.</pre>
+<pre class="visual qc-bundle"><span class="l">~\QACut\Quick\2026-09-19_1015\01.png</span>
+The save button is clipped at
+125% scaling.</pre>
 <ul class="qc-chips">
-<li>No bundle</li><li>Batch a few, paste once</li><li>Note saved beside each PNG</li>
+<li>No bundle</li><li>Batch a few, paste once</li>
 </ul>
 </div>
-<div class="qc-card">
+<div class="qc-card wide span2">
+<div>
 <span class="eyebrow">QACut Bundles</span>
 <h3>Bundles for bigger jobs</h3>
-<p>Group shots by page, note each one, and hand an agent a folder it can work from: a fix list across an app, or a process doc. Auto-capture records you doing it, with a still at every click.</p>
+<p>Group shots by page, note each one, and hand an agent a folder it can work from: a fix list across an app, or the raw material for a process doc. Auto-capture records you doing it, with a still at every click.</p>
+<ul class="qc-chips">
+<li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Brand kit</li><li>ZIP for chat</li>
+</ul>
+</div>
 <pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
 <span></span>
 <span class="h">## 1. Settings page</span>
@@ -63,15 +66,23 @@ Toggle animates but the state never saves.</pre>
 <span></span>
 <span class="h">### 1.1 Save button</span>
 <span class="l">![1.1](01-settings-page/01.png)</span>
-Clipped at 125% scaling; label wraps.</pre>
-<ul class="qc-chips">
-<li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Brand kit</li><li>ZIP for chat</li>
-</ul>
+Clipped at 125% scaling; label wraps.
+<span></span>
+<span class="h">### 1.2</span>
+<span class="l">![1.2](01-settings-page/02.gif)</span>
+Toggle animates but the state never saves.
+<span class="m">Key frames: 0 s start · 3 s click at 412,188 · 9 s end</span></pre>
 </div>
-<div class="qc-card">
+<div class="qc-card wide span3">
+<div>
 <span class="eyebrow">QACut Studio</span>
 <h3>Polished screen recordings</h3>
-<p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble. Trim, cut, export to MP4.</p>
+<p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble, your voice stays in sync. Trim, cut, export to MP4.</p>
+<ul class="qc-chips">
+<li>Follow zoom</li><li>Click ripples</li><li>Key badges</li><li>Camera bubble</li><li>Narration</li><li>Title and logo</li><li>Trim and cut</li><li>MP4 export</li>
+</ul>
+</div>
+<div>
 <div class="visual qc-stage mini" aria-hidden="true">
 <img class="logo" src="/logo.png" alt="" />
 <div class="title">Add a printer in Windows 11</div>
@@ -96,9 +107,7 @@ Clipped at 125% scaling; label wraps.</pre>
 <div class="handle" style="left: 5%"></div><div class="handle" style="left: 93%"></div>
 <div class="head"></div>
 </div>
-<ul class="qc-chips">
-<li>Follow zoom</li><li>Click ripples</li><li>Key badges</li><li>Camera bubble</li><li>Narration</li><li>Title and logo</li><li>Trim and cut</li><li>MP4 export</li>
-</ul>
+</div>
 </div>
 </div>
 </section>

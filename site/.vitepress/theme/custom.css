@@ -405,35 +405,35 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
-.qc-split.three {
+/* Bento: quick shots small, bundles wider, studio full width. */
+.qc-bento {
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
-.qc-split.three .qc-card {
-  padding: 24px;
+.qc-bento .span2 {
+  grid-column: span 2;
 }
-.qc-split.three .qc-card h3 {
-  font-size: 21px;
+.qc-bento .span3 {
+  grid-column: 1 / -1;
 }
-.qc-split.three .qc-bundle {
-  font-size: 11.5px;
-  padding: 14px;
+.qc-card.wide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
 }
-.qc-split.three .qc-stage .cursor {
-  animation-name: qc-cursor-small;
+.qc-card.wide > div {
+  min-width: 0;
 }
-@keyframes qc-cursor-small {
-  0%,
-  15% {
-    transform: translate(-70px, -60px);
-  }
-  40%,
-  60% {
-    transform: translate(0, 0);
-  }
-  85%,
-  100% {
-    transform: translate(-70px, -60px);
-  }
+.qc-card.wide .visual {
+  margin-top: 0;
+}
+.qc-card.wide .qc-stage.mini {
+  margin-bottom: 10px;
+}
+.qc-card.wide .qc-chips {
+  margin-top: 4px;
 }
 .qc-card {
   min-width: 0;
@@ -740,9 +740,14 @@
 @media (max-width: 860px) {
   .qc-hero,
   .qc-split,
-  .qc-split.three,
+  .qc-bento,
+  .qc-card.wide,
   .qc-oss {
     grid-template-columns: 1fr;
+  }
+  .qc-bento .span2,
+  .qc-bento .span3 {
+    grid-column: auto;
   }
   .qc-grid {
     grid-template-columns: 1fr;

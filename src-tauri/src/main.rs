@@ -1727,13 +1727,13 @@ fn open_path(app: AppHandle, path: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
-/// Where the note box goes: just under the selection, nudged back on screen.
-fn note_anchor(frame: &Frame, x: f64, y: f64, height: f64) -> (f64, f64) {
-    let nx = frame.x as f64 + x;
-    let ny = frame.y as f64 + y + height + 12.0;
-    let max_y = frame.y as f64 + frame.height as f64 - 200.0;
-    let max_x = frame.x as f64 + frame.width as f64 - 496.0;
-    (nx.min(max_x).max(frame.x as f64 + 8.0), ny.min(max_y))
+/// Where the note box goes: the middle of the monitor the shot came from,
+/// so it never sits on top of what was just captured.
+fn note_anchor(frame: &Frame, _x: f64, _y: f64, _height: f64) -> (f64, f64) {
+    (
+        frame.x as f64 + frame.width as f64 / 2.0,
+        frame.y as f64 + frame.height as f64 / 2.0,
+    )
 }
 
 /// The overlay, in quick mode, hands over the region. The shot is written

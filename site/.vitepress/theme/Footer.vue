@@ -31,7 +31,6 @@ const columns = [
     links: [
       { text: "GitHub", href: "https://github.com/mcinnisdev/qacut" },
       { text: "Report a bug / Request a feature", href: "/feedback" },
-      { text: "X @qa_cut", href: "https://x.com/qa_cut" },
       { text: "hello@qacut.com", href: "mailto:hello@qacut.com" },
     ],
   },

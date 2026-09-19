@@ -554,6 +554,21 @@ function toast(text: string) {
 
 // Every hand-off action writes the bundle first, so what gets copied or
 // opened is never stale.
+// A finished process document straight from the bundle: the group is the
+// section, its master note the intro, each shot a numbered step. The web
+// page embeds the images so it can be sent as one file; the Markdown sits
+// beside them for a docs platform. No agent in the loop unless you want
+// the prose polished.
+async function exportDoc(format: "html" | "markdown") {
+  try {
+    const path = await invoke<string>("export_document", { format });
+    toast(`Document written: ${path.split(/[\\/]/).pop()}`);
+  } catch (err) {
+    toast(String(err));
+  }
+  await render();
+}
+
 async function run(action: Action) {
   try {
     const result = await invoke<Export>("finish", { action });
@@ -675,6 +690,9 @@ const menus: Menu[] = [
   {
     title: "Hand off",
     items: () => [
+      { label: "Export document as web page", run: () => exportDoc("html") },
+      { label: "Export document as Markdown", run: () => exportDoc("markdown") },
+      "-",
       { label: "Copy agent prompt", run: () => run("prompt") },
       { label: "Copy folder path", run: () => run("path") },
       { label: "Copy markdown", run: () => run("markdown") },
@@ -808,6 +826,11 @@ purpose.addEventListener("change", async () => {
   else custom.hidden = true;
 });
 
+(document.getElementById("export-doc") as HTMLButtonElement).addEventListener("click", () => {
+  // The format follows the selector when the purpose is a document;
+  // otherwise the web page, since that is the one you can send as-is.
+  void exportDoc(purpose.value === "document" && docFormat.value === "markdown" ? "markdown" : "html");
+});
 docFormat.addEventListener("change", () => {
   void invoke("set_doc_format", { format: docFormat.value });
 });

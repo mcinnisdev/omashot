@@ -23,6 +23,8 @@ A bundle is a folder: screenshots in groups, a note on each, and a markdown file
 
 ## Handing off
 
+**Export doc** writes a finished process document from the bundle, no agent needed: each group is a section with its master note as the intro, each shot a numbered step with its note and image. As a web page it is one file with the images embedded, ready to send; as Markdown it sits beside the images for a docs platform. Hand it to an agent only if you want the prose polished.
+
 **Copy agent prompt** writes the bundle and copies an instruction with the folder path filled in. Paste it into a CLI agent.
 
 Finishing closes the bundle: the next capture starts a new one. To add to a finished bundle, press **Capture here** on one of its groups in the bundle window, or reopen it later from **Bundle → Open bundle…**.

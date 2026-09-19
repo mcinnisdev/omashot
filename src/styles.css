@@ -482,6 +482,10 @@ body.peek {
 }
 
 /* Title row: the name, and the one primary action. */
+#export-doc {
+  margin-left: 8px;
+}
+
 .peek-title {
   display: flex;
   align-items: center;

@@ -1,4 +1,4 @@
-use crate::model::{sidecars, slug, Session, ShotKind};
+use crate::model::{sidecars, slug, DocFormat, Session, ShotKind};
 use anyhow::Result;
 use serde::Serialize;
 use std::fmt::Write as _;
@@ -371,6 +371,293 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
     }
 
     md
+}
+
+// ------------------------------------------------------------ document
+//
+// A bundle is already a structured document: each group is a section with
+// its master note as the intro, each shot is a numbered step with its note
+// as the instruction and its image under it. So a finished process doc
+// needs no agent: this renders one straight from the bundle, as Markdown
+// beside the images or as one self-contained web page with the images
+// embedded. An agent is for polishing the prose, not for producing it.
+
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}
+
+/// Paragraph text with the user's line breaks kept.
+fn html_paragraphs(s: &str) -> String {
+    s.trim()
+        .split("\n\n")
+        .filter(|p| !p.trim().is_empty())
+        .map(|p| format!("<p>{}</p>", html_escape(p.trim()).replace('\n', "<br />")))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn data_uri(path: &Path) -> Option<String> {
+    use base64::Engine as _;
+    let ext = path.extension()?.to_string_lossy().to_lowercase();
+    let mime = match ext.as_str() {
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "jpg" | "jpeg" => "image/jpeg",
+        "webp" => "image/webp",
+        "svg" => "image/svg+xml",
+        _ => return None,
+    };
+    let bytes = std::fs::read(path).ok()?;
+    Some(format!("data:{mime};base64,{}", base64::engine::general_purpose::STANDARD.encode(bytes)))
+}
+
+/// One step of the document, in reading order.
+struct DocStep<'a> {
+    n: usize,
+    title: String,
+    note: &'a str,
+    rel: String,
+    abs: PathBuf,
+}
+
+struct DocSection<'a> {
+    title: String,
+    intro: &'a str,
+    steps: Vec<DocStep<'a>>,
+}
+
+fn document_outline(session: &Session) -> Vec<DocSection<'_>> {
+    let mut n = 0;
+    let mut out = Vec::new();
+    for g in &session.groups {
+        if g.shots.is_empty() {
+            continue;
+        }
+        let steps = g
+            .shots
+            .iter()
+            .map(|s| {
+                n += 1;
+                DocStep {
+                    n,
+                    title: if s.title.trim().is_empty() {
+                        format!("Step {n}")
+                    } else {
+                        format!("Step {n}: {}", s.title.trim())
+                    },
+                    note: s.note.as_str(),
+                    rel: format!("{}/{}", g.dir, s.file),
+                    abs: session.root.join(&g.dir).join(&s.file),
+                }
+            })
+            .collect();
+        out.push(DocSection {
+            title: if g.title.trim().is_empty() {
+                format!("Part {}", g.index)
+            } else {
+                g.title.trim().to_string()
+            },
+            intro: g.master_note.as_str(),
+            steps,
+        });
+    }
+    out
+}
+
+/// The document as Markdown, images by relative path, for a docs platform
+/// or a wiki that lives next to the folder.
+pub fn render_document_markdown(session: &Session) -> String {
+    let mut md = String::new();
+    let _ = writeln!(md, "# {}", session.title());
+    let sections = document_outline(session);
+    let one = sections.len() == 1;
+    for sec in &sections {
+        let _ = writeln!(md);
+        if !one {
+            let _ = writeln!(md, "## {}", sec.title);
+            let _ = writeln!(md);
+        }
+        if !sec.intro.trim().is_empty() {
+            let _ = writeln!(md, "{}", sec.intro.trim());
+            let _ = writeln!(md);
+        }
+        for st in &sec.steps {
+            let _ = writeln!(md, "### {}", st.title);
+            let _ = writeln!(md);
+            if !st.note.trim().is_empty() {
+                let _ = writeln!(md, "{}", st.note.trim());
+                let _ = writeln!(md);
+            }
+            let _ = writeln!(md, "![{}]({})", st.title, st.rel);
+            let _ = writeln!(md);
+        }
+    }
+    md
+}
+
+/// The document as one self-contained web page: inline styling, images
+/// embedded, the brand logo at the top if there is one. Send the file.
+pub fn render_document_html(session: &Session, logo: Option<&Path>) -> String {
+    let title = html_escape(&session.title());
+    let mut body = String::new();
+    if let Some(uri) = logo.and_then(data_uri) {
+        let _ = writeln!(body, r#"<img class="logo" src="{uri}" alt="" />"#);
+    }
+    let _ = writeln!(body, "<h1>{title}</h1>");
+    let sections = document_outline(session);
+    let one = sections.len() == 1;
+    for sec in &sections {
+        let _ = writeln!(body, "<section>");
+        if !one {
+            let _ = writeln!(body, "<h2>{}</h2>", html_escape(&sec.title));
+        }
+        if !sec.intro.trim().is_empty() {
+            let _ = writeln!(body, r#"<div class="intro">{}</div>"#, html_paragraphs(sec.intro));
+        }
+        for st in &sec.steps {
+            let _ = writeln!(body, r#"<div class="step">"#);
+            let _ = writeln!(
+                body,
+                r#"<h3><span class="n">{}</span>{}</h3>"#,
+                st.n,
+                html_escape(st.title.trim_start_matches(&format!("Step {}", st.n)).trim_start_matches(':').trim())
+            );
+            if !st.note.trim().is_empty() {
+                let _ = writeln!(body, "{}", html_paragraphs(st.note));
+            }
+            if let Some(uri) = data_uri(&st.abs) {
+                let _ = writeln!(body, r#"<img src="{uri}" alt="{}" />"#, html_escape(&st.title));
+            }
+            let _ = writeln!(body, "</div>");
+        }
+        let _ = writeln!(body, "</section>");
+    }
+    format!(
+        r#"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{title}</title>
+<style>
+  :root {{ color-scheme: light; }}
+  body {{ margin: 0; padding: 48px 24px 96px; background: #fff; color: #333; font: 16px/1.6 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }}
+  main {{ max-width: 780px; margin: 0 auto; }}
+  .logo {{ height: 44px; margin-bottom: 24px; }}
+  h1 {{ font-size: 32px; line-height: 1.15; margin: 0 0 24px; color: #004878; }}
+  h2 {{ font-size: 22px; margin: 40px 0 8px; color: #004878; }}
+  .intro p {{ margin: 0 0 12px; color: #555; }}
+  .step {{ margin: 28px 0; }}
+  .step h3 {{ display: flex; align-items: center; gap: 10px; font-size: 17px; margin: 0 0 8px; }}
+  .step .n {{ flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; background: #e15119; color: #fff; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }}
+  .step h3:has(.n:only-child) {{ margin-bottom: 8px; }}
+  .step p {{ margin: 0 0 10px; }}
+  .step img {{ display: block; max-width: 100%; height: auto; border: 1px solid #e2e2e2; border-radius: 4px; }}
+  @media print {{ body {{ padding: 0; }} .step {{ break-inside: avoid; }} }}
+</style>
+</head>
+<body>
+<main>
+{body}</main>
+</body>
+</html>
+"#
+    )
+}
+
+/// Writes the bundle (so its layout is final), then the document beside
+/// `bundle.md` as `document.md` or `document.html`. Returns the file.
+pub fn write_document(session: &mut Session, brand_src: &Path, format: DocFormat) -> Result<PathBuf> {
+    write_bundle(session, brand_src)?;
+    let path = match format {
+        DocFormat::Markdown => {
+            let p = session.root.join("document.md");
+            std::fs::write(&p, render_document_markdown(session))?;
+            p
+        }
+        DocFormat::Html => {
+            // The brand kit's first image is taken to be the logo.
+            let brand_dst = session.root.join("brand");
+            let logo = if session.include_brand {
+                let mut imgs: Vec<PathBuf> = std::fs::read_dir(&brand_dst)
+                    .map(|rd| {
+                        rd.filter_map(|e| e.ok())
+                            .map(|e| e.path())
+                            .filter(|p| {
+                                matches!(
+                                    p.extension().map(|x| x.to_string_lossy().to_lowercase()).as_deref(),
+                                    Some("png" | "jpg" | "jpeg" | "webp" | "svg" | "gif")
+                                )
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                imgs.sort();
+                imgs.into_iter().next()
+            } else {
+                None
+            };
+            let p = session.root.join("document.html");
+            std::fs::write(&p, render_document_html(session, logo.as_deref()))?;
+            p
+        }
+    };
+    Ok(path)
+}
+
+#[cfg(test)]
+mod document_tests {
+    use super::*;
+    use crate::model::Shot;
+
+    fn shot(file: &str, title: &str, note: &str) -> Shot {
+        Shot {
+            id: file.into(),
+            file: file.into(),
+            abs_path: String::new(),
+            title: title.into(),
+            note: note.into(),
+            width: 10,
+            height: 10,
+            captured_at: "2026-09-19T10:00:00+00:00".into(),
+            kind: ShotKind::Image,
+            duration_ms: 0,
+            frames: Vec::new(),
+            video: None,
+            moment: None,
+        }
+    }
+
+    #[test]
+    fn the_document_reads_as_numbered_steps_under_group_headings() {
+        let base = std::env::temp_dir().join(format!("qacut-test-doc-{}", chrono::Local::now().timestamp_micros()));
+        let mut s = Session::start(&base).unwrap();
+        s.name = "Unlink OneDrive".into();
+        s.current().shots.push(shot("01.png", "Open settings", "Click the cloud icon in the tray."));
+        s.current().shots.push(shot("02.png", "", "Choose **Settings**."));
+        s.close_group("Find the account", "Start from the tray.").unwrap();
+        s.current().shots.push(shot("01.png", "Unlink", "Press Unlink this PC."));
+        let md = render_document_markdown(&s);
+        assert!(md.starts_with("# Unlink OneDrive\n"));
+        assert!(md.contains("## Find the account\n\nStart from the tray.\n"));
+        // The group folder only takes its slug when the bundle is written.
+        assert!(md.contains("### Step 1: Open settings
+
+Click the cloud icon in the tray.
+
+![Step 1: Open settings]("));
+        assert!(md.contains("/01.png)"));
+        assert!(md.contains("### Step 2\n\nChoose **Settings**."));
+        assert!(md.contains("## Part 2\n"));
+        assert!(md.contains("### Step 3: Unlink\n"));
+        let html = render_document_html(&s, None);
+        assert!(html.contains("<title>Unlink OneDrive</title>"));
+        assert!(html.contains(r#"<span class="n">3</span>Unlink</h3>"#));
+        let _ = std::fs::remove_dir_all(&base);
+    }
 }
 
 #[cfg(test)]

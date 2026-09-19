@@ -57,7 +57,8 @@ A bundle is a folder: screenshots in groups, a note on each, and a `bundle.md` t
 - **Auto-capture** with `Ctrl+Shift+3`. While you do something, QACut takes a full-resolution still at the start, at every click or Enter (ringed where the click landed), and at the end. Press it again to stop and the bundle window opens on the sequence. Every still is an ordinary shot: drop the noise, note the keepers, drag any that landed out of order. No video is made; agents can't use one, and recordings for people are the Studio's job.
 - **Review** any shot from the bundle window: the image large, markup tools (arrow, highlight, blur that really removes pixels, step counters, a movable click ring), its note beside it, arrows to the next and previous shot, and delete. A whole auto-captured run can be cleaned up without leaving the window.
 - **Finish** with `Ctrl+Shift+Enter`. The folder path is on your clipboard and the bundle is closed; the next capture starts a new one. **Copy agent prompt** fills the path into an instruction for a CLI agent. **Save ZIP for chat** packages the folder for an agent that only takes uploads. Reopen any bundle from **Bundle → Open bundle…** to add to it.
-- **Purpose** changes the prompt: fix issues, write a process doc (Markdown or a single web page), or your own template.
+- **Export doc** writes a finished process document straight from the bundle: sections from the groups, numbered steps from the notes, images under each. One self-contained web page you can send, or Markdown beside the images. No agent needed.
+- **Purpose** changes the agent prompt: fix issues, write a process doc (for an agent to polish), or your own template.
 - **Brand kit**: put your logo, colours and voice notes in `~/QACut/brand/` and they ride along in every bundle, so what the agent produces sounds and looks like you.
 
 ```

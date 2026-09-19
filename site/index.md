@@ -56,7 +56,7 @@ The save button is clipped at
 <h3>Bundles for bigger jobs</h3>
 <p>Create structured groups of screenshots and notes, and hand them off to an agent to work from. Auto-capture records you doing a process, with a still at every click.</p>
 <ul class="qc-chips">
-<li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Brand kit</li><li>ZIP for chat</li>
+<li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Export a doc, no agent needed</li><li>Brand kit</li><li>ZIP for chat</li>
 </ul>
 <a class="qc-more" href="/use-cases/bundles">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>

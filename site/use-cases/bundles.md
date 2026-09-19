@@ -8,7 +8,7 @@ A bundle is a folder: screenshots in groups, a note on each, and a markdown file
 
 **A fix list across an app.** Capture as you go through each page. `Ctrl+Shift+G` wraps up a page as a group with a master note ("everything on the settings page is a bit off") and the shot notes carry the specifics. Finish, copy the agent prompt, paste. The agent works through it in order.
 
-**A process document.** Turn on auto-capture with `Ctrl+Shift+3` and do the process. QACut takes a still at every click, with a ring where the click landed, and the bundle window opens on the sequence when you stop. Drop the stills that do not help, note the ones that do, drag any that are out of order, and set the bundle's purpose to **Write process doc**. The agent gets a numbered sequence of actions and produces the document, as Markdown or as a single web page.
+**A process document.** Turn on auto-capture with `Ctrl+Shift+3` and do the process. QACut takes a still at every click, with a ring where the click landed, and the bundle window opens on the sequence when you stop. Drop the stills that do not help, note the ones that do, drag any that are out of order, and press **Export doc**. The document is done: sections from your groups, numbered steps from your notes, images under each, as one web page you can send or as Markdown for a docs platform. Set the purpose to **Write process doc** and copy the agent prompt only if you want an agent to polish the wording.
 
 **A guided tutorial.** Same capture, different prompt. Your brand kit rides along in the bundle, so the output sounds like you and carries your logo.
 

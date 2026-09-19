@@ -1766,6 +1766,23 @@ async fn finish(app: AppHandle, action: String) -> Result<Export, String> {
     do_finish(&app, &action)
 }
 
+/// Writes a finished process document from the bundle, no agent involved,
+/// and shows it in the file manager. `format` is "html" or "markdown".
+#[tauri::command]
+async fn export_document(app: AppHandle, state: State<'_, Shared>, format: String) -> Result<String, String> {
+    let fmt = DocFormat::parse(&format).ok_or("unknown format")?;
+    let path = {
+        let mut inner = state.lock().unwrap();
+        let session = inner.session.as_mut().ok_or_else(|| "nothing captured yet".to_string())?;
+        let p = export::write_document(session, &brand_dir(&app), fmt).map_err(|e| e.to_string())?;
+        inner.dirty = false;
+        p
+    };
+    let _ = app.opener().reveal_item_in_dir(&path);
+    let _ = app.emit("session-changed", ());
+    Ok(path.to_string_lossy().to_string())
+}
+
 #[tauri::command]
 fn copy_text(app: AppHandle, text: String) -> Result<(), String> {
     app.clipboard().write_text(text).map_err(|e| e.to_string())
@@ -2133,6 +2150,7 @@ fn main() {
             save_markup,
             remove_frame,
             finish,
+            export_document,
             copy_text,
             open_path,
             start_capture,

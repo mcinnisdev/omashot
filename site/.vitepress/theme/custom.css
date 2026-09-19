@@ -912,3 +912,8 @@
 :root:has(.VPSidebar) {
   --vp-layout-max-width: 100vw;
 }
+
+/* A visual beside the copy in a wide card keeps its own height. */
+.qc-card.wide > .visual {
+  align-self: start;
+}

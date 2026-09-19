@@ -17,7 +17,8 @@ async function closeSelf() {
   const w = getCurrentWindow();
   try {
     await w.close();
-  } catch {
+  } catch (err) {
+    void invoke("log_error", { message: `editor close failed, destroying: ${String(err)}` });
     await w.destroy();
   }
 }
@@ -323,10 +324,17 @@ async function writeMarks(): Promise<boolean> {
   if (review && !marksDirty) return true;
   selected = null;
   render();
-  const blob = await new Promise<Blob | null>((res) =>
-    canvas.toBlob(res, "image/png"),
-  );
-  if (!blob) return false;
+  let blob: Blob | null = null;
+  try {
+    blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+  } catch (err) {
+    report("export", err);
+    return false;
+  }
+  if (!blob) {
+    report("export", "empty image");
+    return false;
+  }
   const bytes = new Uint8Array(await blob.arrayBuffer());
   let bin = "";
   for (let i = 0; i < bytes.length; i += 0x8000) {
@@ -339,7 +347,7 @@ async function writeMarks(): Promise<boolean> {
       marks: JSON.stringify(marks),
     });
   } catch (err) {
-    title.textContent = String(err);
+    report("save", err);
     return false;
   }
   marksDirty = false;
@@ -419,15 +427,15 @@ function status(text: string) {
 async function quickSave(all: boolean) {
   if (done) return;
   done = true;
-  if (!(await writeMarks())) {
-    done = false;
-    return;
-  }
   try {
+    if (!(await writeMarks())) {
+      done = false;
+      return;
+    }
     await invoke("save_quick", { note: quickNote.value, all });
   } catch (err) {
     done = false;
-    status(String(err));
+    report("quick save", err);
     return;
   }
   await closeSelf();
@@ -444,9 +452,13 @@ async function quickCopyImage() {
 }
 
 async function quickDiscard() {
-  if (done) return;
+  // Discard always works, whatever state a failed save left behind.
   done = true;
-  await invoke("discard_quick");
+  try {
+    await invoke("discard_quick");
+  } catch (err) {
+    report("discard", err);
+  }
   await closeSelf();
 }
 
@@ -702,13 +714,24 @@ window.addEventListener("resize", () => {
 });
 
 /// Loads `path` and its marks onto the canvas.
+let imgUrl: string | null = null;
+
+/// Loads `path` and its marks onto the canvas. The image goes through a
+/// blob URL: an <img> straight from the asset protocol is cross-origin to
+/// the page, which taints the canvas and makes toBlob throw, so nothing
+/// could ever be saved.
 async function loadImage() {
   const markup = await invoke<Markup>("load_markup", { path });
   marks = markup.marks;
   marksDirty = false;
   selected = null;
   draft = null;
-  await new Promise<void>((resolve) => {
+  const resp = await fetch(`${convertFileSrc(markup.original)}?t=${Date.now()}`);
+  if (!resp.ok) throw new Error(`could not read ${markup.original}`);
+  const url = URL.createObjectURL(await resp.blob());
+  if (imgUrl) URL.revokeObjectURL(imgUrl);
+  imgUrl = url;
+  await new Promise<void>((resolve, reject) => {
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
@@ -719,8 +742,18 @@ async function loadImage() {
       render();
       resolve();
     };
-    img.src = `${convertFileSrc(markup.original)}?t=${Date.now()}`;
+    img.onerror = () => reject(new Error("image failed to decode"));
+    img.src = url;
   });
+}
+
+/// Something went wrong on a path the user cannot see; say so in the
+/// window and in the app log.
+function report(where: string, err: unknown) {
+  const msg = `${where}: ${String(err)}`;
+  void invoke("log_error", { message: `editor ${msg}` });
+  title.textContent = msg;
+  if (quick) status(msg);
 }
 
 async function boot() {

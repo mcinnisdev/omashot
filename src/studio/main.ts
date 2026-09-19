@@ -1095,8 +1095,23 @@ window.addEventListener("resize", fitCanvas);
 new ResizeObserver(fitCanvas).observe(stage);
 new ResizeObserver(drawFilm).observe(timeline);
 
-// The keystroke filter should know the user's own chords, whatever they are.
-void invoke<Record<string, string>>("get_hotkeys").then((h) => setOwnHotkeys(Object.values(h)));
+// The keystroke filter should know the user's own chords, whatever they
+// are, and every hint that names a chord shows the live one.
+void invoke<Record<string, string>>("get_hotkeys").then((h) => {
+  setOwnHotkeys(Object.values(h));
+  for (const el of document.querySelectorAll<HTMLElement>("[data-hk]")) {
+    const spec = h[el.dataset.hk ?? ""];
+    if (!spec) continue;
+    el.innerHTML = spec
+      .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl/Cmd")
+      .replace(/Super|Meta/g, "Win")
+      .replace(/Option/g, "Alt")
+      .replace(/Return/g, "Enter")
+      .split("+")
+      .map((k) => `<kbd>${k}</kbd>`)
+      .join("+");
+  }
+});
 
 const initial = params.get("project");
 if (initial) {

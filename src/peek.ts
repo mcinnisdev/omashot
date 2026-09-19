@@ -107,7 +107,86 @@ function chordFrom(e: KeyboardEvent): string | null {
 
 let draft: Hotkeys = { ...hk };
 
+// The keys that only work inside a window, for reference. Where one
+// names a global shortcut it reads the live binding.
+function windowKeys(): [string, [string, string][]][] {
+  return [
+    [
+      "Quick shot window",
+      [
+        ["Enter", "save the note and keep the batch open"],
+        ["Ctrl+Enter", "finish and hand off: copy every shot's path and note"],
+        ["Ctrl+Shift+C", "copy the marked-up image"],
+        ["Shift+Enter", "new line in the note"],
+        ["Esc", "keep the shot, no note"],
+        [keyLabel(hk.quick), "take another shot in the batch"],
+      ],
+    ],
+    [
+      "Note box (bundle capture)",
+      [
+        ["Enter", "save"],
+        ["Shift+Enter", "new line"],
+        ["Esc", "keep the shot with no note"],
+        ["Ctrl+E", "open the shot in the markup editor"],
+      ],
+    ],
+    [
+      "Review and markup",
+      [
+        ["M A H B S", "move, arrow, highlight, blur, step counter"],
+        ["← →", "previous / next shot (Ctrl+← → while typing)"],
+        ["Arrow keys", "nudge the selected mark; Shift for ten"],
+        ["Delete", "remove the selected mark"],
+        ["Ctrl+Z", "undo"],
+        ["Ctrl+S", "save"],
+        ["Esc", "deselect, then close"],
+      ],
+    ],
+    [
+      "Capture overlay",
+      [
+        ["Esc or right-click", "cancel"],
+        ["Enter", "start recording after adjusting the region"],
+      ],
+    ],
+    [
+      "Studio",
+      [
+        ["Space", "play / pause"],
+        ["← →", "step one second; Shift for five"],
+        ["I O", "video starts / ends at the playhead"],
+        ["X", "cut: once at the start of a stretch, once where it resumes"],
+        ["Delete", "remove the selected zoom or cut"],
+        [keyLabel(hk.zoom), "zoom in here / out, while recording"],
+      ],
+    ],
+  ];
+}
+
+function renderShortcutRef() {
+  const ref = document.getElementById("shortcut-ref") as HTMLDivElement;
+  ref.replaceChildren();
+  for (const [group, keys] of windowKeys()) {
+    const head = document.createElement("div");
+    head.className = "shortcut-group";
+    head.textContent = group;
+    ref.append(head);
+    for (const [k, what] of keys) {
+      const row = document.createElement("div");
+      row.className = "shortcut-ref-row";
+      const key = document.createElement("kbd");
+      key.textContent = k;
+      const desc = document.createElement("span");
+      desc.textContent = what;
+      row.append(key, desc);
+      ref.append(row);
+    }
+  }
+}
+
 function renderShortcuts() {
+  renderShortcutRef();
   shortcutRows.replaceChildren();
   for (const [id, label] of HOTKEY_LABELS) {
     const row = document.createElement("div");
@@ -260,8 +339,8 @@ async function render() {
     const empty = document.createElement("div");
     empty.className = "empty";
     empty.textContent = session
-      ? "Nothing captured yet. Name the bundle and its first group above if you like, then press the capture hotkey, drag a region, type what is wrong, and hit Enter."
-      : "Nothing captured yet. Press the capture hotkey, drag a region, type what is wrong, and hit Enter. Shots land in the current group until you start a new one.";
+      ? `Nothing captured yet. Name the bundle and its first group above if you like, then press ${keyLabel(hk.capture)}, drag a region, type what is wrong, and hit Enter.`
+      : `Nothing captured yet. Press ${keyLabel(hk.capture)}, drag a region, type what is wrong, and hit Enter. Shots land in the current group until you start a new one.`;
     body.append(empty);
     if (!session) return;
   }

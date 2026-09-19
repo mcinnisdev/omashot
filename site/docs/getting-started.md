@@ -14,7 +14,7 @@ After install, look for the coral scissors in the tray. Left-click it for the me
 
 The menu has three sections.
 
-**QACut** on its own is the quick lane: one screenshot, one note, pasted straight into an agent. Read [Quick shots](/docs/quick).
+**QACut Basic** is the quick lane: one screenshot, one note, pasted straight into an agent. Read [Quick shots](/docs/quick).
 
 **QACut Bundles** is the structured lane: screenshots, auto-captured sequences, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
 

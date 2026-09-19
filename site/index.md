@@ -39,14 +39,16 @@ titleTemplate: Screen capture that hands off
 </div>
 <div class="qc-bento" style="margin-top: 32px">
 <div class="qc-card">
-<span class="eyebrow">QACut</span>
+<span class="eyebrow">QACut Basic</span>
 <h3>Quick shots</h3>
-<p>For one tweak, or three. Drag, mark it up, note it. Ctrl+Enter puts the path and note on your clipboard for an agent; Copy image puts the marked-up screenshot on it for a person.</p>
+<p>One hotkey, one region, and the shot opens with the markup tools and a note beside it. Copy the image for a person, or the path and note for an agent.</p>
 <pre class="visual qc-bundle"><span class="l">~\QACut\Quick\2026-09-19_1015\01.png</span>
 The save button is clipped at
 125% scaling.</pre>
-<ul class="qc-chips">
-<li>Markup and blur</li><li>Copy image for a person</li><li>Batch a few, paste once</li>
+<ul class="qc-uses">
+<li><a href="/use-cases/quick-shots#copy-and-paste">Copy and paste</a></li>
+<li><a href="/use-cases/quick-shots#mark-up-copy-paste">Mark up, copy, paste</a></li>
+<li><a href="/use-cases/quick-shots#agent-feedback-loops">Agent feedback loops</a></li>
 </ul>
 <a class="qc-more" href="/use-cases/quick-shots">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
@@ -54,9 +56,12 @@ The save button is clipped at
 <div>
 <span class="eyebrow">QACut Bundles</span>
 <h3>Bundles for bigger jobs</h3>
-<p>Create structured groups of screenshots and notes, and hand them off to an agent to work from. Auto-capture records you doing a process, with a still at every click.</p>
-<ul class="qc-chips">
-<li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Export a doc, no agent needed</li><li>Brand kit</li><li>ZIP for chat</li>
+<p>Structured groups of screenshots and notes. Export a finished document straight from them, or hand the folder to an agent to work from.</p>
+<ul class="qc-uses">
+<li><a href="/use-cases/bundles#organize-mark-up-notate-export">Organize, mark up, notate, export to a doc</a></li>
+<li><a href="/use-cases/bundles#automated-process-capture-edit-export">Automated process capture, edit, export</a></li>
+<li><a href="/use-cases/bundles#send-to-an-agent-with-prompt-and-brand-kit-for-polish">Send to an agent with prompt and brand kit</a></li>
+<li><a href="/use-cases/bundles#organize-mark-up-notate-a-task-list-for-agents">A task list for agents</a></li>
 </ul>
 <a class="qc-more" href="/use-cases/bundles">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
@@ -70,17 +75,20 @@ The save button is clipped at
 Clipped at 125% scaling; label wraps.
 <span></span>
 <span class="h">### 1.2</span>
-<span class="l">![1.2](01-settings-page/02.gif)</span>
+<span class="l">![1.2](01-settings-page/02.png)</span>
 Toggle animates but the state never saves.
-<span class="m">Key frames: 0 s start · 3 s click at 412,188 · 9 s end</span></pre>
+<span class="m">_auto-captured at 3 s, click at 412,188_</span></pre>
 </div>
 <div class="qc-card wide span3">
 <div>
 <span class="eyebrow">QACut Studio</span>
 <h3>Polished screen recordings</h3>
 <p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble, your voice stays in sync. Trim, cut, export to MP4.</p>
-<ul class="qc-chips">
-<li>Follow zoom</li><li>Click ripples</li><li>Key badges</li><li>Camera bubble</li><li>Narration</li><li>Title and logo</li><li>Trim and cut</li><li>MP4 export</li>
+<ul class="qc-uses">
+<li><a href="/use-cases/studio#create-polished-screen-recordings">Create polished screen recordings</a></li>
+<li><a href="/use-cases/studio#include-your-microphone">Include your microphone</a></li>
+<li><a href="/use-cases/studio#include-your-camera">Include your camera</a></li>
+<li><a href="/use-cases/studio#include-your-brand">Include your brand</a></li>
 </ul>
 <a class="qc-more" href="/use-cases/studio">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
@@ -140,7 +148,7 @@ Toggle animates but the state never saves.
 <div class="center">
 <span class="eyebrow">Agent friendly</span>
 <h2>A bundle is a folder an agent can read</h2>
-<p class="lead">No API, no plugin. Markdown that explains itself, images linked relatively, and a prompt written for the job: fix the issues, write the process doc, or your own.</p>
+<p class="lead">No API, no plugin. Markdown that explains itself, images linked relatively, and a prompt written for the job: fix the issues, polish the process doc, or your own. And when you don't need an agent, Export doc writes the document itself.</p>
 </div>
 <div class="qc-split" style="margin-top: 32px">
 <div class="qc-card">
@@ -180,6 +188,7 @@ any recording, before changing anything."</pre>
 <tr><td>Cursor smoothing and follow zoom</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="yes">Yes</td></tr>
 <tr><td>Zooms you mark while recording</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
 <tr><td>Step documents from clicks</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td></tr>
+<tr><td>Marked-up screenshot to the clipboard</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
 <tr><td>Bundles an AI agent can act on</td><td class="yes">Yes</td><td class="no">No</td><td class="some">Docs only</td><td class="no">No</td></tr>
 <tr><td>Your brand on the output</td><td class="yes">Yes</td><td class="some">Paid</td><td class="some">Paid</td><td class="some">Partial</td></tr>
 <tr><td>Open source</td><td class="yes">MIT</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>

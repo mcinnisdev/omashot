@@ -631,14 +631,14 @@ fn disarm_zoom_key(app: &AppHandle) {
 }
 
 /// The tray menu, built from settings so accelerator labels and toggles
-/// are always current. Three tools in one tray: QACut (quick shots), QACut
+/// are always current. Three tools in one tray: QACut Basic (quick shots), QACut
 /// Docs (bundles) and QACut Studio; disabled items serve as headers.
 fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let st = studio::settings::Settings::load(&base_dir(app));
     let hk = &st.hotkeys;
     let acc = |s: &str| if s.trim().is_empty() { None } else { Some(s.trim().to_string()) };
 
-    let head_qacut = MenuItem::with_id(app, "h1", "QACut", false, None::<&str>)?;
+    let head_qacut = MenuItem::with_id(app, "h1", "QACut Basic", false, None::<&str>)?;
     let head_docs = MenuItem::with_id(app, "h4", "QACut Bundles", false, None::<&str>)?;
     let quick_i = MenuItem::with_id(app, "quick", "Quick shot", true, acc(&hk.quick))?;
     let quick_finish_i =

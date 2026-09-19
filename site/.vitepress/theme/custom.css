@@ -661,19 +661,85 @@
   line-height: 1.5;
 }
 
-/* Nav dropdown: a titled group with roomier, bolder rows. */
+/* Use cases: a three-column mega menu. VitePress renders each nav group
+   as a VPMenuGroup; laying the groups out side by side is all it takes. */
 .VPFlyout .VPMenu {
-  padding: 8px;
+  padding: 18px 20px 16px;
   overflow: hidden;
 }
-.VPFlyout .VPMenuLink .link {
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+.VPFlyout .VPMenu .items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(230px, 1fr));
+  gap: 0 28px;
+}
+.VPFlyout .VPMenuGroup,
+.VPFlyout .VPMenuGroup:first-child,
+.VPFlyout .VPMenuGroup + .VPMenuGroup {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+.VPFlyout .VPMenuGroup .title {
+  padding: 0 10px 6px;
   line-height: 1.4;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vp-c-brand-1);
+}
+.VPFlyout .VPMenuLink .link {
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: normal;
 }
 .VPFlyout .VPMenuLink .link:hover {
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+
+/* What each mode is for: the use-case list on a bento card. */
+.qc-uses {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.qc-card ul.qc-uses,
+.qc-card ul.qc-uses li {
+  list-style: none;
+  margin: 0;
+}
+.qc-card ul.qc-uses {
+  padding: 0;
+  margin-top: 12px;
+}
+.qc-uses a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--vp-c-text-1);
+  text-decoration: none !important;
+}
+.qc-uses a::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--vp-c-brand-1);
+}
+.qc-uses a:hover {
   background: var(--vp-c-brand-soft);
   color: var(--vp-c-brand-1);
 }

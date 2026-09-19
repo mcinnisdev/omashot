@@ -1,6 +1,6 @@
 # Quick shots
 
-Not everything needs a bundle. A quick shot is one screenshot and one note, saved on its own and pasted straight into whatever agent you are talking to. Or, marked up and copied as an image, sent straight to a person.
+QACut Basic is the quick lane. A quick shot is one screenshot and one note, saved on its own and pasted straight into whatever agent you are talking to. Or, marked up and copied as an image, sent straight to a person.
 
 ## Taking one
 

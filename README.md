@@ -32,11 +32,11 @@ Free and open source under the [MIT License](LICENSE). Windows 10 (2004+) or 11,
 
 | | Mode | For | How |
 | --- | --- | --- | --- |
-| **1** | **QACut** · quick shots | One fix, or three, for an agent; or a marked-up screenshot for a person. | `Ctrl+Shift+1`, drag, mark up, note. `Ctrl+Enter` copies the path and note for an agent; **Copy image** puts the marked-up PNG on the clipboard for a chat or email. Keep going to build a batch and paste them together. |
+| **1** | **QACut Basic** · quick shots | One fix, or three, for an agent; or a marked-up screenshot for a person. | `Ctrl+Shift+1`, drag, mark up, note. `Ctrl+Enter` copies the path and note for an agent; **Copy image** puts the marked-up PNG on the clipboard for a chat or email. Keep going to build a batch and paste them together. |
 | **2** | **QACut Bundles** · bigger jobs | A fix list across a whole app, or the raw material for a process doc or tutorial. | `Ctrl+Shift+2` for a screenshot, `Ctrl+Shift+3` to auto-capture a process. Group by page, note each shot, finish, hand the folder to an agent with a prompt written for the job. |
 | **R** | **QACut Studio** · recordings for people | A walkthrough someone will actually watch. | `Ctrl+Shift+R` records the screen with the cursor as data. Get it back smoothed and enlarged, with click ripples, follow zooms, key badges, a camera bubble and narration. Trim, cut, export to MP4. |
 
-## QACut: quick shots
+## QACut Basic: quick shots
 
 `Ctrl+Shift+1` freezes the screen. Drag a region, type a note, `Enter` saves it. `Ctrl+Enter` finishes and hands off: the screenshot's path and your note land on the clipboard.
 

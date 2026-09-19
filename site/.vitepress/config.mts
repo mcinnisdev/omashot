@@ -33,9 +33,32 @@ export default defineConfig({
       {
         text: "Use cases",
         items: [
-          { text: "QACut", link: "/use-cases/quick-shots" },
-          { text: "QACut Bundles", link: "/use-cases/bundles" },
-          { text: "QACut Studio", link: "/use-cases/studio" },
+          {
+            text: "QACut Basic",
+            items: [
+              { text: "Quick shot: copy and paste", link: "/use-cases/quick-shots#copy-and-paste" },
+              { text: "Quick shot: mark up, copy, paste", link: "/use-cases/quick-shots#mark-up-copy-paste" },
+              { text: "Quick shot: agent feedback loops", link: "/use-cases/quick-shots#agent-feedback-loops" },
+            ],
+          },
+          {
+            text: "QACut Bundles",
+            items: [
+              { text: "Organize, mark up, notate, export", link: "/use-cases/bundles#organize-mark-up-notate-export" },
+              { text: "Automated process capture, edit, export", link: "/use-cases/bundles#automated-process-capture-edit-export" },
+              { text: "Send to an agent with prompt and brand kit", link: "/use-cases/bundles#send-to-an-agent-with-prompt-and-brand-kit-for-polish" },
+              { text: "A task list for agents", link: "/use-cases/bundles#organize-mark-up-notate-a-task-list-for-agents" },
+            ],
+          },
+          {
+            text: "QACut Studio",
+            items: [
+              { text: "Create polished screen recordings", link: "/use-cases/studio#create-polished-screen-recordings" },
+              { text: "Include your microphone", link: "/use-cases/studio#include-your-microphone" },
+              { text: "Include your camera", link: "/use-cases/studio#include-your-camera" },
+              { text: "Include your brand", link: "/use-cases/studio#include-your-brand" },
+            ],
+          },
         ],
       },
       { text: "Download", link: "https://github.com/mcinnisdev/qacut/releases/latest" },
@@ -46,7 +69,7 @@ export default defineConfig({
         {
           text: "Use cases",
           items: [
-            { text: "QACut", link: "/use-cases/quick-shots" },
+            { text: "QACut Basic", link: "/use-cases/quick-shots" },
             { text: "QACut Bundles", link: "/use-cases/bundles" },
             { text: "QACut Studio", link: "/use-cases/studio" },
           ],
@@ -61,7 +84,7 @@ export default defineConfig({
           ],
         },
         {
-          text: "QACut",
+          text: "QACut Basic",
           items: [{ text: "Quick shots", link: "/docs/quick" }],
         },
         {

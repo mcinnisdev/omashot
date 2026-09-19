@@ -1,29 +1,43 @@
-# QACut: quick shots
+# QACut Basic: quick shots
 
-**For:** the moment you spot something on screen and need to show it to someone, whether that is an agent that should fix it or a person who asked "which button?"
+One hotkey, one region, and the shot opens large with the markup tools and a note beside it. Where it goes next is up to you: the clipboard as an image, or an agent as a path and a note.
 
-You are reviewing a page. The save button is clipped. You could describe it in words, or you could show it. `Ctrl+Shift+1`, drag the button, type "clipped at 125% scaling", `Ctrl+Enter`, paste. The agent gets a path it can open and the note that tells it what to do.
+## Copy and paste
 
-## The flow
+**For:** "Here's what I'm seeing." A screenshot into a chat, an email or a ticket, with nothing else in the way.
 
 1. `Ctrl+Shift+1`. The screen freezes.
-2. Drag the region that matters.
-3. Type what is wrong, or what you want.
-4. `Ctrl+Enter`. Paste into your agent.
+2. Drag the region.
+3. **Copy image**, or `Ctrl+Shift+C`. Paste.
 
-Ten seconds, nothing to name. The shot opens large with the markup tools, so an arrow or a blur is one drag away before you send it.
+The shot is also saved in the batch folder under `~/QACut/Quick/`, so it's still there if you need it later. `Esc` closes the window and keeps it.
 
-## For a person
+## Mark up, copy, paste
 
-Same start. Draw the arrow, highlight the field, blur the customer's name, then **Copy image** (`Ctrl+Shift+C`). The marked-up screenshot is on your clipboard as an image: paste it into the chat, the email, the ticket. No folder to find, no file to attach.
+**For:** "Which button do you mean?" The same screenshot with an arrow on the button, the field highlighted, and the customer's name blurred.
 
-## A few at once
+1. `Ctrl+Shift+1`, drag the region.
+2. Pick a tool along the top: **Arrow**, **Highlight**, **Blur**, **Step** counter. Draw. `Ctrl+Z` undoes.
+3. **Copy image**. Paste.
 
-Three small things on the same page? Take them one after another, pressing `Enter` on each note instead of `Ctrl+Enter`. The note box counts the batch. On the last one, `Ctrl+Enter` copies all of them with their notes, so the agent gets one message with three screenshots and three instructions.
+Blur is pixelation, so the text underneath is really gone, not softened. The untouched original stays beside the file as `01.orig.png` in case you need it.
 
-The batch then closes. Your next quick shot starts a fresh folder, and an agent you talk to later never sees the shots you already had fixed.
+## Agent feedback loops
 
-## What the agent gets
+**For:** the moment you spot a UI problem while an agent is already working with you, and you want it fixed without breaking your stride.
+
+1. `Ctrl+Shift+1`, drag the button that's wrong.
+2. Type what's wrong in the note.
+3. `Ctrl+Enter`. Paste into your agent.
+
+The agent gets a path it can open and the note that tells it what to do:
+
+```
+C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
+The save button is clipped at 125% scaling.
+```
+
+Three small things on the same page? Press `Enter` on each note instead of `Ctrl+Enter` and keep going. The window counts the batch. On the last one, `Ctrl+Enter` copies all of them with their notes, so the agent gets one message with three screenshots and three instructions:
 
 ```
 3 quick shots in C:\Users\nick\QACut\Quick\2026-09-19_101512. Each PNG has
@@ -39,10 +53,10 @@ C:\Users\nick\QACut\Quick\2026-09-19_101512\03.png
 Align this label with the field above it.
 ```
 
-Plain paths and plain text. It works with a CLI agent that can open files, and the folder is small enough to zip and drop into a chat.
+The batch then closes. Your next quick shot starts a fresh folder, and an agent you talk to later never sees the shots you already had fixed.
 
 ## When to step up
 
-When the list grows past a handful, or spans several pages, or you want the agent to write documentation rather than fix things, switch to [QACut Bundles](/use-cases/bundles). Groups, master notes and a purpose-specific prompt keep a big job legible.
+When the list grows past a handful, or spans several pages, or you want a document rather than a fix, switch to [QACut Bundles](/use-cases/bundles). Groups, master notes and a purpose-specific prompt keep a big job legible.
 
 [How quick shots work in detail](/docs/quick)

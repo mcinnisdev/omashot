@@ -1,0 +1,55 @@
+name: Bug report
+description: Something broke, looks wrong, or does not do what the docs say.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. A quick shot of the problem (`Ctrl+Shift+1`, mark it up, **Copy image**, paste it here) is worth a paragraph.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What went wrong, in a sentence or two.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What should have happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps
+      description: What you pressed, in order.
+      placeholder: |
+        1. Press Ctrl+Shift+2 and drag a region
+        2. Type a note and press Enter
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: QACut version
+      description: In the installer's file name, or on the releases page.
+      placeholder: "2.2.0"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Windows 10 or 11, and the build if you know it (Settings → System → About).
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: A screenshot or quick shot
+      description: Paste an image here. Ctrl+Shift+1, mark it up, Copy image, paste.

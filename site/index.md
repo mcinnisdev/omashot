@@ -16,7 +16,13 @@ titleTemplate: Screen capture that hands off
 <a class="qc-btn primary" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
 <a class="qc-btn outline" href="/docs/getting-started">Getting started</a>
 </div>
-<p class="qc-fine">Windows 10 (2004+) or 11, x64. MIT licensed. No telemetry, no sign-in.</p>
+<ul class="qc-trust">
+<li>Free</li>
+<li>Open source (MIT)</li>
+<li>Windows 10 and 11</li>
+<li>No account</li>
+<li>No telemetry</li>
+</ul>
 </div>
 <div class="qc-stage" aria-label="A QACut Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
 <img class="logo" src="/logo.png" alt="" />
@@ -120,6 +126,13 @@ Toggle animates but the state never saves.
 </div>
 </div>
 </div>
+<div class="qc-cta-row">
+<p>Ready when you are.</p>
+<div class="qc-actions">
+<a class="qc-btn primary" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
+<a class="qc-btn outline" href="/docs/getting-started">See the docs</a>
+</div>
+</div>
 </section>
 <section>
 <div class="center">
@@ -141,6 +154,182 @@ Toggle animates but the state never saves.
 <div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>R</kbd></div>
 <h3>Record</h3>
 <p>Drag a region, hit record, edit in the studio.</p>
+</div>
+</div>
+</section>
+<section class="qc-spot">
+<div class="qc-spot-copy">
+<span class="eyebrow">QACut Basic</span>
+<h2>Mark it up. Copy it. Paste it.</h2>
+<p class="lead">The quick shot opens in the editor with arrow, highlight, blur and step tools, and a note beside it. Copy image puts the marked-up PNG on the clipboard for a chat, an email or a ticket; Ctrl+Enter copies the path and note for an agent.</p>
+<div class="qc-spot-links">
+<a class="qc-more" href="/docs/quick">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+</div>
+</div>
+<div class="qc-spot-visual">
+<div class="qc-mock" role="img" aria-label="The quick shot window: a toolbar with Arrow selected, a screenshot with a coral arrow pointing at a button and a blurred line, and a note panel with Save and copy path and Copy image buttons">
+<div class="qc-win qc-quick">
+<div class="tb"><span>Move</span><span class="on">Arrow</span><span>Highlight</span><span>Blur</span><span>Step</span></div>
+<div class="body">
+<div class="qc-ui">
+<div class="bar"></div>
+<div class="side"><b></b><b></b><b></b><b></b><b></b></div>
+<div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div>
+<span class="btn">Unlink this PC</span>
+<div class="blur" style="left: 30%; top: 40%; width: 34%; height: 7%"></div>
+<svg class="mark" viewBox="0 0 400 300" aria-hidden="true"><path d="M340 90 C 352 150, 305 190, 251 204" fill="none" stroke="#ff5b5b" stroke-width="4" stroke-linecap="round"/><polygon points="236,208 249.2,196 253.6,211.4" fill="#ff5b5b"/></svg>
+</div>
+<div class="panel">
+<span class="lbl">Note</span>
+<div class="note">The save button is clipped at 125% scaling.</div>
+<span class="b">Save + copy path</span>
+<span class="b primary">Copy image</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="qc-spot flip">
+<div class="qc-spot-copy">
+<span class="eyebrow">QACut Bundles</span>
+<h2>Auto-capture a process. Clean it up in one window.</h2>
+<p class="lead">Ctrl+Shift+3 takes a still at the start, at every click and at the end, each ringed where the click landed. The review window then walks them with markup, a note, prev and next, and delete for the ones that are noise.</p>
+<div class="qc-spot-links">
+<a class="qc-more" href="/docs/qacut">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-btn outline" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
+</div>
+</div>
+<div class="qc-spot-visual">
+<div class="qc-mock" role="img" aria-label="Six auto-captured stills on a timeline, three ringed where a click landed and one deleted, above the review window with a note, Prev and Next, and Delete shot">
+<div class="qc-strip">
+<div class="shot"><div class="frame"><div class="qc-ui tiny"><div class="bar"></div><div class="side"><b></b><b></b><b></b><b></b></div><div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div><span class="btn"></span></div></div><span>0 s start</span></div>
+<div class="shot"><div class="frame"><div class="qc-ui tiny"><div class="bar"></div><div class="side"><b></b><b></b><b></b><b></b></div><div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div><span class="btn"></span><div class="ring" style="left: 12%; top: 38%"></div></div></div><span>3 s click</span></div>
+<div class="shot del"><div class="frame"><div class="qc-ui tiny"><div class="bar"></div><div class="side"><b></b><b></b><b></b><b></b></div><div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div><span class="btn"></span><div class="ring" style="left: 60%; top: 30%"></div></div></div><span>7 s click</span></div>
+<div class="shot"><div class="frame"><div class="qc-ui tiny"><div class="bar"></div><div class="side"><b></b><b></b><b></b><b></b></div><div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div><span class="btn"></span></div></div><span>12 s enter</span></div>
+<div class="shot"><div class="frame"><div class="qc-ui tiny"><div class="bar"></div><div class="side"><b></b><b></b><b></b><b></b></div><div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div><span class="btn"></span><div class="ring" style="left: 45%; top: 78%"></div></div></div><span>15 s click</span></div>
+<div class="shot"><div class="frame"><div class="qc-ui tiny"><div class="bar"></div><div class="side"><b></b><b></b><b></b><b></b></div><div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div><span class="btn"></span></div></div><span>19 s end</span></div>
+</div>
+<div class="qc-win qc-review">
+<div class="body">
+<div class="qc-ui">
+<div class="bar"></div>
+<div class="side"><b></b><b></b><b></b><b></b><b></b></div>
+<div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div>
+<span class="btn">Unlink this PC</span>
+<div class="ring" style="left: 47%; top: 78%"></div>
+</div>
+<div class="panel">
+<span class="lbl">Shot 4 of 5</span>
+<div class="note">Click Unlink this PC, then confirm.</div>
+<div class="nav"><span class="b">&larr; Prev</span><span class="b">Next &rarr;</span></div>
+<span class="b danger">Delete shot</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="qc-spot">
+<div class="qc-spot-copy">
+<span class="eyebrow">QACut Bundles</span>
+<h2>The document writes itself.</h2>
+<p class="lead">Export doc turns groups into sections and notes into numbered steps, with the image under each. One self-contained web page you can send, or Markdown for a docs platform; hand it to an agent only to polish the prose.</p>
+<div class="qc-spot-links">
+<a class="qc-more" href="/docs/qacut#handing-off">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+</div>
+</div>
+<div class="qc-spot-visual">
+<div class="qc-mock light" role="img" aria-label="An exported process document: a title, a section heading, and numbered steps each with a line of instruction and a screenshot">
+<div class="qc-doc">
+<div class="title">Unlink OneDrive from this computer</div>
+<div class="sec">Find the account</div>
+<div class="step"><i>1</i><div><p>Open OneDrive from the tray and choose Settings, then the Account tab.</p><div class="ph"></div></div></div>
+<div class="step"><i>2</i><div><p>Click Unlink this PC and confirm.</p><div class="ph"></div></div></div>
+</div>
+</div>
+</div>
+</section>
+<section class="qc-spot flip">
+<div class="qc-spot-copy">
+<span class="eyebrow">QACut Studio</span>
+<h2>Everything about the video is still editable after you stop.</h2>
+<p class="lead">The cursor, clicks and keys are recorded as data and drawn back in, so zooms, trims, cuts, key badges, the camera bubble, the title and the logo are all controls in the studio. Export writes exactly what you previewed.</p>
+<div class="qc-spot-links">
+<a class="qc-more" href="/docs/studio">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-btn outline" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
+</div>
+</div>
+<div class="qc-spot-visual">
+<div class="qc-mock qc-studio" role="img" aria-label="The studio: a preview frame with cursor, ripple, keystroke badge and camera bubble, an inspector with zoom, cursor, keys, camera and frame settings, and a timeline with zoom blocks and a cut">
+<div class="qc-stage mini" aria-hidden="true">
+<img class="logo" src="/logo.png" alt="" />
+<div class="title">Add a printer in Windows 11</div>
+<div class="win">
+<div class="bar"><i></i><i></i><i></i></div>
+<div class="side"><b></b><b></b><b></b><b></b><b></b></div>
+<div class="main"><b class="w1"></b><b class="w2"></b><b class="w3"></b><div class="field"></div><span class="btn">Add device</span></div>
+</div>
+<div class="ripple"></div>
+<svg class="cursor" viewBox="0 0 20 20"><path d="M0 0v16l4.2-3.4L7.2 19l3-1.3-2.9-6.3h5.1z" fill="#fff" stroke="rgba(0,0,0,.9)" stroke-width="1.3" stroke-linejoin="round"/></svg>
+<div class="keys">Ctrl+Space</div>
+<div class="cam"></div>
+</div>
+<div class="qc-inspector" aria-hidden="true">
+<div class="row"><b>Zoom</b><span>follow cursor &middot; tightness</span><i class="slider"></i></div>
+<div class="row"><b>Cursor</b><span>size 2.0&times; &middot; ripple on</span></div>
+<div class="row"><b>Keys</b><span>shortcuts only</span></div>
+<div class="row"><b>Camera</b><span>circle &middot; bottom right</span></div>
+<div class="row"><b>Frame</b><span>padding 48 &middot; radius 12 &middot; title on</span></div>
+</div>
+<div class="qc-timeline" aria-hidden="true">
+<div class="film"></div>
+<div class="cut" style="left: 44%; width: 9%"></div>
+<div class="zoom" style="left: 12%; width: 14%"></div>
+<div class="zoom" style="left: 31%; width: 10%"></div>
+<div class="zoom" style="left: 60%; width: 18%"></div>
+<div class="click" style="left: 16%"></div><div class="click" style="left: 23%"></div><div class="click" style="left: 35%"></div><div class="click" style="left: 66%"></div><div class="click" style="left: 74%"></div>
+<div class="key" style="left: 70%"></div><div class="key" style="left: 83%"></div>
+<div class="handle" style="left: 5%"></div><div class="handle" style="left: 93%"></div>
+<div class="head"></div>
+</div>
+</div>
+</div>
+</section>
+<section class="qc-spot">
+<div class="qc-spot-copy">
+<span class="eyebrow">Prompt library</span>
+<h2>Every prompt is a template.</h2>
+<p class="lead">The six built-in clipboard texts can be rewritten and reset, and you can add your own: quick-shot prompts that wrap the shots, and bundle prompts that are the whole instruction, picked by name before a hand-off.</p>
+<div class="qc-spot-links">
+<a class="qc-more" href="/docs/prompts">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+</div>
+</div>
+<div class="qc-spot-visual">
+<div class="qc-mock" role="img" aria-label="The prompt library window: a list of six built-in prompts and two of your own, with the Fix issues prompt open in an editor showing its placeholder chips, its text and a preview with sample values">
+<div class="qc-win qc-lib">
+<div class="list">
+<div class="hd">Built in</div>
+<span>Quick shot: one shot</span>
+<span>Quick shot: a batch</span>
+<span class="on">Bundle: Fix issues</span>
+<span>Bundle: Write process doc</span>
+<span>Process doc as Markdown</span>
+<span>Process doc as web page</span>
+<div class="hd">Yours</div>
+<span>Tailwind refactor<em>bundle</em></span>
+<span>Ask for a diff<em>quick shot</em></span>
+</div>
+<div class="editor">
+<div class="name">Bundle: Fix issues</div>
+<ul class="qc-chips"><li>{location}</li><li>{root}</li><li>{name}</li></ul>
+<pre>Work through the QA bundle at <span class="l">{location}</span>. Start with bundle.md: each group is a page or area, and each screenshot's note says what is wrong. Open each screenshot before changing anything.</pre>
+<div class="pv">
+<div class="hd">Preview, with sample values</div>
+<pre>Work through the QA bundle at C:\Users\nick\QACut\2026-09-17_1430-settings-review. Start with bundle.md: each group is a page or area, and each screenshot's note says what is wrong. Open each screenshot before changing anything.</pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>
@@ -197,6 +386,30 @@ any recording, before changing anything."</pre>
 </table>
 </div>
 <p class="qc-note">Public plans as of September 2026. They are good tools; they were not built to hand work to an agent.</p>
+</section>
+<section>
+<div class="center">
+<span class="eyebrow">Built in the open</span>
+<h2>Tell us what to build next.</h2>
+<p class="lead">Bugs, ideas and hellos all land with the person who writes the code. A quick shot of the problem is the best bug report there is.</p>
+</div>
+<div class="qc-bento qc-open" style="margin-top: var(--qc-section-gap)">
+<a class="qc-card qc-open-card" href="https://github.com/mcinnisdev/qacut/issues/new?template=bug_report.yml">
+<span class="eyebrow">Something broke</span>
+<h3>Report a bug</h3>
+<p>What happened, what you expected, and a marked-up screenshot. The form asks for exactly that.</p>
+</a>
+<a class="qc-card qc-open-card" href="https://github.com/mcinnisdev/qacut/issues/new?template=feature_request.yml">
+<span class="eyebrow">Something missing</span>
+<h3>Request a feature</h3>
+<p>The problem you have, what would solve it, and which mode it belongs to.</p>
+</a>
+<a class="qc-card qc-open-card" href="mailto:hello@qacut.com">
+<span class="eyebrow">Anything else</span>
+<h3>Say hello</h3>
+<p>hello@qacut.com, or @qa_cut on X. Release notes live in the <span class="qc-inline-link">changelog</span>.</p>
+</a>
+</div>
 </section>
 <section>
 <div class="qc-oss">

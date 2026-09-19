@@ -61,6 +61,8 @@ export default defineConfig({
           },
         ],
       },
+      { text: "Changelog", link: "/changelog" },
+      { text: "Feedback", link: "/feedback" },
       { text: "Download", link: "https://github.com/mcinnisdev/qacut/releases/latest" },
       { text: "GitHub", link: "https://github.com/mcinnisdev/qacut" },
     ],
@@ -101,11 +103,11 @@ export default defineConfig({
         },
       ],
     },
-    socialLinks: [{ icon: "github", link: "https://github.com/mcinnisdev/qacut" }],
-    footer: {
-      message: "Free and open source under the MIT License.",
-      copyright: "© 2026 Nick McInnis",
-    },
+    socialLinks: [
+      { icon: "github", link: "https://github.com/mcinnisdev/qacut" },
+      { icon: "x", link: "https://x.com/qa_cut" },
+    ],
+    // The footer is Footer.vue, mounted in theme/index.ts.
     search: { provider: "local" },
   },
 });

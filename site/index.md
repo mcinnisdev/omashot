@@ -182,17 +182,17 @@ any recording, before changing anything."</pre>
 <table class="qc-compare">
 <thead><tr><th></th><th>QACut</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
 <tbody>
-<tr><td>Runs on your machine, no upload</td><td class="yes">Yes</td><td class="no">Cloud</td><td class="no">Cloud</td><td class="yes">Yes</td></tr>
-<tr><td>No account required</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="some">License</td></tr>
-<tr><td>Camera bubble and narration</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td></tr>
-<tr><td>Cursor smoothing and follow zoom</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="yes">Yes</td></tr>
-<tr><td>Zooms you mark while recording</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
-<tr><td>Step documents from clicks</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td></tr>
-<tr><td>Marked-up screenshot to the clipboard</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
-<tr><td>Bundles an AI agent can act on</td><td class="yes">Yes</td><td class="no">No</td><td class="some">Docs only</td><td class="no">No</td></tr>
-<tr><td>Your brand on the output</td><td class="yes">Yes</td><td class="some">Paid</td><td class="some">Paid</td><td class="some">Partial</td></tr>
-<tr><td>Open source</td><td class="yes">MIT</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
-<tr class="total"><td>Price</td><td class="yes">Free</td><td class="some">Per seat</td><td class="some">Per seat</td><td class="some">One-time</td></tr>
+<tr><td>Runs on your machine, no upload</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">Cloud</td><td class="no" data-col="Scribe">Cloud</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
+<tr><td>No account required</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="some" data-col="Screen Studio">License</td></tr>
+<tr><td>Camera bubble and narration</td><td class="yes" data-col="QACut">Yes</td><td class="yes" data-col="Loom">Yes</td><td class="no" data-col="Scribe">No</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
+<tr><td>Cursor smoothing and follow zoom</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
+<tr><td>Zooms you mark while recording</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr><td>Step documents from clicks</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">No</td><td class="yes" data-col="Scribe">Yes</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr><td>Marked-up screenshot to the clipboard</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr><td>Bundles an AI agent can act on</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">No</td><td class="some" data-col="Scribe">Docs only</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr><td>Your brand on the output</td><td class="yes" data-col="QACut">Yes</td><td class="some" data-col="Loom">Paid</td><td class="some" data-col="Scribe">Paid</td><td class="some" data-col="Screen Studio">Partial</td></tr>
+<tr><td>Open source</td><td class="yes" data-col="QACut">MIT</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr class="total"><td>Price</td><td class="yes" data-col="QACut">Free</td><td class="some" data-col="Loom">Per seat</td><td class="some" data-col="Scribe">Per seat</td><td class="some" data-col="Screen Studio">One-time</td></tr>
 </tbody>
 </table>
 </div>

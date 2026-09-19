@@ -81,6 +81,7 @@ export default defineConfig({
           items: [
             { text: "Getting started", link: "/docs/getting-started" },
             { text: "Keyboard shortcuts", link: "/docs/shortcuts" },
+            { text: "Prompt library", link: "/docs/prompts" },
           ],
         },
         {

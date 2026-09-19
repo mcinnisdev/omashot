@@ -34,7 +34,7 @@ No video is made. Agents can't do anything with one, and recordings for people a
 3. **Copy agent prompt**. The instruction has the folder path filled in and tells the agent to match the brand kit, which rides along inside the bundle.
 4. Paste into a CLI agent. For a chat agent that only takes uploads, **Save ZIP for chat** packages the folder and copies a prompt that says "the attached ZIP".
 
-The agent reads `bundle.md`, opens the images in order, and writes the document your notes describe.
+The agent reads `bundle.md`, opens the images in order, and writes the document your notes describe. The prompt itself is yours to edit, and you can save your own under other names in the [Prompt library](/docs/prompts); they show up in the purpose menu.
 
 ## Organize, mark up, notate a task list for agents
 

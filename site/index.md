@@ -148,7 +148,7 @@ Toggle animates but the state never saves.
 <div class="center">
 <span class="eyebrow">Agent friendly</span>
 <h2>A bundle is a folder an agent can read</h2>
-<p class="lead">No API, no plugin. Markdown that explains itself, images linked relatively, and a prompt written for the job: fix the issues, polish the process doc, or your own. And when you don't need an agent, Export doc writes the document itself.</p>
+<p class="lead">No API, no plugin. Markdown that explains itself, images linked relatively, and a prompt written for the job: fix the issues, polish the process doc, or your own. Every prompt is a template you can edit in the <a href="/docs/prompts">Prompt library</a>, alongside the ones you add yourself. And when you don't need an agent, Export doc writes the document itself.</p>
 </div>
 <div class="qc-split" style="margin-top: 32px">
 <div class="qc-card">

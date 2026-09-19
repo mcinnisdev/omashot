@@ -55,6 +55,8 @@ Align this label with the field above it.
 
 The batch then closes. Your next quick shot starts a fresh folder, and an agent you talk to later never sees the shots you already had fixed.
 
+If you always want the same instruction around the shots, save it once in the [Prompt library](/docs/prompts) and pick it from **Hand off as** above the note.
+
 ## When to step up
 
 When the list grows past a handful, or spans several pages, or you want a document rather than a fix, switch to [QACut Bundles](/use-cases/bundles). Groups, master notes and a purpose-specific prompt keep a big job legible.

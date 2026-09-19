@@ -44,7 +44,7 @@ const external = (href: string) => /^https?:/.test(href);
     <div class="qc-footer-inner">
       <div class="qc-footer-brand">
         <a href="/" class="qc-footer-logo" aria-label="QACut home">
-          <img src="/logo.png" alt="" />
+          <img src="/logo.png" alt="" width="256" height="256" />
           <span><span class="qa">QA</span>Cut</span>
         </a>
         <p class="qc-footer-tag">Screen capture that hands off.</p>

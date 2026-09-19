@@ -170,12 +170,13 @@
 .qc-btn:hover {
   transform: translateY(-1px);
 }
+/* A deeper coral than the accent so white text passes contrast in both themes. */
 .qc-btn.primary {
-  background: var(--vp-c-brand-1);
+  background: #d63f42;
   color: #fff !important;
 }
 .qc-btn.primary:hover {
-  background: var(--vp-c-brand-2);
+  background: #c62d30;
 }
 .qc-btn.outline {
   background: transparent;
@@ -401,6 +402,7 @@
   left: 3%;
   top: 4%;
   height: 8%;
+  width: auto;
   opacity: 0.9;
 }
 

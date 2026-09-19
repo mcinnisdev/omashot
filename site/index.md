@@ -24,10 +24,10 @@ titleTemplate: Screen capture that hands off
 <li>No telemetry</li>
 </ul>
 </div>
-<div class="qc-stage" aria-label="A QACut Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
-<img class="logo" src="/logo.png" alt="" />
+<div class="qc-stage" role="img" aria-label="A QACut Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
+<img class="logo" src="/logo.png" alt="" width="256" height="256" />
 <div class="title">Unlink OneDrive from this computer</div>
-<div class="win">
+<div class="win" aria-hidden="true">
 <div class="bar"><i></i><i></i><i></i></div>
 <div class="side"><b></b><b></b><b></b><b></b><b></b></div>
 <div class="main"><b class="w1"></b><b class="w2"></b><b class="w3"></b><div class="field"></div><span class="btn">Unlink this PC</span></div>
@@ -56,7 +56,7 @@ The save button is clipped at
 <li><a href="/use-cases/quick-shots#mark-up-copy-paste">Mark up, copy, paste</a></li>
 <li><a href="/use-cases/quick-shots#agent-feedback-loops">Agent feedback loops</a></li>
 </ul>
-<a class="qc-more" href="/use-cases/quick-shots">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/use-cases/quick-shots">More about quick shots<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 <div class="qc-card wide span2">
 <div>
@@ -69,7 +69,7 @@ The save button is clipped at
 <li><a href="/use-cases/bundles#send-to-an-agent-with-prompt-and-brand-kit-for-polish">Send to an agent with prompt and brand kit</a></li>
 <li><a href="/use-cases/bundles#organize-mark-up-notate-a-task-list-for-agents">A task list for agents</a></li>
 </ul>
-<a class="qc-more" href="/use-cases/bundles">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/use-cases/bundles">More about bundles<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 <pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
 <span></span>
@@ -96,13 +96,13 @@ Toggle animates but the state never saves.
 <li><a href="/use-cases/studio#include-your-camera">Include your camera</a></li>
 <li><a href="/use-cases/studio#include-your-brand">Include your brand</a></li>
 </ul>
-<a class="qc-more" href="/use-cases/studio">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/use-cases/studio">More about the Studio<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 <div>
 <div class="visual qc-stage mini" aria-hidden="true">
-<img class="logo" src="/logo.png" alt="" />
+<img class="logo" src="/logo.png" alt="" width="256" height="256" />
 <div class="title">Add a printer in Windows 11</div>
-<div class="win">
+<div class="win" aria-hidden="true">
 <div class="bar"><i></i><i></i><i></i></div>
 <div class="side"><b></b><b></b><b></b><b></b><b></b></div>
 <div class="main"><b class="w1"></b><b class="w2"></b><b class="w3"></b><div class="field"></div><span class="btn">Add device</span></div>
@@ -112,7 +112,7 @@ Toggle animates but the state never saves.
 <div class="keys">Ctrl+Space</div>
 <div class="cam"></div>
 </div>
-<div class="visual qc-timeline" aria-label="A studio timeline with zoom blocks, a cut, click and key markers">
+<div class="visual qc-timeline" role="img" aria-label="A studio timeline with zoom blocks, a cut, click and key markers">
 <div class="film"></div>
 <div class="cut" style="left: 44%; width: 9%"></div>
 <div class="zoom" style="left: 12%; width: 14%"></div>
@@ -163,13 +163,13 @@ Toggle animates but the state never saves.
 <h2>Mark it up. Copy it. Paste it.</h2>
 <p class="lead">The quick shot opens in the editor with arrow, highlight, blur and step tools, and a note beside it. Copy image puts the marked-up PNG on the clipboard for a chat, an email or a ticket; Ctrl+Enter copies the path and note for an agent.</p>
 <div class="qc-spot-links">
-<a class="qc-more" href="/docs/quick">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/docs/quick">Quick shots in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 </div>
 <div class="qc-spot-visual">
 <div class="qc-mock" role="img" aria-label="The quick shot window: a toolbar with Arrow selected, a screenshot with a coral arrow pointing at a button and a blurred line, and a note panel with Save and copy path and Copy image buttons">
-<div class="qc-win qc-quick">
-<div class="tb"><span>Move</span><span class="on">Arrow</span><span>Highlight</span><span>Blur</span><span>Step</span></div>
+<div class="qc-win qc-quick" aria-hidden="true">
+<div class="tb" aria-hidden="true"><span>Move</span><span class="on">Arrow</span><span>Highlight</span><span>Blur</span><span>Step</span></div>
 <div class="body">
 <div class="qc-ui">
 <div class="bar"></div>
@@ -196,7 +196,7 @@ Toggle animates but the state never saves.
 <h2>Auto-capture a process. Clean it up in one window.</h2>
 <p class="lead">Ctrl+Shift+3 takes a still at the start, at every click and at the end, each ringed where the click landed. The review window then walks them with markup, a note, prev and next, and delete for the ones that are noise.</p>
 <div class="qc-spot-links">
-<a class="qc-more" href="/docs/qacut">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/docs/qacut">Auto-capture in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 <a class="qc-btn outline" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
 </div>
 </div>
@@ -210,7 +210,7 @@ Toggle animates but the state never saves.
 <div class="shot"><div class="frame"><div class="qc-ui tiny"><div class="bar"></div><div class="side"><b></b><b></b><b></b><b></b></div><div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div><span class="btn"></span><div class="ring" style="left: 45%; top: 78%"></div></div></div><span>15 s click</span></div>
 <div class="shot"><div class="frame"><div class="qc-ui tiny"><div class="bar"></div><div class="side"><b></b><b></b><b></b><b></b></div><div class="main"><b class="t"></b><b></b><b></b><div class="field"></div></div><span class="btn"></span></div></div><span>19 s end</span></div>
 </div>
-<div class="qc-win qc-review">
+<div class="qc-win qc-review" aria-hidden="true">
 <div class="body">
 <div class="qc-ui">
 <div class="bar"></div>
@@ -236,7 +236,7 @@ Toggle animates but the state never saves.
 <h2>The document writes itself.</h2>
 <p class="lead">Export doc turns groups into sections and notes into numbered steps, with the image under each. One self-contained web page you can send, or Markdown for a docs platform; hand it to an agent only to polish the prose.</p>
 <div class="qc-spot-links">
-<a class="qc-more" href="/docs/qacut#handing-off">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/docs/qacut#handing-off">Export doc in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 </div>
 <div class="qc-spot-visual">
@@ -256,16 +256,16 @@ Toggle animates but the state never saves.
 <h2>Everything about the video is still editable after you stop.</h2>
 <p class="lead">The cursor, clicks and keys are recorded as data and drawn back in, so zooms, trims, cuts, key badges, the camera bubble, the title and the logo are all controls in the studio. Export writes exactly what you previewed.</p>
 <div class="qc-spot-links">
-<a class="qc-more" href="/docs/studio">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/docs/studio">The Studio in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 <a class="qc-btn outline" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
 </div>
 </div>
 <div class="qc-spot-visual">
 <div class="qc-mock qc-studio" role="img" aria-label="The studio: a preview frame with cursor, ripple, keystroke badge and camera bubble, an inspector with zoom, cursor, keys, camera and frame settings, and a timeline with zoom blocks and a cut">
 <div class="qc-stage mini" aria-hidden="true">
-<img class="logo" src="/logo.png" alt="" />
+<img class="logo" src="/logo.png" alt="" width="256" height="256" />
 <div class="title">Add a printer in Windows 11</div>
-<div class="win">
+<div class="win" aria-hidden="true">
 <div class="bar"><i></i><i></i><i></i></div>
 <div class="side"><b></b><b></b><b></b><b></b><b></b></div>
 <div class="main"><b class="w1"></b><b class="w2"></b><b class="w3"></b><div class="field"></div><span class="btn">Add device</span></div>
@@ -302,12 +302,12 @@ Toggle animates but the state never saves.
 <h2>Every prompt is a template.</h2>
 <p class="lead">The six built-in clipboard texts can be rewritten and reset, and you can add your own: quick-shot prompts that wrap the shots, and bundle prompts that are the whole instruction, picked by name before a hand-off.</p>
 <div class="qc-spot-links">
-<a class="qc-more" href="/docs/prompts">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/docs/prompts">Prompt library in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 </div>
 <div class="qc-spot-visual">
 <div class="qc-mock" role="img" aria-label="The prompt library window: a list of six built-in prompts and two of your own, with the Fix issues prompt open in an editor showing its placeholder chips, its text and a preview with sample values">
-<div class="qc-win qc-lib">
+<div class="qc-win qc-lib" aria-hidden="true">
 <div class="list">
 <div class="hd">Built in</div>
 <span>Quick shot: one shot</span>
@@ -369,7 +369,7 @@ any recording, before changing anything."</pre>
 </div>
 <div class="qc-scroll">
 <table class="qc-compare">
-<thead><tr><th></th><th>QACut</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
+<thead><tr><th>Feature</th><th>QACut</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
 <tbody>
 <tr><td>Runs on your machine, no upload</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">Cloud</td><td class="no" data-col="Scribe">Cloud</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
 <tr><td>No account required</td><td class="yes" data-col="QACut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="some" data-col="Screen Studio">License</td></tr>

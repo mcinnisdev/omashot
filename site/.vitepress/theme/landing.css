@@ -14,7 +14,7 @@
   gap: var(--qc-s-1) var(--qc-s-2);
   margin-top: var(--qc-s-3);
   font-size: var(--qc-fs-small);
-  color: var(--vp-c-text-3);
+  color: var(--vp-c-text-2);
 }
 .qc-trust li {
   display: flex;
@@ -602,4 +602,21 @@
   .qc-hero .qc-stage .keys {
     display: none;
   }
+}
+
+/* Contrast. White text on the accent coral sits at 3:1, so every coral
+   surface that carries white text uses the deeper coral (4.5:1), and the
+   lightest grey text steps up one level in the places axe flags. */
+.qc-stage .btn,
+.qc-ui .btn,
+.qc-win .b.primary,
+.qc-quick .tb span.on,
+.qc-lib .list span.on {
+  background: #d63f42;
+}
+.qc-strip .shot > span,
+.qc-compare td.no,
+.qc-note,
+footer.qc-footer .qc-footer-legal {
+  color: var(--vp-c-text-2);
 }

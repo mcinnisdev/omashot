@@ -1,10 +1,13 @@
 # QACut
 
-Capture it, note it, hand it off. Two tools in one tray:
+Capture it, note it, hand it off. Three tools in one tray:
 
-- **QACut** grabs screenshots and clips, groups them with notes, and bundles
-  them into a folder an AI agent can work from, as a bug list or as the raw
-  material for a process document.
+- **QACut** takes a quick shot: one screenshot, one note, and the path plus
+  note on your clipboard, ready to paste into whatever agent you are talking
+  to. Batch a few and paste them at once.
+- **QACut Bundles** grabs screenshots and clips, groups them with notes, and
+  bundles them into a folder an AI agent can work from, as a bug list across
+  an app or as the raw material for a process document or tutorial.
 - **QACut Studio** records the screen with the cursor as data, then renders a
   polished walkthrough for people: smoothed cursor, zooms that follow the
   work, click and keystroke effects, camera bubble, narration, title and

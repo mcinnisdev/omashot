@@ -34,11 +34,11 @@ titleTemplate: Screen capture that hands off
 </section>
 <section>
 <div class="center">
-<span class="eyebrow">Two tools, one tray</span>
-<h2>One for your audience. One for your agent.</h2>
-<p class="lead">A person needs something worth watching. An agent needs files it can read and act on. Same hotkeys, two outputs.</p>
+<span class="eyebrow">Three tools, one tray</span>
+<h2>Pick the depth. The hotkeys are the same.</h2>
+<p class="lead">A polished video for a person. A structured bundle for an agent with real work to do. A quick shot when it's one fix and you want it gone.</p>
 </div>
-<div class="qc-split" style="margin-top: 32px">
+<div class="qc-split three" style="margin-top: 32px">
 <div class="qc-card">
 <span class="eyebrow">QACut Studio</span>
 <h3>Polished screen recordings</h3>
@@ -72,9 +72,9 @@ titleTemplate: Screen capture that hands off
 </ul>
 </div>
 <div class="qc-card">
-<span class="eyebrow">QACut</span>
-<h3>Bundles for agents</h3>
-<p>Drag a region, say what's wrong, keep going. Finish, and you have a folder an agent can work from, with the prompt written for you.</p>
+<span class="eyebrow">QACut Bundles</span>
+<h3>Bundles for bigger jobs</h3>
+<p>Group shots by page, note each one, and hand an agent a folder it can work from: a fix list across an app, or a process doc. Auto-capture records you doing it, with a still at every click.</p>
 <pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
 <span></span>
 <span class="h">## 1. Settings page</span>
@@ -84,7 +84,20 @@ titleTemplate: Screen capture that hands off
 <span class="l">![1.1](01-settings-page/01.png)</span>
 Clipped at 125% scaling; label wraps.</pre>
 <ul class="qc-chips">
-<li>Markdown that explains itself</li><li>A still at every click</li><li>Brand kit included</li><li>ZIP for chat</li>
+<li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Brand kit</li><li>ZIP for chat</li>
+</ul>
+</div>
+<div class="qc-card">
+<span class="eyebrow">QACut</span>
+<h3>Quick shots</h3>
+<p>For one tweak, or three. Drag, note, Enter. Ctrl+Enter puts the path and note on your clipboard, ready to paste into whatever agent you're talking to.</p>
+<pre class="visual qc-bundle"><span class="l">C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png</span>
+The save button is clipped at 125% scaling.
+<span></span>
+<span class="l">C:\Users\nick\QACut\Quick\2026-09-19_101512\02.png</span>
+Toggle animates but the state never saves.</pre>
+<ul class="qc-chips">
+<li>No bundle</li><li>Batch a few, paste once</li><li>Note saved beside each PNG</li>
 </ul>
 </div>
 </div>
@@ -98,19 +111,19 @@ Clipped at 125% scaling; label wraps.</pre>
 <div class="qc-flow-step">
 <div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>R</kbd></div>
 <h3>Record</h3>
-<p>Drag a region. Do the thing. Press it again to stop.</p>
-</div>
-<svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<div class="qc-flow-step">
-<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Space</kbd></div>
-<h3>Zoom</h3>
-<p>Push in where the work is, while you record.</p>
+<p>Studio. Drag a region, do the thing, press it again.</p>
 </div>
 <svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div class="qc-flow-step">
 <div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>2</kbd></div>
 <h3>Capture</h3>
-<p>A screenshot and a note, when something needs fixing.</p>
+<p>Docs. Group shots and notes into a bundle an agent works from.</p>
+</div>
+<svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div class="qc-flow-step">
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>1</kbd></div>
+<h3>Quick shot</h3>
+<p>One shot, one note, Ctrl+Enter, paste.</p>
 </div>
 </div>
 </section>

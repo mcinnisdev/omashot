@@ -10,13 +10,15 @@ The installers are not code-signed yet, so SmartScreen will warn on first run. C
 
 After install, look for the coral scissors in the tray. Left-click it for the menu.
 
-## Two products, one tray
+## Three tools, one tray
 
-The menu has two sections.
+The menu has three sections.
 
 **QACut Studio** is the main event: a screen recording edited into something polished, with zooms, a camera bubble and narration, exported as a video. Read [Polished screen recordings](/docs/studio).
 
-**QACut** is the lightweight half: screenshots, auto-captured clips, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
+**QACut Bundles** is the structured half: screenshots, auto-captured clips, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
+
+**QACut** on its own is the quick lane: one screenshot, one note, pasted straight into an agent. Read [Quick shots](/docs/quick).
 
 Both put their files under `~/QACut/`. Everything is plain files you can open, move or delete.
 

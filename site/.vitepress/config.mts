@@ -29,30 +29,54 @@ export default defineConfig({
     siteTitle: '<span class="qa">QA</span>Cut',
     logo: "/logo.png",
     nav: [
+      {
+        text: "Use cases",
+        items: [
+          { text: "QACut Studio: recordings for people", link: "/use-cases/studio" },
+          { text: "QACut Bundles: bigger jobs for your agent", link: "/use-cases/bundles" },
+          { text: "QACut: quick shots for your agent", link: "/use-cases/quick-shots" },
+        ],
+      },
       { text: "Docs", link: "/docs/getting-started" },
       { text: "Download", link: "https://github.com/mcinnisdev/qacut/releases/latest" },
       { text: "GitHub", link: "https://github.com/mcinnisdev/qacut" },
     ],
-    sidebar: [
-      {
-        text: "Start here",
-        items: [
-          { text: "Getting started", link: "/docs/getting-started" },
-          { text: "Keyboard shortcuts", link: "/docs/shortcuts" },
-        ],
-      },
-      {
-        text: "QACut Studio",
-        items: [{ text: "Polished screen recordings", link: "/docs/studio" }],
-      },
-      {
-        text: "QACut",
-        items: [
-          { text: "Bundles for agents", link: "/docs/qacut" },
-          { text: "Brand kit", link: "/docs/brand-kit" },
-        ],
-      },
-    ],
+    sidebar: {
+      "/use-cases/": [
+        {
+          text: "Use cases",
+          items: [
+            { text: "QACut Studio", link: "/use-cases/studio" },
+            { text: "QACut Bundles", link: "/use-cases/bundles" },
+            { text: "QACut", link: "/use-cases/quick-shots" },
+          ],
+        },
+      ],
+      "/docs/": [
+        {
+          text: "Start here",
+          items: [
+            { text: "Getting started", link: "/docs/getting-started" },
+            { text: "Keyboard shortcuts", link: "/docs/shortcuts" },
+          ],
+        },
+        {
+          text: "QACut Studio",
+          items: [{ text: "Polished screen recordings", link: "/docs/studio" }],
+        },
+        {
+          text: "QACut Bundles",
+          items: [
+            { text: "Bundles for agents", link: "/docs/qacut" },
+            { text: "Brand kit", link: "/docs/brand-kit" },
+          ],
+        },
+        {
+          text: "QACut",
+          items: [{ text: "Quick shots", link: "/docs/quick" }],
+        },
+      ],
+    },
     socialLinks: [{ icon: "github", link: "https://github.com/mcinnisdev/qacut" }],
     footer: {
       message: "Free and open source under the MIT License.",

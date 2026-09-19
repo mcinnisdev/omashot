@@ -405,6 +405,36 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
+.qc-split.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+.qc-split.three .qc-card {
+  padding: 24px;
+}
+.qc-split.three .qc-card h3 {
+  font-size: 21px;
+}
+.qc-split.three .qc-bundle {
+  font-size: 11.5px;
+  padding: 14px;
+}
+.qc-split.three .qc-stage .cursor {
+  animation-name: qc-cursor-small;
+}
+@keyframes qc-cursor-small {
+  0%,
+  15% {
+    transform: translate(-70px, -60px);
+  }
+  40%,
+  60% {
+    transform: translate(0, 0);
+  }
+  85%,
+  100% {
+    transform: translate(-70px, -60px);
+  }
+}
 .qc-card {
   min-width: 0;
   border: 1px solid var(--vp-c-divider);
@@ -710,6 +740,7 @@
 @media (max-width: 860px) {
   .qc-hero,
   .qc-split,
+  .qc-split.three,
   .qc-oss {
     grid-template-columns: 1fr;
   }

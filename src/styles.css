@@ -320,6 +320,16 @@ textarea.field {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.note-foot .actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
 }
 
 .linkish {

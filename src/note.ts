@@ -47,6 +47,12 @@ async function boot() {
     secondary.textContent = "Discard shot";
     keysHint.innerHTML = "<kbd>Enter</kbd> copy path + note <kbd>Shift</kbd>+<kbd>Enter</kbd> new line";
     note.focus();
+    try {
+      const hk = await invoke<{ quick: string }>("get_hotkeys");
+      if (hk.quick) quickKey = keyLabel(hk.quick);
+    } catch {
+      // The default label is fine.
+    }
     showBatch(await invoke<number>("quick_count"));
     return;
   } else {
@@ -94,14 +100,27 @@ async function saveGroup() {
   });
 }
 
+function keyLabel(spec: string) {
+  return spec
+    .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl")
+    .replace(/Super|Meta/g, "Win")
+    .replace(/Option/g, "Alt")
+    .replace(/Return/g, "Enter");
+}
+
+let quickKey = "Ctrl+Shift+1";
+
 function showBatch(n: number) {
   label.textContent = n > 1 ? `Quick shot ${String(n).padStart(2, "0")} in this batch` : "Quick shot";
   copyAll.hidden = n < 2;
   newBatch.hidden = n < 2;
   copyAll.textContent = `Copy batch (${n})`;
-  keysHint.innerHTML =
-    "<kbd>Enter</kbd> copy this shot <kbd>Shift</kbd>+<kbd>Enter</kbd> new line" +
-    (n > 1 ? " <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copy batch" : "");
+  keysHint.innerHTML = "<kbd>Enter</kbd> copy path + note";
+  groupHint.hidden = false;
+  groupHint.textContent =
+    n > 1
+      ? `Copy batch pastes all ${n} shots with their notes and starts a fresh batch. Enter copies just this one.`
+      : `Enter copies this shot's path and note, ready to paste. Press ${quickKey} again to add shots to the batch and paste them together.`;
 }
 
 async function startNewBatch() {

@@ -85,7 +85,11 @@ pub fn open_note(app: &AppHandle, mode: &str, anchor: Option<(f64, f64)>) -> Res
         let _ = w.close();
     }
 
-    let (w, h) = if mode == "group" { (480.0, 236.0) } else { (480.0, 190.0) };
+    let (w, h) = match mode {
+        "group" => (480.0, 236.0),
+        "quick" => (480.0, 232.0),
+        _ => (480.0, 190.0),
+    };
     let url = format!("note.html?mode={mode}");
 
     let win = builder(app, NOTE, WebviewUrl::App(url.into()))

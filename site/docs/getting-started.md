@@ -36,7 +36,7 @@ Turn on the microphone and camera toggles in the tray's Studio section first if 
 3. Repeat. Press `Ctrl+Shift+G` when you move to a new page or area, and give the group you just finished a master note.
 4. Press `Ctrl+Shift+Enter` to write the bundle. The folder path is on your clipboard and the bundle window opens showing the result.
 
-Point an agent at the folder, or use **Copy agent prompt** in the bundle window for a ready-made instruction.
+Point an agent at the folder, or use **Copy agent prompt** in the bundle window for a ready-made instruction. The bundle is finished; your next capture starts a new one.
 
 For a one-off, skip the bundle: `Ctrl+Shift+1` takes a quick shot, and `Ctrl+Enter` on its note copies the screenshot's path and the note, ready to paste. Plain `Enter` saves and lets you take more before you send them together.
 

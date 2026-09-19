@@ -13,7 +13,6 @@ All of these can be changed: **Keyboard shortcutsâ€¦** in the tray, or **Help â†
 | `Ctrl+Shift+G` | Wrap up the current group with a master note |
 | `Ctrl+Shift+Q` | Show or hide the bundle window |
 | `Ctrl+Shift+Enter` | Write the bundle and copy the folder path |
-| `Ctrl+Shift+N` | Start a new bundle |
 | `Ctrl+Shift+R` | Studio recording; again to stop |
 | `Ctrl+Space` | During a Studio recording: zoom in here, again to zoom out. Only registered while a recording runs, so editors keep it the rest of the time |
 

@@ -21,7 +21,6 @@ pub struct Hotkeys {
     pub group: String,
     pub peek: String,
     pub finish: String,
-    pub new: String,
 }
 
 impl Default for Hotkeys {
@@ -38,7 +37,6 @@ impl Default for Hotkeys {
             group: "CommandOrControl+Shift+G".into(),
             peek: "CommandOrControl+Shift+Q".into(),
             finish: "CommandOrControl+Shift+Enter".into(),
-            new: "CommandOrControl+Shift+N".into(),
         }
     }
 }
@@ -57,12 +55,11 @@ impl Hotkeys {
             group: "CommandOrControl+Shift+G".into(),
             peek: "CommandOrControl+Shift+Q".into(),
             finish: "CommandOrControl+Shift+Enter".into(),
-            new: "CommandOrControl+Shift+N".into(),
         }
     }
 
     /// (action id, spec) pairs, for registration and the menu.
-    pub fn entries(&self) -> [(&'static str, &str); 10] {
+    pub fn entries(&self) -> [(&'static str, &str); 9] {
         [
             ("quick", &self.quick),
             ("quick_finish", &self.quick_finish),
@@ -73,7 +70,6 @@ impl Hotkeys {
             ("group", &self.group),
             ("peek", &self.peek),
             ("finish", &self.finish),
-            ("new", &self.new),
         ]
     }
 }

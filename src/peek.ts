@@ -35,7 +35,6 @@ interface Hotkeys {
   group: string;
   peek: string;
   finish: string;
-  new: string;
 }
 
 const HOTKEY_LABELS: [keyof Hotkeys, string][] = [
@@ -46,7 +45,6 @@ const HOTKEY_LABELS: [keyof Hotkeys, string][] = [
   ["group", "New group"],
   ["peek", "View / edit bundle"],
   ["finish", "Finish and copy path"],
-  ["new", "New bundle"],
   ["studio", "Studio: record start / stop"],
   ["zoom", "Studio: zoom start / end (only active while recording)"],
 ];
@@ -61,7 +59,6 @@ let hk: Hotkeys = {
   group: "CommandOrControl+Shift+G",
   peek: "CommandOrControl+Shift+Q",
   finish: "CommandOrControl+Shift+Enter",
-  new: "CommandOrControl+Shift+N",
 };
 
 /// "CommandOrControl+Shift+N" as people read it.
@@ -254,7 +251,7 @@ async function render() {
   count.textContent = session ? `${shots} in ${used || 1} groups` : "";
 
   if (state.last_export) {
-    showExported(state.last_export, state.dirty);
+    showExported(state.last_export, state.dirty, state.finished);
   } else {
     exported.style.display = "none";
   }
@@ -509,11 +506,13 @@ async function render() {
   }
 }
 
-function showExported(result: Export, dirty: boolean) {
+function showExported(result: Export, dirty: boolean, finished: boolean) {
   exported.style.display = "flex";
   exportedLabel.textContent = dirty
     ? "Changed since it was last written to"
-    : "Bundle written to";
+    : finished
+      ? "Finished. The next capture starts a new bundle; Capture here on a group adds to this one. Written to"
+      : "Bundle written to";
   exportedPath.textContent = result.root;
 }
 
@@ -545,7 +544,7 @@ function toast(text: string) {
 async function run(action: Action) {
   try {
     const result = await invoke<Export>("finish", { action });
-    showExported(result, false);
+    showExported(result, false, true);
     toast(doneText[action]);
   } catch (err) {
     toast(String(err));
@@ -637,7 +636,7 @@ const menus: Menu[] = [
   {
     title: "Bundle",
     items: () => [
-      { label: "New bundle", keys: keyLabel(hk.new), run: () => call("new_bundle", undefined, "Started a new bundle") },
+      { label: "New bundle", run: () => call("new_bundle", undefined, "Started a new bundle") },
       { label: "Open bundle…", run: showBundles },
       { label: "Rename bundle", run: () => bundleName.focus() },
       "-",
@@ -772,7 +771,6 @@ brandClose.addEventListener("click", hidePanels);
     group: "CommandOrControl+Shift+G",
     peek: "CommandOrControl+Shift+Q",
     finish: "CommandOrControl+Shift+Enter",
-    new: "CommandOrControl+Shift+N",
   };
   renderShortcuts();
 });

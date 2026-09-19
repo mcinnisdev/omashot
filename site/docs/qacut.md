@@ -31,6 +31,8 @@ To send a few together, just keep going: `Ctrl+Shift+1`, note, `Enter`, again. `
 
 **Copy agent prompt** writes the bundle and copies an instruction with the folder path filled in. Paste it into a CLI agent.
 
+Finishing closes the bundle: the next capture starts a new one. To add to a finished bundle, press **Capture here** on one of its groups in the bundle window, or reopen it later from **Bundle → Open bundle…**.
+
 **Save ZIP for chat** zips the folder, shows the archive in Explorer ready to drag into a chat, and copies a prompt that says "the attached ZIP".
 
 The markdown file explains itself at the top: each group is a page or area, the quoted note under a heading applies to everything in the group, and each numbered item is a screenshot with its note. Recordings list their stills as actions: "3 s, click at 412,188".

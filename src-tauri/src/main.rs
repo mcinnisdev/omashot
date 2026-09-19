@@ -64,6 +64,10 @@ struct Inner {
     /// does not take the key away from editors the rest of the time.
     zoom_spec: Option<String>,
     zoom_armed: Option<Shortcut>,
+    /// True after a finish until the bundle is touched again. The next hotkey
+    /// capture then starts a new bundle; editing in the window, or Capture
+    /// here, reopens this one.
+    finished: bool,
     /// True when the session has changed since it was last written out, so
     /// "New bundle" knows whether there is anything to save first.
     dirty: bool,
@@ -76,6 +80,7 @@ struct AppState {
     session: Option<Session>,
     last_export: Option<Export>,
     dirty: bool,
+    finished: bool,
     custom_prompt: String,
     brand: BrandKit,
 }
@@ -418,7 +423,13 @@ fn open_overlay(app: &AppHandle, mode: &str) {
     {
         let mut inner = state.lock().unwrap();
         inner.capturing = false;
-        if mode != "quick" {
+        if mode == "shot" || mode == "record" {
+            if inner.finished {
+                if let Err(e) = stash_session(app, &mut inner) {
+                    eprintln!("qacut: could not put the finished bundle away: {e}");
+                    return;
+                }
+            }
             if let Err(e) = ensure_session(app, &mut inner) {
                 eprintln!("qacut: could not start session: {e}");
                 return;
@@ -461,6 +472,7 @@ fn finish_recording(app: &AppHandle) {
             }
             inner.pending = Some((group, id));
             inner.dirty = true;
+            inner.finished = false;
         }
         Err(e) => {
             eprintln!("qacut: recording failed: {e}");
@@ -515,7 +527,6 @@ fn action_for(id: &str) -> Option<fn(&AppHandle)> {
         "group" => trigger_group,
         "peek" => trigger_peek,
         "finish" => trigger_finish,
-        "new" => trigger_new_bundle,
         _ => return None,
     })
 }
@@ -618,7 +629,6 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let record_i = MenuItem::with_id(app, "record", "Auto-capture start / stop", true, acc(&hk.record))?;
     let group_i = MenuItem::with_id(app, "group", "New group", true, acc(&hk.group))?;
     let peek_i = MenuItem::with_id(app, "peek", "View / edit bundle", true, acc(&hk.peek))?;
-    let new_i = MenuItem::with_id(app, "new", "New bundle", true, acc(&hk.new))?;
     let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, acc(&hk.finish))?;
     let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
 
@@ -643,7 +653,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         &[
             &head_qacut, &quick_i, &quick_finish_i,
             &sep_quick,
-            &capture_i, &record_i, &group_i, &peek_i, &new_i, &finish_i, &folder_i,
+            &capture_i, &record_i, &group_i, &peek_i, &finish_i, &folder_i,
             &sep1,
             &head_studio, &open_studio_i, &studio_i, &zoom_i,
             &sep_inputs,
@@ -673,18 +683,6 @@ fn trigger_shortcuts(app: &AppHandle) {
     }
 }
 
-/// Hotkey and tray: start a fresh bundle and open the window on its name.
-fn trigger_new_bundle(app: &AppHandle) {
-    match do_new_bundle(app) {
-        Ok(()) => {
-            if let Err(e) = overlay::open_peek(app, Some("name")) {
-                eprintln!("qacut: could not open bundle window: {e}");
-            }
-        }
-        Err(e) => eprintln!("qacut: new bundle failed: {e}"),
-    }
-}
-
 /// Puts the current session away: unsaved work is written out, a session
 /// with no shots is deleted rather than left as an empty folder.
 fn stash_session(app: &AppHandle, inner: &mut Inner) -> Result<(), String> {
@@ -700,6 +698,7 @@ fn stash_session(app: &AppHandle, inner: &mut Inner) -> Result<(), String> {
     inner.pending = None;
     inner.last_export = None;
     inner.dirty = false;
+    inner.finished = false;
     Ok(())
 }
 
@@ -748,6 +747,7 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
             ex.zip_path = Some(zp.to_string_lossy().to_string());
         }
         inner.dirty = false;
+        inner.finished = true;
         inner.last_export = Some(ex.clone());
         ex
     };
@@ -876,6 +876,7 @@ async fn commit_selection(
         inner.pending = Some((group, id));
         inner.frames.clear();
         inner.dirty = true;
+        inner.finished = false;
 
         note_anchor(&frame, x, y, height)
     };
@@ -973,6 +974,7 @@ async fn start_recording(
         });
         inner.recording = Some((rec, group, id));
         inner.dirty = true;
+        inner.finished = false;
     }
 
     let _ = app.emit("session-changed", ());
@@ -1319,6 +1321,7 @@ async fn save_note(
             }
         }
         inner.dirty = true;
+        inner.finished = false;
     }
     overlay::close_note(&app);
     let _ = app.emit("session-changed", ());
@@ -1335,6 +1338,7 @@ async fn discard_pending(app: AppHandle, state: State<'_, Shared>) -> Result<(),
                 session.remove_shot(group, &id);
             }
             inner.dirty = true;
+            inner.finished = false;
         }
     }
     overlay::close_note(&app);
@@ -1358,6 +1362,7 @@ async fn close_group(
             .close_group(&title, &master_note)
             .map_err(|e| e.to_string())?;
         inner.dirty = true;
+        inner.finished = false;
         index
     };
     overlay::close_note(&app);
@@ -1377,6 +1382,7 @@ fn get_state(app: AppHandle, state: State<Shared>) -> AppState {
         session: inner.session.clone(),
         last_export: inner.last_export.clone(),
         dirty: inner.dirty,
+        finished: inner.finished,
         custom_prompt: load_custom_prompt(&app),
         brand: BrandKit::load(&brand_dir(&app)),
     }
@@ -1397,6 +1403,7 @@ fn set_include_brand(app: AppHandle, state: State<Shared>, include: bool) -> Res
         let session = ensure_session(&app, &mut inner)?;
         session.include_brand = include;
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -1432,6 +1439,7 @@ fn set_current_group(app: AppHandle, state: State<Shared>, group: usize) -> Resu
         if !session.set_current(group) {
             return Err("no such group".into());
         }
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -1449,6 +1457,7 @@ fn rename_bundle(app: AppHandle, state: State<Shared>, name: String) -> Result<(
             ex.root = root;
         }
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -1477,6 +1486,7 @@ fn set_doc_format(app: AppHandle, state: State<Shared>, format: String) -> Resul
         let session = ensure_session(&app, &mut inner)?;
         session.doc_format = f;
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -1490,6 +1500,7 @@ fn set_purpose(app: AppHandle, state: State<Shared>, purpose: String) -> Result<
         let session = ensure_session(&app, &mut inner)?;
         session.purpose = p;
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -1513,6 +1524,7 @@ fn set_shot_note(
             }
         }
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
 }
@@ -1534,6 +1546,7 @@ fn set_group_note(
             }
         }
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
 }
@@ -1556,6 +1569,7 @@ fn move_shot(
             return Err("no such shot or group".into());
         }
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -1654,6 +1668,7 @@ async fn save_markup(
             }
         }
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -1675,6 +1690,7 @@ fn remove_frame(
             return Err("no such frame".into());
         }
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
     Ok(())
@@ -1688,6 +1704,7 @@ fn delete_shot(app: AppHandle, state: State<Shared>, group: usize, shot: String)
             session.remove_shot(group, &shot);
         }
         inner.dirty = true;
+        inner.finished = false;
     }
     let _ = app.emit("session-changed", ());
 }
@@ -2078,7 +2095,6 @@ fn main() {
                     "group" => off_main(app, trigger_group),
                     "peek" => off_main(app, trigger_peek),
                     "finish" => off_main(app, trigger_finish),
-                    "new" => off_main(app, trigger_new_bundle),
                     "folder" => {
                         let dir = base_dir(app);
                         let _ = std::fs::create_dir_all(&dir);

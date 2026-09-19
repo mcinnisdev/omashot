@@ -83,6 +83,7 @@ export interface AppState {
   session: Session | null;
   last_export: Export | null;
   dirty: boolean;
+  finished: boolean;
   custom_prompt: string;
   brand: BrandKit;
 }

@@ -29,7 +29,6 @@ Windows, macOS and Linux; the Studio's capture is Windows only for now.
 | `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |
 | `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
-| `Ctrl/Cmd + Shift + N` | Start a new bundle and open the window to name it and its first group |
 | `Ctrl/Cmd + Shift + R` | QACut Studio: record a source for the studio; press again to stop |
 | `Ctrl/Cmd + Space` | During a Studio recording only: zoom in here / zoom out (a mark the studio turns into an editable zoom) |
 
@@ -133,11 +132,13 @@ top that inlines the notes and lists the files. The built-in prompts add a
 line telling the agent to match it. Untick "Include in this bundle" for a
 bundle where it does not apply; the copy is removed on the next finish.
 
-A bundle starts on its own at the first capture. Finishing writes it out but
-does not close it: keep capturing, finish again, and the files are rewritten.
-Only **New bundle** (hotkey, tray menu or bundle window) ends one and starts
-the next, saving any unwritten changes first. A bundle with no shots is
-deleted rather than left as an empty folder.
+A bundle starts on its own at the first capture and closes when you finish
+it: the next hotkey capture starts a new one. To add to a finished bundle
+instead, press **Capture here** on one of its groups in the bundle window,
+or edit anything in it; that reopens it, and finishing again rewrites the
+files. **Bundle > New bundle** in the window closes one early, saving any
+unwritten changes first. A bundle with no shots is deleted rather than left
+as an empty folder.
 
 The bundle window has a menu bar (Bundle, Capture, Hand off, Help) that
 holds every command with its shortcut; the only always-visible control is
@@ -145,7 +146,7 @@ the purpose selector with **Copy agent prompt**.
 
 To go back to an earlier bundle, **Bundle > Open bundle...** (or "Open
 bundle..." in the tray) lists everything under `~/QACut/`, newest first.
-Opening one puts the current bundle away the same way New bundle does, then
+Opening one puts the current bundle away, saving unwritten changes, then
 reloads the chosen one from its `manifest.json`, so you can add shots,
 reorder, or finish it again. A bundle folder that was moved by hand still
 opens; its paths are rebuilt from wherever it is now.

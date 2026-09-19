@@ -232,9 +232,7 @@ pub fn close_rec_badge(app: &AppHandle) {
 /// The markup editor for one PNG. Sized to the image plus its chrome, capped
 /// to something that fits on the screen; the canvas scales down inside.
 pub fn open_editor(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: u32) -> Result<()> {
-    if let Some(w) = app.get_webview_window(EDIT) {
-        let _ = w.close();
-    }
+    close_editor_and_wait(app);
     let w = (img_w as f64 + 40.0).clamp(560.0, 1400.0);
     let h = (img_h as f64 + 118.0).clamp(380.0, 900.0);
     let url = format!(
@@ -259,9 +257,7 @@ pub fn open_editor(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: 
 /// The editor in review mode: opened on a shot in the bundle, with the
 /// side panel, sized for the image plus the panel.
 pub fn open_review(app: &AppHandle, group: usize, shot_id: &str, img_w: u32, img_h: u32) -> Result<()> {
-    if let Some(w) = app.get_webview_window(EDIT) {
-        let _ = w.close();
-    }
+    close_editor_and_wait(app);
     let w = (img_w as f64 + 40.0 + 292.0).clamp(920.0, 1500.0);
     let h = (img_h as f64 + 118.0).clamp(560.0, 940.0);
     let url = format!("edit.html?group={group}&shot={}", urlencode(shot_id));
@@ -283,9 +279,7 @@ pub fn open_review(app: &AppHandle, group: usize, shot_id: &str, img_w: u32, img
 /// markup tools, its note beside it, and the batch actions, so one window
 /// covers "note it for an agent" and "mark it up and copy it for a person".
 pub fn open_quick_editor(app: &AppHandle, path: &str, img_w: u32, img_h: u32) -> Result<()> {
-    if let Some(w) = app.get_webview_window(EDIT) {
-        let _ = w.close();
-    }
+    close_editor_and_wait(app);
     let w = (img_w as f64 + 40.0 + 292.0).clamp(880.0, 1500.0);
     let h = (img_h as f64 + 118.0).clamp(520.0, 940.0);
     let url = format!("edit.html?quick=1&path={}", urlencode(path));
@@ -322,6 +316,21 @@ pub fn open_editor_over_note(app: &AppHandle, path: &str, label: &str, img_w: u3
         });
     }
     Ok(())
+}
+
+/// Closes an open editor and waits for it to be gone. Building a new
+/// window with the same label while the old one is still tearing down
+/// hands the new one a dead handle, and then it can never close itself.
+fn close_editor_and_wait(app: &AppHandle) {
+    if let Some(w) = app.get_webview_window(EDIT) {
+        let _ = w.close();
+        for _ in 0..100 {
+            if app.get_webview_window(EDIT).is_none() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+    }
 }
 
 fn urlencode(s: &str) -> String {

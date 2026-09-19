@@ -421,10 +421,15 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 28px;
-  align-items: start;
+  align-items: stretch;
 }
 .qc-card.wide > div {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.qc-card.wide > div:last-child {
+  justify-content: flex-start;
 }
 .qc-card.wide .visual {
   margin-top: 0;
@@ -437,10 +442,16 @@
 }
 .qc-card {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--vp-c-divider);
   background: var(--vp-c-bg-soft);
   border-radius: 16px;
   padding: 28px;
+}
+.qc-card .qc-more {
+  margin-top: auto;
+  padding-top: 18px;
 }
 .qc-card .eyebrow {
   margin-bottom: 8px;
@@ -625,6 +636,7 @@
 .qc-more {
   display: inline-flex;
   align-items: center;
+  align-self: flex-start;
   gap: 4px;
   margin-top: 18px;
   font-size: 14px;

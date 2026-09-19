@@ -11,6 +11,16 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Session, Shot } from "./types";
 
 type Tool = "move" | "arrow" | "rect" | "blur" | "step";
+
+/// Closes this window; if the graceful close fails, destroys it.
+async function closeSelf() {
+  const w = getCurrentWindow();
+  try {
+    await w.close();
+  } catch {
+    await w.destroy();
+  }
+}
 type Mark =
   | { kind: "arrow"; x1: number; y1: number; x2: number; y2: number }
   | { kind: "rect"; x: number; y: number; w: number; h: number }
@@ -348,7 +358,7 @@ async function save() {
     done = false;
     return;
   }
-  await getCurrentWindow().close();
+  await closeSelf();
 }
 
 async function cancel() {
@@ -361,7 +371,7 @@ async function cancel() {
   }
   done = true;
   if (review) await saveNote();
-  await getCurrentWindow().close();
+  await closeSelf();
 }
 
 // ------------------------------------------------------------- quick
@@ -420,7 +430,7 @@ async function quickSave(all: boolean) {
     status(String(err));
     return;
   }
-  await getCurrentWindow().close();
+  await closeSelf();
 }
 
 async function quickCopyImage() {
@@ -437,7 +447,7 @@ async function quickDiscard() {
   if (done) return;
   done = true;
   await invoke("discard_quick");
-  await getCurrentWindow().close();
+  await closeSelf();
 }
 
 async function quickNewBatch() {
@@ -534,7 +544,7 @@ async function saveNote() {
 async function showCurrent() {
   const e = current();
   if (!e) {
-    await getCurrentWindow().close();
+    await closeSelf();
     return;
   }
   path = e.shot.abs_path;

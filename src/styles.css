@@ -1327,6 +1327,9 @@ body.edit {
 }
 
 /* Review mode's side panel. */
+.edit-side[hidden] {
+  display: none;
+}
 .edit-side {
   flex: 0 0 280px;
   display: flex;
@@ -1357,6 +1360,15 @@ body.edit {
 .edit-side textarea.field {
   flex: 1;
   min-height: 120px;
+}
+/* The quick shot's note takes what a note needs; the image gets the rest. */
+#quick-side textarea.field {
+  flex: 0 0 auto;
+  height: 132px;
+  min-height: 96px;
+}
+#quick-side .edit-side-nav {
+  margin-top: auto;
 }
 .edit-side-nav {
   display: flex;

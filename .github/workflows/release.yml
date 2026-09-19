@@ -20,6 +20,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the notes step lists commits since the previous tag
 
       - name: Tag matches the app version
         shell: bash

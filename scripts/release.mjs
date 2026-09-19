@@ -12,8 +12,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const sh = (cmd, opts = {}) =>
-  execSync(cmd, { cwd: root, stdio: ["ignore", "pipe", "inherit"], encoding: "utf8", ...opts }).trim();
+const sh = (cmd, opts = {}) => {
+  const out = execSync(cmd, { cwd: root, stdio: ["ignore", "pipe", "inherit"], encoding: "utf8", ...opts });
+  // With stdout ignored or inherited there is nothing to return.
+  return out == null ? "" : String(out).trim();
+};
 
 function fail(msg) {
   console.error(`release: ${msg}`);

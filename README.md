@@ -1,357 +1,145 @@
-# QACut
+<p align="center">
+  <img src="site/public/og.png" alt="QACut: capture your screen, hand off the work" width="720" />
+</p>
 
-Capture it, note it, hand it off. Three tools in one tray:
+<h1 align="center">QACut</h1>
 
-- **QACut** takes a quick shot: one screenshot, one note, and the path plus
-  note on your clipboard, ready to paste into whatever agent you are talking
-  to. Batch a few and paste them at once.
-- **QACut Bundles** grabs screenshots and auto-captured sequences, groups them with notes, and
-  bundles them into a folder an AI agent can work from, as a bug list across
-  an app or as the raw material for a process document or tutorial.
-- **QACut Studio** records the screen with the cursor as data, then renders a
-  polished walkthrough for people: smoothed cursor, zooms that follow the
-  work, click and keystroke effects, camera bubble, narration, title and
-  logo, exported to MP4.
+<p align="center">
+  Screen capture that hands off. Screenshots an AI agent can act on. Screen recordings people will actually watch.
+</p>
 
-Free and open source under the [MIT License](LICENSE). Docs at
-[qacut.com](https://qacut.com), written with QACut itself.
-[Download the latest release](https://github.com/mcinnisdev/qacut/releases/latest)
-for Windows 10 (2004+) or 11, x64. The installers are unsigned for now, so
-SmartScreen warns on first run.
+<p align="center">
+  <a href="https://github.com/mcinnisdev/qacut/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/mcinnisdev/qacut?color=ff5b5b&label=download" /></a>
+  <a href="https://github.com/mcinnisdev/qacut/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/mcinnisdev/qacut/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2f4e6f" /></a>
+  <a href="https://qacut.com"><img alt="Docs" src="https://img.shields.io/badge/docs-qacut.com-2ac4ea" /></a>
+</p>
 
-Tauri 2 (Rust backend, vanilla TS frontend). The lightweight half runs on
-Windows, macOS and Linux; the Studio's capture is Windows only for now.
+<p align="center">
+  <a href="https://github.com/mcinnisdev/qacut/releases/latest"><b>Download for Windows</b></a> ·
+  <a href="https://qacut.com/docs/getting-started">Getting started</a> ·
+  <a href="https://qacut.com/use-cases/quick-shots">Use cases</a> ·
+  <a href="https://qacut.com/docs/shortcuts">Shortcuts</a>
+</p>
 
-## Hotkeys
+---
 
-| Key | Does |
+QACut lives in the system tray. Press a hotkey, drag a region, do the thing. No account, no upload, no telemetry: everything is plain files under `~/QACut/` until you choose to send them somewhere.
+
+Free and open source under the [MIT License](LICENSE). Windows 10 (2004+) or 11, x64. The installers are not code-signed yet, so SmartScreen warns on first run: **More info**, then **Run anyway**.
+
+## Three modes, one tray
+
+| | Mode | For | How |
+| --- | --- | --- | --- |
+| **1** | **QACut** · quick shots | One fix, or three, straight into whatever agent you're talking to. | `Ctrl+Shift+1`, drag, note, `Enter`. `Ctrl+Enter` copies the path and note, ready to paste. Keep going to build a batch and paste them together. |
+| **2** | **QACut Bundles** · bigger jobs | A fix list across a whole app, or the raw material for a process doc or tutorial. | `Ctrl+Shift+2` for a screenshot, `Ctrl+Shift+3` to auto-capture a process. Group by page, note each shot, finish, hand the folder to an agent with a prompt written for the job. |
+| **R** | **QACut Studio** · recordings for people | A walkthrough someone will actually watch. | `Ctrl+Shift+R` records the screen with the cursor as data. Get it back smoothed and enlarged, with click ripples, follow zooms, key badges, a camera bubble and narration. Trim, cut, export to MP4. |
+
+## QACut: quick shots
+
+`Ctrl+Shift+1` freezes the screen. Drag a region, type a note, `Enter` saves it. `Ctrl+Enter` finishes and hands off: the screenshot's path and your note land on the clipboard.
+
+```
+C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
+The save button is clipped at 125% scaling.
+```
+
+Take a few in a row and `Ctrl+Enter` on the last one copies the whole batch, each shot tied to its note. The batch then closes, so the next quick shot starts a fresh folder and an agent is never pointed at shots you've already dealt with. The note box shows the capture; click it (or `Ctrl+E`) to blur or mark it up while it's fresh.
+
+## QACut Bundles
+
+A bundle is a folder: screenshots in groups, a note on each, and a `bundle.md` that reads top to bottom with every image linked relatively. An agent reads the file, opens the images, and knows which page each note belongs to.
+
+- **Capture** with `Ctrl+Shift+2`. The header reads "Group 1 / Shot 1"; click either to name it. `Ctrl+Shift+G` wraps up a group with a master note and starts the next.
+- **Auto-capture** with `Ctrl+Shift+3`. While you do something, QACut takes a full-resolution still at the start, at every click or Enter (ringed where the click landed), and at the end. Press it again to stop and the bundle window opens on the sequence. Every still is an ordinary shot: drop the noise, note the keepers, drag any that landed out of order. No video is made; agents can't use one, and recordings for people are the Studio's job.
+- **Review** any shot from the bundle window: the image large, markup tools (arrow, highlight, blur that really removes pixels, step counters, a movable click ring), its note beside it, arrows to the next and previous shot, and delete. A whole auto-captured run can be cleaned up without leaving the window.
+- **Finish** with `Ctrl+Shift+Enter`. The folder path is on your clipboard and the bundle is closed; the next capture starts a new one. **Copy agent prompt** fills the path into an instruction for a CLI agent. **Save ZIP for chat** packages the folder for an agent that only takes uploads. Reopen any bundle from **Bundle → Open bundle…** to add to it.
+- **Purpose** changes the prompt: fix issues, write a process doc (Markdown or a single web page), or your own template.
+- **Brand kit**: put your logo, colours and voice notes in `~/QACut/brand/` and they ride along in every bundle, so what the agent produces sounds and looks like you.
+
+```
+~/QACut/2026-09-19_143022-settings-review/
+  bundle.md              everything in reading order, images linked relatively
+  manifest.json          the same data, structured
+  01-settings-page/      01.png 02.png 03.png  (NN.orig.png and NN.marks.json beside an edited one)
+  02-billing/            01.png
+  brand/                 copy of ~/QACut/brand, if included
+```
+
+## QACut Studio
+
+`Ctrl+Shift+R` records a source: the monitor under the region at up to 60 fps as H.264, with the cursor hidden, plus `events.json` carrying the cursor path at 120 Hz, cursor shapes, clicks, keystrokes (opt-in) and window titles, all on one clock. With the tray toggles on, the microphone and camera are recorded beside it.
+
+When the recording stops the studio opens on it. Everything is drawn back in from data, so everything is editable after the fact:
+
+- **Zooms** marked live with `Ctrl+Space` (only registered while recording) become blocks on the timeline; add more later. New zooms follow the cursor, with a dead zone so they never twitch and a tightness slider.
+- **Trim and cut** with handles you can grab; cut a stretch out of the middle and put it back if you change your mind. The preview follows every move.
+- **Cursor, clicks and keys**: smoothed and enlarged cursor, ripple on every click, keystroke badges for shortcuts only or every key, any badge hideable.
+- **Camera bubble and narration**, any corner, any size, in sync.
+- **Frame**: padding, corner radius, background, a title above the frame, your logo in a corner.
+- **Export**: H.264 MP4 with AAC narration, 720p to 1440p, 30 or 60 fps, exactly as previewed, written into the recording's folder.
+
+## Shortcuts
+
+All of these can be changed in **Keyboard shortcuts…** (tray, or Help in the bundle window).
+
+| Default | Does |
 | --- | --- |
-| `Ctrl/Cmd + Shift + 1` | Quick shot: drag a region, type a note, `Enter`; no bundle. `Ctrl + Enter` on a note copies every shot's path and note in the batch |
-| `Ctrl/Cmd + Shift + 2` | Freeze the screen, drag a region, then type a note |
-| `Ctrl/Cmd + Shift + 3` | Auto-capture: drag a region, adjust it, Record; press again to stop, then type a note |
-| `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |
-| `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
-| `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
-| `Ctrl/Cmd + Shift + R` | QACut Studio: record a source for the studio; press again to stop |
-| `Ctrl/Cmd + Space` | During a Studio recording only: zoom in here / zoom out (a mark the studio turns into an editable zoom) |
+| `Ctrl+Shift+1` | Quick shot |
+| `Ctrl+Shift+2` | Capture a region into the bundle |
+| `Ctrl+Shift+3` | Auto-capture start / stop |
+| `Ctrl+Shift+G` | New group (wrap up the current one with a master note) |
+| `Ctrl+Shift+Q` | View / edit bundle |
+| `Ctrl+Shift+Enter` | Finish the bundle and copy its path |
+| `Ctrl+Shift+R` | Studio recording start / stop |
+| `Ctrl+Space` | Zoom in here / out, only while a Studio recording runs |
 
-Inside the note box: `Enter` saves, `Shift + Enter` adds a line, `Esc` keeps
-the screenshot with no note. The header reads "Group 1 / Shot 1"; click either
-and type to name it. Inside the capture overlay: `Esc` or right-click cancels.
+In a note box: `Enter` saves, `Shift+Enter` adds a line, `Esc` keeps the shot with no note, `Ctrl+E` opens the markup editor on it. Quick shots: `Ctrl+Enter` finishes the batch. In the review window: `←` `→` previous and next shot, `M A H B S` tools, `Ctrl+Z` undo, `Ctrl+S` save, `Esc` close.
 
-The two workflows from the brief map to this:
+## Development
 
-- **One detail.** Capture hotkey, drag, type, Enter, finish hotkey. Five
-  actions, one of them a mouse drag.
-- **Full pass.** Capture and note repeatedly on the settings page, group
-  hotkey to wrap that group up with a master note, carry on in the next one,
-  finish hotkey at the end.
-
-Auto-capture is for showing a process rather than a fault. After the drag
-the box can be moved and its edges pulled; Record (or `Enter`) then starts
-a three-second countdown so windows and the mouse can be put in place.
-While it counts down and captures, everything outside the region stays
-tinted and the region is outlined, so it is obvious when something has
-drifted out of shot. The hotkey cancels during the countdown. Stills are
-taken at full resolution at the start, at every click or Enter (the mouse
-buttons and Enter are polled; a click still gets a ring where the click
-landed, saved as a mark so it can be moved in the editor), and at the end,
-with a fallback still every few seconds only when nothing is clicked. There
-is no video: agents cannot do anything with one, and recordings for people
-are the Studio's job. When the capture stops, every still is filed as an
-ordinary shot in the current group with its moment ("3 s, click at
-412,188") and the bundle window opens on the sequence, so the noise can be
-dropped, the keepers noted, and any still that landed out of order dragged
-back into place.
-
-A bundle has a purpose, chosen in the bundle window: **Fix issues** (the
-default), **Write process doc**, or **Custom prompt**. It only changes the
-prompt that "Copy agent prompt" produces, so one bundle of shots and
-recordings can be handed off any way you like. A process doc can be asked
-for **as Markdown** or **as web page**: the web page is one self-contained
-`process.html` with each recording playing inline from its MP4, which is
-where five steps in one clip replace five screenshots. The custom template is
-written in the bundle window and kept in `~/QACut/custom-prompt.txt` for
-every bundle after that; `{root}` becomes the folder path and `{name}` the
-bundle name, and a template that never mentions `{root}` gets the path
-appended so the agent can always find the folder.
-
-## QACut Studio (v2, in progress)
-
-QACut Studio is the second half of the app: recordings meant to be watched
-by a person, polished afterwards. It has its own section in the tray menu.
-`Ctrl+Shift+R` records a *source* for the studio instead of a GIF: the whole
-monitor under the region at up to 60 fps into a high-bitrate H.264 MP4 with
-the cursor hidden, plus `events.json` with the cursor path at 120 Hz, cursor
-shapes, clicks, keystrokes (opt-in) and foreground window titles, all on the
-same clock as the frames. Each recording is a folder under `~/QACut/Studio/`
-with `project.json` describing it. When the recording stops, QACut Studio
-opens on it: a composited preview with a padded background, the cursor
-drawn back in and smoothed, click ripples, keystroke badges and the camera
-bubble, playing with narration, and an inspector whose settings are saved
-into `project.json`. Zoom marks made while recording become blocks on the
-studio's timeline: drag a block to move it, its edges to retime it, the
-preview to change where it looks, and a slider for how close; a zoom can
-follow the cursor, holding still while it moves inside the middle of the
-view and easing after it near the edges; "Add zoom here" makes one after
-the fact. Keystroke badges default to shortcuts
-only, and any badge can be hidden by clicking its marker on the timeline.
-Trim sets where the video starts and ends (the buttons under the preview,
-`I` and `O`, or drag the handles) and Cut twice removes a stretch from the
-middle; a cut can then be dragged, resized at its edges, or removed.
-Playback skips removed material, the timeline shades it, a filmstrip of
-thumbnails sits behind the timeline, and the preview follows whatever is
-being dragged. A title and subtitle can sit in the
-padding above or below the frame and a logo from the brand folder in a
-corner of it. **Export…** renders every
-kept frame through the same compositor at 720p, 1080p or 1440p and 30 or
-60 fps, encodes H.264 and AAC narration with the browser engine's
-WebCodecs (hardware where available), and writes an MP4 into the
-recording's folder. "Open Studio" in the tray
-lists past recordings. Naming a recording renames its folder to
-`<timestamp>-<name>`, like a bundle. With the tray toggles on, the microphone
-and camera are recorded too, into `camera.webm` beside the source, with a
-live camera preview in a corner of the screen the region does not cover;
-`project.json` carries the offset between the two tracks. The studio that
-turns these into a finished video is being built; see `docs/v2-plan.md`.
-
-## Brand kit
-
-Anything the agent produces from a bundle, a process document especially,
-should sound and look like the business. Put whatever describes it in
-`~/QACut/brand/`: logo, colour swatches, fonts, a style guide, a document
-whose voice to imitate. "Brand kit" in the bundle window opens that folder
-and takes voice notes (tone, audience, terminology, things never to say),
-which are saved as `brand/brand.md`.
-
-On finish, the folder is copied into the bundle as `brand/`, so the bundle
-stays self-contained, and `bundle.md` gets a "Brand kit" section near the
-top that inlines the notes and lists the files. The built-in prompts add a
-line telling the agent to match it. Untick "Include in this bundle" for a
-bundle where it does not apply; the copy is removed on the next finish.
-
-A bundle starts on its own at the first capture and closes when you finish
-it: the next hotkey capture starts a new one. To add to a finished bundle
-instead, press **Capture here** on one of its groups in the bundle window,
-or edit anything in it; that reopens it, and finishing again rewrites the
-files. **Bundle > New bundle** in the window closes one early, saving any
-unwritten changes first. A bundle with no shots is deleted rather than left
-as an empty folder.
-
-The bundle window has a menu bar (Bundle, Capture, Hand off, Help) that
-holds every command with its shortcut; the only always-visible control is
-the purpose selector with **Copy agent prompt**.
-
-To go back to an earlier bundle, **Bundle > Open bundle...** (or "Open
-bundle..." in the tray) lists everything under `~/QACut/`, newest first.
-Opening one puts the current bundle away, saving unwritten changes, then
-reloads the chosen one from its `manifest.json`, so you can add shots,
-reorder, or finish it again. A bundle folder that was moved by hand still
-opens; its paths are rebuilt from wherever it is now.
-
-New shots go into the most recent group by default. To add to an earlier
-group, open the bundle window and press **Capture here** on that group.
-Shots can be reordered there too: drag one onto another to place it before
-it, onto a group heading to append it there, or use the arrow buttons. The
-folder is laid out to match on the next finish, so `01.png` is always
-step 1, whatever order things were captured in.
-
-## Markup and the recording timeline
-
-**Edit** under a screenshot opens a small editor with five tools: move,
-arrow, highlight, blur and step counter (`M`, `A`, `H`, `B`, `S`; `Ctrl+Z`
-undo, `Enter` save, `Esc` cancel). Move drags any mark; with a mark
-selected the arrow keys nudge it a pixel (`Shift` for ten) and `Delete`
-removes it. Blur is pixelation, which actually removes the text rather than
-softening it. The first save keeps the untouched original as
-`NN.orig.png` and the marks as `NN.marks.json` beside the image, so an edit
-can be reopened and changed rather than painted over. Those files travel
-with the shot and `bundle.md` tells the agent to ignore the originals.
-
-A recording shows its stills as a strip under it, each with its label.
-Click one to edit it (blur a password field, add a step number), or use
-its × to drop it before the bundle goes anywhere, so a bad frame never
-costs an agent tokens. Only click stills carry the cursor ring, at the
-click point; it is a mark like any other, so it can be moved if the
-pointer was somewhere unhelpful, and moving it updates the "click at x,y"
-in `bundle.md`. Blur applies to stills only, not to the GIF: if a
-recording shows something sensitive, delete it and re-record.
-
-## Output
-
-Everything lands under `~/QACut/`. The folder is named by timestamp; give
-the bundle a name in the bundle window and a slug is appended, so
-`2026-09-17_143022-settings-review`:
-
-```
-~/QACut/2026-09-17_143022-settings-review/
-  bundle.md            everything in reading order, images linked relatively
-  manifest.json        the same data, structured
-  01-settings-page/
-    01.png  02.png  03.png
-  02-billing/
-    01.png
-    02.gif             a recording
-    02-frames/         its key frames, 01.png 02.png ...
-  brand/               copy of ~/QACut/brand, if included
-```
-
-`bundle.md` is the agent-facing file. It opens with a short note on how to
-read it, then group headings carry the master note as a blockquote, and each
-shot is a numbered heading (with its name, if you gave it one) followed by
-its image, its note, and its pixel size.
-Image links are relative to the file, so the folder can be moved or handed to
-a CLI as-is.
-
-## Handing it off
-
-**CLI.** Finish copies the folder path. **Copy agent prompt** in the bundle
-window copies a ready-made instruction with the path filled in:
-
-```
-claude "Work through the QA bundle at /Users/nick/QACut/2026-09-17_143022.
-Start with bundle.md: each group is a page or area, its quoted master note
-applies to every screenshot under it, and each screenshot's note says what is
-wrong. Open each screenshot it references before changing anything."
-```
-
-**Chat.** Chat agents cannot read your disk, but most take an uploaded ZIP.
-**Hand off > Save ZIP for chat** writes the bundle, zips the whole folder
-(brand kit included) to `<bundle>.zip` beside it, reveals the archive in
-your file manager ready to drag into the chat, and copies a prompt that
-says "the attached ZIP" instead of a path. **Copy chat prompt** copies just
-the prompt. "Copy markdown" is still there for chats that take text only:
-paste `bundle.md`, then drag the PNGs in from the folder.
-
-That second step is a real limitation, not an oversight. No OS clipboard
-carries "markdown plus N images" as a single payload that a chat app will
-accept, so any tool that claims to do it is really doing one of the two. If
-you want the images to ride along, the path is a platform shim that writes a
-file list to the clipboard next to the text: `CF_HDROP` on Windows,
-`NSPasteboard` file URLs on macOS, `text/uri-list` on Linux. That is maybe
-150 lines of `#[cfg(target_os)]` code in `main.rs` and it does not exist yet.
-
-## Running it
-
-Needs Node 18+ and a Rust toolchain. Platform prerequisites are the standard
-Tauri ones (`https://v2.tauri.app/start/prerequisites/`): Visual Studio Build
-Tools and WebView2 on Windows, Xcode command line tools on macOS,
-`libwebkit2gtk-4.1-dev` and friends on Linux.
+Tauri 2: a Rust backend and a vanilla TypeScript frontend built with Vite. Needs Node 22+ and a Rust toolchain, plus the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your platform. The bundle and quick-shot halves are cross-platform in principle; Studio capture is Windows only (Windows Graphics Capture).
 
 ```bash
 npm install
-npm run tauri dev
+npm run tauri dev        # the app, with hot reload
+cd site && npm install && npm run dev   # the docs site
 ```
 
-Local release build, if you want the installers without publishing: `npm run tauri build`.
+```
+capture.html note.html peek.html rec.html edit.html studio.html   one Vite entry per window
+src/            capture, note, peek (bundle window), rec (recording badge), edit (markup + review)
+src/studio/     compositor, timeline, export (WebCodecs)
+src-tauri/src/  main.rs (tray, hotkeys, commands), model.rs, capture.rs, export.rs, overlay.rs
+src-tauri/src/studio/  source capture, events, project files, settings
+site/           VitePress docs deployed to qacut.com
+scripts/        release.mjs
+notes/          your own plans and scratch, gitignored
+```
 
-Icons are committed under `src-tauri/icons/`. If the mark changes, replace
-`assets/logo.png` (square, at least 1024px, transparent) and regenerate:
+Where things are decided:
+
+- Hotkey defaults: `src-tauri/src/studio/settings.rs`. Saved to `~/QACut/settings.json`.
+- What `bundle.md` looks like: `render_markdown()` in `src-tauri/src/export.rs`. The agent prompts: `agent_prompt()` in `main.rs`.
+- Auto-capture timing: the constants at the top of the auto-capture section in `src-tauri/src/capture.rs`.
+- App icons come from `npx tauri icon assets/logo.png`; `src-tauri/icons/tray.png` is cropped by hand so the mark fills the tray.
+- `harness.html` renders click moments through the Studio compositor in a browser, for checking cursor alignment against a real recording.
+
+Checks: `npm run build` (type-check and bundle) and `cd src-tauri && cargo test`. CI runs both on every push and pull request.
+
+## Releasing
 
 ```bash
-npx tauri icon assets/logo.png
-rm -rf src-tauri/icons/android src-tauri/icons/ios   # desktop only
+npm run release 2.1.0     # or patch | minor | major
 ```
 
-`src-tauri/icons/tray.png` is not produced by that command and has to be
-redone by hand. It is the mark cropped to its alpha bounding box and repadded
-to a 6% margin at 256px. The app icon carries roughly 11 to 16% margin, which
-is right for a dock but leaves the glyph small in a menubar, and this app
-lives in the tray. `main.rs` embeds it with `include_bytes!`, so a stale
-`tray.png` is a stale tray icon with no build error.
+That bumps the version in `package.json`, `tauri.conf.json` and `Cargo.toml`, commits, tags `vX.Y.Z` and pushes. The Release workflow builds the MSI and NSIS installers on a Windows runner and publishes the GitHub release with notes generated from the commits. The site's Download links point at `releases/latest`, so nothing else moves. `main` takes pull requests with a green CI, or a direct push from a repository admin.
 
-On macOS the tray icon stays full colour rather than a monochrome template
-image, so it will not invert with the menubar. The coral reads on both light
-and dark, but a template variant is the correct fix if it bothers you.
+## Site
 
-The accent colour throughout the UI is the mark's coral, `--signal` at the top
-of `src/styles.css`. Because the accent is red, destructive controls are
-distinguished by fill rather than hue: the accent draws strokes and text, the
-remove button fills solid on hover.
+`site/` is a VitePress site deployed to [qacut.com](https://qacut.com) by the Site workflow on every push to `main`. The docs are written with QACut itself: process docs exported from a bundle land under `site/docs/` with their images beside them.
 
-### Permissions
+---
 
-- **macOS** will ask for Screen Recording the first time you capture. Grant it
-  in System Settings, then restart the app. It will not prompt again but it
-  also will not work until you do.
-- **Linux/Wayland** does not let applications read the screen directly. `xcap`
-  goes through the portal, so you may see a one-time share prompt. X11 works
-  without ceremony.
-- **Windows** needs nothing, but note that `Ctrl+Shift+2` is claimed by some
-  IDEs. If a hotkey is taken the app logs it and keeps running with the rest.
-
-## Changing things
-
-- Hotkeys: **Help > Keyboard shortcuts…** in the bundle window (also in
-  the tray). Click a field, press the chord, Save; a shortcut another app
-  already owns is reported and the rest still apply. They are stored in
-  `~/QACut/settings.json` and the defaults live in
-  `src-tauri/src/studio/settings.rs`.
-- Output location: `base_dir()` in the same file.
-- Markdown shape: `render_markdown()` in `src-tauri/src/export.rs`. This is
-  the function to edit if you want the bundle to match a prompt format you
-  already use. The two agent prompts are in `agent_prompt()` in `main.rs`.
-- Recording rate, width and key-frame interval: the constants at the top of
-  the recording section in `src-tauri/src/capture.rs`.
-- The docs site: `site/` is a VitePress site deployed to qacut.com by the
-  `Site` workflow on every push to `main`. Process docs exported from QACut
-  go under `site/docs/` with their images beside them. `cd site && npm
-  install && npm run dev` to preview.
-- Releasing: `npm run release 2.1.0` (or `patch`, `minor`, `major`) bumps
-  the version in `package.json`, `src-tauri/tauri.conf.json` and
-  `src-tauri/Cargo.toml`, commits, tags `vX.Y.Z` and pushes. The `Release`
-  workflow then builds the MSI and NSIS installers on a Windows runner and
-  publishes the GitHub release with notes generated from the commits. The
-  site's Download links point at `releases/latest`, so nothing else moves.
-  `CI` runs the same build and the Rust tests on every push and pull
-  request; `main` only takes pull requests with a green CI, or a direct
-  push from a repository admin.
-- Internal notes and plans go in `notes/`, which is gitignored.
-- Checking the studio compositor against a real recording without opening
-  the app: `harness.html` (see the comment at its top) renders click
-  moments through the export's frame reader in a headed browser and logs
-  the frames as PNGs. `npm run dev` must be running.
-
-## Layout
-
-```
-index.html, capture.html, note.html, peek.html   Vite entry points, one per window
-src/                    frontend: capture.ts, note.ts, peek.ts, types.ts, styles.css
-src-tauri/
-  src/                  main.rs (tray, hotkeys, commands), model.rs, capture.rs,
-                        export.rs, overlay.rs
-  capabilities/         window permissions
-  icons/                generated app icons plus the hand-cropped tray.png
-  tauri.conf.json
-assets/logo.png         source mark for `tauri icon`
-```
-
-## What has and has not been verified
-
-- The frontend typechecks and builds clean (`npm run build`).
-- The Rust compiles: `cargo check`, `cargo clippy --all-targets` and
-  `cargo test` all pass on Windows with Rust 1.93, Tauri 2.11 and xcap 0.9.
-- The app has not yet been run end to end. The parts most likely to need
-  adjustment on first launch, in order:
-  1. **Monitor geometry.** `src-tauri/src/capture.rs` takes `x`/`y` from
-     `xcap` as-is and hands them to Tauri as logical coordinates. On a single
-     display, or displays all at 100%, that is correct. With mixed DPI across
-     several displays the overlay may land offset on the scaled one.
-  2. **Capability names.** If a window action is denied at runtime, the
-     message names the exact permission string to add to
-     `src-tauri/capabilities/default.json`.
-  3. **Hotkey collisions.** A taken shortcut is logged at boot and skipped;
-     the rest keep working.
-
-Unit tests cover slugs, shot numbering, folder renames, group targeting and
-the markdown shape: `cd src-tauri && cargo test`.
-
-## Known gaps
-
-- No annotation on the screenshot itself. Arrows and boxes would mean a canvas
-  layer between capture and note, which is a real feature rather than a tweak.
-- No undo for a deleted shot. The file is removed immediately.
-- Groups cannot be reordered or merged after the fact.
-- Multi-monitor capture opens one overlay per display. Scale is applied per
-  monitor when cropping, but a selection cannot span two displays and mixed
-  DPI placement is unverified (see above).
+Made by [Nick McInnis](https://github.com/mcinnisdev). If QACut saves you a round of "which button do you mean?", a star helps the next person find it.

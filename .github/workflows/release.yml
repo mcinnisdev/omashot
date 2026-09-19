@@ -54,16 +54,24 @@ jobs:
           releaseName: QACut ${{ github.ref_name }}
           releaseDraft: true
 
+      # GitHub's own note generator lists pull requests, and this repo ships
+      # by direct commits, so the notes are the commit subjects since the
+      # previous tag.
       - name: Release notes from the commits, then publish
         shell: bash
         run: |
-          prev=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')
-          args=(-f tag_name="$GITHUB_REF_NAME")
-          if [ -n "$prev" ]; then args+=(-f previous_tag_name="$prev"); fi
-          gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" "${args[@]}" --jq .body > notes.md
+          git fetch --tags --force --quiet
+          prev=$(git tag --list 'v*' --sort=-v:refname | grep -vx "$GITHUB_REF_NAME" | head -1)
+          range=${prev:+$prev..}$GITHUB_REF_NAME
           {
             echo "Windows 10 (2004+) or 11, x64. The installers are not code-signed yet: SmartScreen will warn on first run; choose **More info**, then **Run anyway**."
             echo
-            cat notes.md
+            echo "## What changed"
+            echo
+            git log "$range" --format='- %s (%h)' --no-merges | grep -v '^- Release v'
+            if [ -n "$prev" ]; then
+              echo
+              echo "**Full changelog**: https://github.com/$GITHUB_REPOSITORY/compare/$prev...$GITHUB_REF_NAME"
+            fi
           } > body.md
           gh release edit "$GITHUB_REF_NAME" --title "QACut $GITHUB_REF_NAME" --notes-file body.md --draft=false --latest

@@ -1,6 +1,10 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import type { Frame } from "./types";
+import { applyTheme } from "./theme";
 
+
+// Wear the current Omarchy theme, and follow it when it changes.
+void applyTheme();
 const params = new URLSearchParams(location.search);
 const monitor = params.get("m") ?? "0";
 // "shot" crops the frozen frame the moment the drag ends. "record" and

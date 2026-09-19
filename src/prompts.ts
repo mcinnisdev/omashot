@@ -1,4 +1,4 @@
-// The prompt library: a window for every text QACut puts on the clipboard
+// The prompt library: a window for every text Omacut puts on the clipboard
 // and for the prompts the user adds. Built-ins can be rewritten and reset;
 // the user's own have a name and a kind (quick shot or bundle) and are
 // picked from the quick shot window or the bundle window's purpose menu.
@@ -6,7 +6,11 @@
 // sample values so the shape can be checked before it is used.
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { applyTheme } from "./theme";
 
+
+// Wear the current Omarchy theme, and follow it when it changes.
+void applyTheme();
 type BuiltinKey = "quick_entry" | "quick_batch" | "fix" | "document" | "deliverable_markdown" | "deliverable_html";
 
 interface CustomPrompt {
@@ -26,16 +30,16 @@ interface BuiltinInfo {
 }
 
 const SAMPLE: Record<string, string> = {
-  "{path}": "C:\\Users\\nick\\QACut\\Quick\\2026-09-19_101512\\01.png",
+  "{path}": "C:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512\\01.png",
   "{note}": "The save button is clipped at 125% scaling.",
   "{count}": "3",
-  "{dir}": "C:\\Users\\nick\\QACut\\Quick\\2026-09-19_101512",
+  "{dir}": "C:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512",
   "{entries}":
-    "C:\\Users\\nick\\QACut\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.\n\nC:\\Users\\nick\\QACut\\Quick\\2026-09-19_101512\\02.png\nThis toggle never saves.",
+    "C:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.\n\nC:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512\\02.png\nThis toggle never saves.",
   "{shots}":
-    "C:\\Users\\nick\\QACut\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.",
-  "{location}": "the QA bundle at C:\\Users\\nick\\QACut\\2026-09-19_143022-settings-review",
-  "{root}": "C:\\Users\\nick\\QACut\\2026-09-19_143022-settings-review",
+    "C:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.",
+  "{location}": "the QA bundle at C:\\Users\\nick\\Omacut\\2026-09-19_143022-settings-review",
+  "{root}": "C:\\Users\\nick\\Omacut\\2026-09-19_143022-settings-review",
   "{name}": "Settings review",
   "{deliverable}": "(the Markdown or web page deliverable text)",
 };

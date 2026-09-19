@@ -3005,6 +3005,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "omacut"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "chrono",
+ "image",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-clipboard-manager",
+ "tauri-plugin-global-shortcut",
+ "tauri-plugin-opener",
+ "windows-capture",
+ "windows-sys 0.60.2",
+ "xcap",
+ "zip",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3375,27 +3396,6 @@ name = "pxfm"
 version = "0.1.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d55d956fa96f5ec02be2e13af0e20391a5aa83d6a074e3ad368959d0fab299ea"
-
-[[package]]
-name = "qacut"
-version = "2.2.0"
-dependencies = [
- "anyhow",
- "base64 0.22.1",
- "chrono",
- "image",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-clipboard-manager",
- "tauri-plugin-global-shortcut",
- "tauri-plugin-opener",
- "windows-capture",
- "windows-sys 0.60.2",
- "xcap",
- "zip",
-]
 
 [[package]]
 name = "quick-error"

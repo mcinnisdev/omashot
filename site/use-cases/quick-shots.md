@@ -1,9 +1,9 @@
 ---
-title: QACut Basic use cases
-description: "QACut Basic use cases: one-hotkey screenshots you copy and paste, mark up with arrows and blur, or hand to an AI agent as a file path and a note it can act on."
+title: Omacut Basic use cases
+description: "Omacut Basic use cases: one-hotkey screenshots you copy and paste, mark up with arrows and blur, or hand to an AI agent as a file path and a note it can act on."
 ---
 
-# QACut Basic: quick shots
+# Omacut Basic: quick shots
 
 One hotkey, one region, and the shot opens large with the markup tools and a note beside it. Where it goes next is up to you: the clipboard as an image for a person, or an AI agent as a path and a note.
 
@@ -15,6 +15,6 @@ One hotkey, one region, and the shot opens large with the markup tools and a not
 </div>
 </div>
 
-When the list grows past a handful, or spans several pages, or you want a document rather than a fix, step up to [QACut Bundles](/use-cases/bundles).
+When the list grows past a handful, or spans several pages, or you want a document rather than a fix, step up to [Omacut Bundles](/use-cases/bundles).
 
 Learn more: [How quick shots work in detail](/docs/quick)

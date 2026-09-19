@@ -58,6 +58,6 @@ The **Fix issues** prompt asks the agent to work through the screenshots and fix
 - [Send screenshots and notes to an AI agent](/use-cases/agent-feedback-loops), when it is one fix, or three, while the agent is already working.
 - [Organize screenshots into a document and export it](/use-cases/organize-and-export), when the bundle is steps to follow rather than things to fix.
 - [Hand a bundle to an AI agent with your brand kit](/use-cases/agent-with-brand-kit), the other built-in purpose.
-- [Bundles for agents](/docs/qacut) in the docs.
+- [Bundles for agents](/docs/omacut) in the docs.
 
-[How it works in detail](/docs/qacut) · [Download QACut](https://github.com/mcinnisdev/qacut/releases/latest)
+[How it works in detail](/docs/omacut) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)

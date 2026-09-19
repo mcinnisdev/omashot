@@ -1,0 +1,61 @@
+{
+  // Omacut in the Omarchy menu (SUPER + ALT + SPACE, or `omarchy menu`).
+  //
+  // Merge these keys into ~/.config/omarchy/extensions/omarchy-menu.jsonc.
+  // The file is yours and may already have entries in it, so the installer
+  // will not overwrite it -- it copies this in only when the file is still
+  // the untouched sample, and otherwise points you here.
+  //
+  // This is the surface that replaces the Windows tray menu: on Omarchy the
+  // menu is where a keyless action belongs.
+
+  "omacut": { "icon": "󰄀", "label": "Omacut", "description": "Capture, note, hand off to an agent" },
+
+  "omacut.quick": {
+    "icon": "󰹑",
+    "label": "Quick shot",
+    "description": "One shot with a note, copied for an agent",
+    "action": "omacut quick"
+  },
+  "omacut.capture": {
+    "icon": "󰹉",
+    "label": "Capture into bundle",
+    "description": "Add a noted screenshot to the open bundle",
+    "action": "omacut capture"
+  },
+  "omacut.record": {
+    "icon": "󰑋",
+    "label": "Auto-capture",
+    "description": "Start or stop capturing a process as stills",
+    "action": "omacut record"
+  },
+  "omacut.group": {
+    "icon": "󰉋",
+    "label": "New group",
+    "description": "Close the current group and start the next",
+    "action": "omacut group"
+  },
+  "omacut.peek": {
+    "icon": "󰈙",
+    "label": "Bundle window",
+    "description": "Review, reorder and note the shots",
+    "action": "omacut peek"
+  },
+  "omacut.finish": {
+    "icon": "󰄬",
+    "label": "Finish bundle",
+    "description": "Write it out and copy its path",
+    "action": "omacut finish"
+  },
+  "omacut.studio": {
+    "icon": "󰕧",
+    "label": "Studio recording",
+    "description": "Start or stop a screen recording",
+    "action": "omacut studio"
+  },
+  "omacut.folder": {
+    "icon": "󰝰",
+    "label": "Open Omacut folder",
+    "action": "omarchy-launch-nautilus ${OMACUT_DIR:-$HOME/Omacut}"
+  }
+}

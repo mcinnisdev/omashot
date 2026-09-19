@@ -53,7 +53,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: QACut ${{ github.ref_name }}
+          releaseName: Omacut ${{ github.ref_name }}
           releaseDraft: true
 
       # GitHub's own note generator lists pull requests, and this repo ships
@@ -76,4 +76,4 @@ jobs:
               echo "**Full changelog**: https://github.com/$GITHUB_REPOSITORY/compare/$prev...$GITHUB_REF_NAME"
             fi
           } > body.md
-          gh release edit "$GITHUB_REF_NAME" --title "QACut $GITHUB_REF_NAME" --notes-file body.md --draft=false --latest
+          gh release edit "$GITHUB_REF_NAME" --title "Omacut $GITHUB_REF_NAME" --notes-file body.md --draft=false --latest

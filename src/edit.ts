@@ -10,7 +10,12 @@ import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Session, Shot } from "./types";
+import { applyTheme } from "./theme";
+import { SUPER_LABEL } from "./keys";
 
+
+// Wear the current Omarchy theme, and follow it when it changes.
+void applyTheme();
 type Tool = "move" | "arrow" | "rect" | "blur" | "step";
 
 /// Closes this window; if the graceful close fails, destroys it.
@@ -423,7 +428,7 @@ async function loadQuickPrompts() {
 function keyLabel(spec: string) {
   return spec
     .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl")
-    .replace(/Super|Meta/g, "Win")
+    .replace(/Super|Meta/g, SUPER_LABEL)
     .replace(/Option/g, "Alt")
     .replace(/Return/g, "Enter");
 }

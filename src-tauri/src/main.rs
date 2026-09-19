@@ -3,9 +3,18 @@
 mod capture;
 mod drive;
 mod export;
+#[cfg(unix)]
+mod ipc;
 mod model;
 mod overlay;
+#[cfg(target_os = "linux")]
+mod picker;
 mod studio;
+mod theme;
+
+/// The tray mark: a single-colour glyph on transparency, re-tinted to the
+/// theme accent at runtime. See `theme::retint_tray`.
+const TRAY_PNG: &[u8] = include_bytes!("../icons/tray.png");
 
 use capture::Frame;
 use export::{BrandKit, Export};
@@ -90,11 +99,18 @@ type Shared = Mutex<Inner>;
 /// A registered shortcut: its canonical spelling and what it triggers.
 type Binding = (String, fn(&AppHandle));
 
+/// Where bundles, quick batches and recordings live. `$OMACUT_DIR` wins, so
+/// the folder can be moved somewhere XDG-shaped without touching the code;
+/// the default is a plainly visible `~/Omacut`, because the whole point of a
+/// bundle is to hand its path to someone.
 fn base_dir(app: &AppHandle) -> std::path::PathBuf {
+    if let Some(dir) = std::env::var_os("OMACUT_DIR").filter(|v| !v.is_empty()) {
+        return std::path::PathBuf::from(dir);
+    }
     app.path()
         .home_dir()
         .unwrap_or_else(|_| std::env::temp_dir())
-        .join("QACut")
+        .join("Omacut")
 }
 
 /// Returns the live session, starting one if there is none. A session only
@@ -161,7 +177,7 @@ fn fill_custom_prompt(template: &str, root: &str, name: &str, target: Target) ->
     out
 }
 
-/// The texts QACut puts on the clipboard, each overridable. An empty field
+/// The texts Omacut puts on the clipboard, each overridable. An empty field
 /// means the built-in default. Placeholders in braces are filled in.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
@@ -353,7 +369,7 @@ fn trigger_capture(app: &AppHandle) {
     open_overlay(app, "shot");
 }
 
-/// A quick shot: one screenshot and one note, saved under ~/QACut/Quick
+/// A quick shot: one screenshot and one note, saved under ~/Omacut/Quick
 /// by day with no bundle around it, and its path and note put on the
 /// clipboard ready to paste into an agent.
 fn trigger_quick(app: &AppHandle) {
@@ -459,7 +475,7 @@ fn finish_studio(app: &AppHandle) {
         }
         Err(e) => {
             overlay::close_rec_badge(app);
-            eprintln!("qacut: studio recording failed: {e}");
+            eprintln!("omacut: studio recording failed: {e}");
         }
     }
 }
@@ -472,14 +488,14 @@ fn finalize_studio(app: &AppHandle) {
     overlay::close_rec_badge(app);
     match finishing.finalize() {
         Ok(()) => {
-            eprintln!("qacut: studio recording saved to {}", finishing.dir.display());
+            eprintln!("omacut: studio recording saved to {}", finishing.dir.display());
             let dir = finishing.dir.to_string_lossy().to_string();
             if let Err(e) = overlay::open_studio(app, Some(&dir)) {
-                eprintln!("qacut: could not open the studio: {e}");
+                eprintln!("omacut: could not open the studio: {e}");
                 let _ = app.opener().reveal_item_in_dir(finishing.dir.join("source.mp4"));
             }
         }
-        Err(e) => eprintln!("qacut: studio recording could not be finalised: {e}"),
+        Err(e) => eprintln!("omacut: studio recording could not be finalised: {e}"),
     }
 }
 
@@ -497,7 +513,7 @@ fn trigger_zoom_mark(app: &AppHandle) {
 
 fn trigger_open_studio(app: &AppHandle) {
     if let Err(e) = overlay::open_studio(app, None) {
-        eprintln!("qacut: could not open the studio: {e}");
+        eprintln!("omacut: could not open the studio: {e}");
     }
 }
 
@@ -518,7 +534,7 @@ fn open_overlay(app: &AppHandle, mode: &str) {
         }
         inner.capturing = true;
     }
-    // Get out of the way: the user's screenshots should not have QACut in
+    // Get out of the way: the user's screenshots should not have Omacut in
     // them. Anything open comes back when they ask for it.
     overlay::close_note(app);
     overlay::close_peek(app);
@@ -526,7 +542,7 @@ fn open_overlay(app: &AppHandle, mode: &str) {
     let frames = match capture::freeze_all(&capture::scratch_dir()) {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("qacut: capture failed: {e}");
+            eprintln!("omacut: capture failed: {e}");
             state.lock().unwrap().capturing = false;
             return;
         }
@@ -539,22 +555,71 @@ fn open_overlay(app: &AppHandle, mode: &str) {
         if mode == "shot" || mode == "record" {
             if inner.finished {
                 if let Err(e) = stash_session(app, &mut inner) {
-                    eprintln!("qacut: could not put the finished bundle away: {e}");
+                    eprintln!("omacut: could not put the finished bundle away: {e}");
                     return;
                 }
             }
             if let Err(e) = ensure_session(app, &mut inner) {
-                eprintln!("qacut: could not start session: {e}");
+                eprintln!("omacut: could not start session: {e}");
                 return;
             }
         }
         inner.frames = frames;
     }
 
+    #[cfg(target_os = "linux")]
+    {
+        // Omarchy's own picker rather than an overlay this process places,
+        // which Wayland does not allow. This blocks until the user is done,
+        // which is fine: every caller reaches here through `off_main`.
+        select_with_picker(app, &meta, mode);
+    }
+
+    #[cfg(not(target_os = "linux"))]
     if let Err(e) = overlay::open_capture(app, &meta, mode) {
-        eprintln!("qacut: could not open overlay: {e}");
+        eprintln!("omacut: could not open overlay: {e}");
         let mut inner = state.lock().unwrap();
         inner.frames.clear();
+    }
+}
+
+/// Drops the frozen frames and the scratch PNGs behind them. The synchronous
+/// half of `cancel_capture`, for the picker path, which is not a command.
+#[cfg(target_os = "linux")]
+fn cancel_capture_now(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    state.lock().unwrap().frames.clear();
+    capture::clear_scratch();
+    let _ = app;
+}
+
+/// Runs the Omarchy region picker and hands the result to the same command
+/// the overlay would have invoked. The four modes take identical arguments,
+/// so the only thing that varies is which one is called.
+#[cfg(target_os = "linux")]
+fn select_with_picker(app: &AppHandle, frames: &[Frame], mode: &str) {
+    let Some(sel) = picker::pick(frames) else {
+        // Cancelled, or no picker on the system. Either way, put the frozen
+        // frames back so the next capture starts clean.
+        cancel_capture_now(app);
+        return;
+    };
+
+    let recording = mode == "record";
+    let result = tauri::async_runtime::block_on(async {
+        let state: State<Shared> = app.state();
+        let (app, m) = (app.clone(), sel.monitor);
+        let (x, y, w, h) = (sel.x, sel.y, sel.width, sel.height);
+        match mode {
+            "studio" => start_studio(app, state, m, x, y, w, h).await,
+            _ if recording => start_recording(app, state, m, x, y, w, h).await,
+            "quick" => commit_quick(app, state, m, x, y, w, h).await,
+            _ => commit_selection(app, state, m, x, y, w, h).await,
+        }
+    });
+    if let Err(e) = result {
+        eprintln!("omacut: selection failed: {e}");
+        cancel_capture_now(app);
     }
 }
 
@@ -571,7 +636,7 @@ fn finish_recording(app: &AppHandle) {
     let done = match rec.stop() {
         Ok(d) => d,
         Err(e) => {
-            eprintln!("qacut: auto-capture failed: {e}");
+            eprintln!("omacut: auto-capture failed: {e}");
             let _ = std::fs::remove_dir_all(&frames_dir);
             return;
         }
@@ -622,20 +687,20 @@ fn finish_recording(app: &AppHandle) {
 
     let _ = app.emit("session-changed", ());
     if let Err(e) = overlay::open_peek(app, None) {
-        eprintln!("qacut: could not open bundle window: {e}");
+        eprintln!("omacut: could not open bundle window: {e}");
     }
 }
 
 fn trigger_group(app: &AppHandle) {
     overlay::close_peek(app);
     if let Err(e) = overlay::open_note(app, "group", None) {
-        eprintln!("qacut: could not open group prompt: {e}");
+        eprintln!("omacut: could not open group prompt: {e}");
     }
 }
 
 fn trigger_peek(app: &AppHandle) {
     if let Err(e) = overlay::toggle_peek(app) {
-        eprintln!("qacut: could not open bundle view: {e}");
+        eprintln!("omacut: could not open bundle view: {e}");
     }
 }
 
@@ -645,7 +710,7 @@ fn trigger_finish(app: &AppHandle) {
             overlay::close_peek(app);
             let _ = overlay::toggle_peek(app);
         }
-        Err(e) => eprintln!("qacut: finish failed: {e}"),
+        Err(e) => eprintln!("omacut: finish failed: {e}"),
     }
 }
 
@@ -666,8 +731,36 @@ fn action_for(id: &str) -> Option<fn(&AppHandle)> {
     })
 }
 
+/// Runs an action by its id, on a worker thread. The socket, the tray and
+/// the hotkeys all come through here, so a verb and a key always mean the
+/// same thing. Returns false when the id is not an action.
+#[cfg(unix)]
+fn dispatch_action(app: &AppHandle, id: &str) -> bool {
+    match action_for(id) {
+        Some(f) => {
+            off_main(app, f);
+            true
+        }
+        None => false,
+    }
+}
+
 /// Registers the shortcuts from settings, replacing whatever was
 /// registered before. Returns a line per key that could not be used.
+///
+/// On Linux nothing is registered at all. Wayland has no global hotkey API,
+/// and the X11 grab the plugin falls back to succeeds without ever firing
+/// for a Wayland client -- which is worse than not trying, because it looks
+/// like it worked. The compositor holds these keys instead and reaches the
+/// app through `omacut <verb>`; the settings are kept only as the labels the
+/// windows print. See `ipc` and `omarchy/bindings.lua`.
+#[cfg(target_os = "linux")]
+fn apply_hotkeys(app: &AppHandle, hk: &studio::settings::Hotkeys) -> Vec<String> {
+    let _ = (app, hk);
+    Vec::new()
+}
+
+#[cfg(not(target_os = "linux"))]
 fn apply_hotkeys(app: &AppHandle, hk: &studio::settings::Hotkeys) -> Vec<String> {
     let mut problems = Vec::new();
     let mut registered = Vec::new();
@@ -687,12 +780,12 @@ fn apply_hotkeys(app: &AppHandle, hk: &studio::settings::Hotkeys) -> Vec<String>
             Ok(sc) => match app.global_shortcut().register(sc) {
                 Ok(()) => registered.push((sc.to_string(), action)),
                 Err(e) => {
-                    eprintln!("qacut: hotkey {spec} is taken by something else ({e})");
+                    eprintln!("omacut: hotkey {spec} is taken by something else ({e})");
                     problems.push(format!("{spec} is already taken by another app"));
                 }
             },
             Err(e) => {
-                eprintln!("qacut: hotkey {spec} is not valid ({e})");
+                eprintln!("omacut: hotkey {spec} is not valid ({e})");
                 problems.push(format!("{spec} is not a valid shortcut"));
             }
         }
@@ -725,12 +818,12 @@ fn arm_zoom_key(app: &AppHandle) {
     let sc = match Shortcut::from_str(&spec) {
         Ok(sc) => sc,
         Err(e) => {
-            eprintln!("qacut: zoom hotkey {spec} is not valid ({e})");
+            eprintln!("omacut: zoom hotkey {spec} is not valid ({e})");
             return;
         }
     };
     if let Err(e) = app.global_shortcut().register(sc) {
-        eprintln!("qacut: zoom hotkey {spec} is taken by something else ({e})");
+        eprintln!("omacut: zoom hotkey {spec} is taken by something else ({e})");
         return;
     }
     let mut inner = state.lock().unwrap();
@@ -749,15 +842,15 @@ fn disarm_zoom_key(app: &AppHandle) {
 }
 
 /// The tray menu, built from settings so accelerator labels and toggles
-/// are always current. Three tools in one tray: QACut Basic (quick shots), QACut
-/// Docs (bundles) and QACut Studio; disabled items serve as headers.
+/// are always current. Three tools in one tray: Omacut Basic (quick shots), Omacut
+/// Docs (bundles) and Omacut Studio; disabled items serve as headers.
 fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let st = studio::settings::Settings::load(&base_dir(app));
     let hk = &st.hotkeys;
     let acc = |s: &str| if s.trim().is_empty() { None } else { Some(s.trim().to_string()) };
 
-    let head_qacut = MenuItem::with_id(app, "h1", "QACut Basic", false, None::<&str>)?;
-    let head_docs = MenuItem::with_id(app, "h4", "QACut Bundles", false, None::<&str>)?;
+    let head_omacut = MenuItem::with_id(app, "h1", "Omacut Basic", false, None::<&str>)?;
+    let head_docs = MenuItem::with_id(app, "h4", "Omacut Bundles", false, None::<&str>)?;
     let quick_i = MenuItem::with_id(app, "quick", "Quick shot", true, acc(&hk.quick))?;
     let quick_finish_i =
         MenuItem::with_id(app, "quick_finish", "Finish quick batch and copy paths", true, acc(&hk.quick_finish))?;
@@ -766,9 +859,9 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let group_i = MenuItem::with_id(app, "group", "New group", true, acc(&hk.group))?;
     let peek_i = MenuItem::with_id(app, "peek", "View / edit bundle", true, acc(&hk.peek))?;
     let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, acc(&hk.finish))?;
-    let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
+    let folder_i = MenuItem::with_id(app, "folder", "Open Omacut folder", true, None::<&str>)?;
 
-    let head_studio = MenuItem::with_id(app, "h2", "QACut Studio", false, None::<&str>)?;
+    let head_studio = MenuItem::with_id(app, "h2", "Omacut Studio", false, None::<&str>)?;
     let open_studio_i = MenuItem::with_id(app, "open_studio", "Open Studio", true, None::<&str>)?;
     let studio_i = MenuItem::with_id(app, "studio", "Record start / stop", true, acc(&hk.studio))?;
     let zoom_i = MenuItem::with_id(app, "zoom", "Zoom start / end (while recording)", true, acc(&hk.zoom))?;
@@ -780,7 +873,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
 
     let shortcuts_i = MenuItem::with_id(app, "shortcuts", "Keyboard shortcuts...", true, None::<&str>)?;
     let prompts_i = MenuItem::with_id(app, "prompts", "Prompt library...", true, None::<&str>)?;
-    let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
+    let quit_i = MenuItem::with_id(app, "quit", "Quit Omacut", true, None::<&str>)?;
     let sep_quick = PredefinedMenuItem::separator(app)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
     let sep_inputs = PredefinedMenuItem::separator(app)?;
@@ -788,7 +881,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     Menu::with_items(
         app,
         &[
-            &head_qacut, &quick_i, &quick_finish_i,
+            &head_omacut, &quick_i, &quick_finish_i,
             &sep_quick,
             &head_docs, &capture_i, &record_i, &group_i, &peek_i, &finish_i, &folder_i,
             &sep1,
@@ -806,17 +899,17 @@ fn refresh_tray_menu(app: &AppHandle) {
         match build_tray_menu(app) {
             Ok(menu) => {
                 if let Err(e) = tray.set_menu(Some(menu)) {
-                    eprintln!("qacut: could not update the tray menu: {e}");
+                    eprintln!("omacut: could not update the tray menu: {e}");
                 }
             }
-            Err(e) => eprintln!("qacut: could not build the tray menu: {e}"),
+            Err(e) => eprintln!("omacut: could not build the tray menu: {e}"),
         }
     }
 }
 
 fn trigger_prompts(app: &AppHandle) {
     if let Err(e) = overlay::open_prompts(app, None) {
-        eprintln!("qacut: could not open the prompt library: {e}");
+        eprintln!("omacut: could not open the prompt library: {e}");
     }
 }
 
@@ -827,7 +920,7 @@ async fn open_prompt_library(app: AppHandle) -> Result<(), String> {
 
 fn trigger_shortcuts(app: &AppHandle) {
     if let Err(e) = overlay::open_peek(app, Some("shortcuts")) {
-        eprintln!("qacut: could not open bundle window: {e}");
+        eprintln!("omacut: could not open bundle window: {e}");
     }
 }
 
@@ -1080,7 +1173,7 @@ async fn start_recording(
     if let Err(e) =
         overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS, false)
     {
-        eprintln!("qacut: could not show recording overlay: {e}");
+        eprintln!("omacut: could not show recording overlay: {e}");
     }
 
     let started = std::time::Instant::now();
@@ -1153,7 +1246,7 @@ async fn start_studio(
     if let Err(e) =
         overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS, true)
     {
-        eprintln!("qacut: could not show recording overlay: {e}");
+        eprintln!("omacut: could not show recording overlay: {e}");
     }
 
     let started = std::time::Instant::now();
@@ -1175,7 +1268,7 @@ async fn start_studio(
             Ok(a) => inner.studio = Some(a),
             Err(e) => {
                 overlay::close_rec_badge(&app);
-                eprintln!("qacut: studio recording could not start: {e}");
+                eprintln!("omacut: studio recording could not start: {e}");
                 return Err(e.to_string());
             }
         }
@@ -1281,7 +1374,7 @@ fn save_studio_edits(dir: String, edits: serde_json::Value, name: String) -> Res
             // A file in use (an export being written, a player open) keeps
             // the old name; the name itself is still saved.
             Err(e) => {
-                eprintln!("qacut: could not rename recording folder: {e}");
+                eprintln!("omacut: could not rename recording folder: {e}");
                 d
             }
         }
@@ -1413,7 +1506,7 @@ fn set_hotkeys(app: AppHandle, hotkeys: studio::settings::Hotkeys) -> Result<Vec
 /// Lets a window that is about to close report why something failed.
 #[tauri::command]
 fn log_error(message: String) {
-    eprintln!("qacut: {message}");
+    eprintln!("omacut: {message}");
 }
 
 #[tauri::command]
@@ -2035,11 +2128,11 @@ fn trigger_quick_finish(app: &AppHandle) {
         inner.quick_batch.take()
     };
     let Some(dir) = dir else {
-        eprintln!("qacut: no quick batch to finish");
+        eprintln!("omacut: no quick batch to finish");
         return;
     };
     if let Err(e) = app.clipboard().write_text(quick_batch_text(&dir, &Prompts::load(app))) {
-        eprintln!("qacut: could not copy the quick batch: {e}");
+        eprintln!("omacut: could not copy the quick batch: {e}");
     }
 }
 
@@ -2228,6 +2321,20 @@ async fn quit(app: AppHandle) {
 // ------------------------------------------------------------------- boot
 
 fn main() {
+    // `omacut <verb>` is a client for an already-running app, not a second
+    // copy of it: it talks over the socket and exits without starting a UI.
+    #[cfg(unix)]
+    {
+        if let Some(code) = ipc::run_client() {
+            std::process::exit(code);
+        }
+        // A tray app should have exactly one tray icon.
+        if ipc::already_running() {
+            eprintln!("omacut: already running");
+            std::process::exit(0);
+        }
+    }
+
     tauri::Builder::default()
         .manage(Shared::default())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -2254,6 +2361,7 @@ fn main() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
+            theme::theme_css,
             frame_for,
             commit_selection,
             commit_quick,
@@ -2330,21 +2438,30 @@ fn main() {
         ])
         .setup(|app| {
             let handle = app.handle().clone();
-            let settings = studio::settings::Settings::load(&base_dir(&handle));
+
+            // The static scope in tauri.conf.json only covers the default
+            // ~/Omacut. When $OMACUT_DIR moves the folder, the webviews still
+            // have to be able to load the shots out of it.
+            let base = base_dir(&handle);
+            if let Err(e) = app.asset_protocol_scope().allow_directory(&base, true) {
+                eprintln!("omacut: could not open {} to the webviews: {e}", base.display());
+            }
+
+            let settings = studio::settings::Settings::load(&base);
             apply_hotkeys(&handle, &settings.hotkeys);
             // Dev only: drive the app from request files to make screenshots.
-            if let Ok(dir) = std::env::var("QACUT_DRIVE_DIR") {
+            if let Ok(dir) = std::env::var("OMACUT_DRIVE_DIR") {
                 drive::start(handle.clone(), std::path::PathBuf::from(dir));
             }
             let menu = build_tray_menu(&handle)?;
 
             // A trimmed copy of the mark rather than the app icon, whose
             // margins cost a third of the glyph at menubar size.
-            let tray_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
+            let tray_icon = tauri::image::Image::from_bytes(TRAY_PNG)?;
 
             TrayIconBuilder::with_id("main")
                 .icon(tray_icon)
-                .tooltip("QACut")
+                .tooltip("Omacut")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id().as_ref() {
@@ -2364,7 +2481,7 @@ fn main() {
                             _ => s.camera = !s.camera,
                         }
                         if let Err(e) = s.save(&base_dir(app)) {
-                            eprintln!("qacut: could not save settings: {e}");
+                            eprintln!("omacut: could not save settings: {e}");
                         }
                         refresh_tray_menu(app);
                     }
@@ -2399,6 +2516,8 @@ fn main() {
                             }
                         }
                         capture::clear_scratch();
+                        #[cfg(unix)]
+                        ipc::cleanup();
                         app.exit(0);
                     }
                     _ => {}
@@ -2409,6 +2528,16 @@ fn main() {
             // obvious to drop files before the first bundle window opens.
             let _ = std::fs::create_dir_all(brand_dir(&handle));
 
+            // Wear the current Omarchy theme, and keep wearing it: the tray
+            // mark is tinted now, and the watcher re-tints it and re-skins
+            // every open window whenever the theme changes under us.
+            theme::retint_tray(&handle, &theme::read_css());
+            theme::watch(handle.clone());
+
+            // Hyprland holds the keys; this is how its bindings reach us.
+            #[cfg(unix)]
+            ipc::serve(handle.clone(), dispatch_action);
+
             // No visible window on launch. The tray is the app.
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
@@ -2416,7 +2545,7 @@ fn main() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("failed to start QACut")
+        .expect("failed to start Omacut")
         .run(|_app, event| {
             // `code` is None when the last window closed and Some when Quit
             // (or a restart) asked for it. Only the former should be swallowed;

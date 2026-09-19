@@ -32,23 +32,23 @@ Three small things on the same page? Press `Enter` on each note instead of `Ctrl
 For a single shot, the clipboard holds a path the agent can open and the note that tells it what to do:
 
 ```
-C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
+C:\Users\nick\Omacut\Quick\2026-09-19_101512\01.png
 The save button is clipped at 125% scaling.
 ```
 
 For a batch, the paste starts with a line naming the folder, then every shot with its note:
 
 ```
-3 quick shots in C:\Users\nick\QACut\Quick\2026-09-19_101512. Each PNG has
+3 quick shots in C:\Users\nick\Omacut\Quick\2026-09-19_101512. Each PNG has
 its note in the .md beside it; notes.md lists them all.
 
-C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
+C:\Users\nick\Omacut\Quick\2026-09-19_101512\01.png
 The save button is clipped at 125% scaling.
 
-C:\Users\nick\QACut\Quick\2026-09-19_101512\02.png
+C:\Users\nick\Omacut\Quick\2026-09-19_101512\02.png
 This toggle animates but the state never saves.
 
-C:\Users\nick\QACut\Quick\2026-09-19_101512\03.png
+C:\Users\nick\Omacut\Quick\2026-09-19_101512\03.png
 Align this label with the field above it.
 ```
 
@@ -68,4 +68,4 @@ On disk, each PNG has its note in a small markdown file beside it, and `notes.md
 - [Build a task list of UI fixes for an AI agent](/use-cases/task-list-for-agents), when the list grows past a handful or spans several pages.
 - [Quick shots](/docs/quick) in the docs.
 
-[How it works in detail](/docs/quick) · [Download QACut](https://github.com/mcinnisdev/qacut/releases/latest)
+[How it works in detail](/docs/quick) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)

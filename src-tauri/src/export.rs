@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 /// Notes file inside the brand folder that is inlined into bundle.md.
 pub const BRAND_NOTES: &str = "brand.md";
 
-/// What the user keeps in `~/QACut/brand/`: voice notes plus any files.
+/// What the user keeps in `~/Omacut/brand/`: voice notes plus any files.
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct BrandKit {
     pub notes: String,
@@ -633,7 +633,7 @@ mod document_tests {
 
     #[test]
     fn the_document_reads_as_numbered_steps_under_group_headings() {
-        let base = std::env::temp_dir().join(format!("qacut-test-doc-{}", chrono::Local::now().timestamp_micros()));
+        let base = std::env::temp_dir().join(format!("omacut-test-doc-{}", chrono::Local::now().timestamp_micros()));
         let mut s = Session::start(&base).unwrap();
         s.name = "Unlink OneDrive".into();
         s.current().shots.push(shot("01.png", "Open settings", "Click the cloud icon in the tray."));
@@ -668,7 +668,7 @@ mod tests {
     #[test]
     fn markdown_has_the_agent_facing_shape() {
         let base = std::env::temp_dir().join(format!(
-            "qacut-test-md-{}",
+            "omacut-test-md-{}",
             chrono::Local::now().timestamp_micros()
         ));
         let mut s = Session::start(&base).unwrap();
@@ -736,7 +736,7 @@ mod brand_tests {
     #[test]
     fn brand_kit_is_copied_in_and_described() {
         let base = std::env::temp_dir().join(format!(
-            "qacut-test-brand-{}",
+            "omacut-test-brand-{}",
             chrono::Local::now().timestamp_micros()
         ));
         let brand = base.join("brand");
@@ -810,7 +810,7 @@ mod layout_tests {
     #[test]
     fn export_lays_files_out_in_reading_order_after_moves() {
         let base = std::env::temp_dir().join(format!(
-            "qacut-test-layout-{}",
+            "omacut-test-layout-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();
@@ -869,7 +869,7 @@ mod zip_tests {
     #[test]
     fn zip_holds_the_whole_folder_under_one_directory() {
         let base = std::env::temp_dir().join(format!(
-            "qacut-test-zip-{}",
+            "omacut-test-zip-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();

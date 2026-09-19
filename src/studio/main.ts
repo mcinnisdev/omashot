@@ -1,4 +1,4 @@
-// QACut Studio: opens a recording, plays it back composited, and keeps the
+// Omacut Studio: opens a recording, plays it back composited, and keeps the
 // edits in project.json. Playback is driven by the hidden source <video>;
 // every presented frame is drawn through the compositor, so the preview is
 // the export.
@@ -16,6 +16,11 @@ import {
   type StudioInfo,
   type Zoom,
 } from "./model";
+import { applyTheme } from "../theme";
+import { SUPER_LABEL } from "../keys";
+
+// Wear the current Omarchy theme, and follow it when it changes.
+void applyTheme();
 
 const params = new URLSearchParams(location.search);
 
@@ -1104,7 +1109,7 @@ void invoke<Record<string, string>>("get_hotkeys").then((h) => {
     if (!spec) continue;
     el.innerHTML = spec
       .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl/Cmd")
-      .replace(/Super|Meta/g, "Win")
+      .replace(/Super|Meta/g, SUPER_LABEL)
       .replace(/Option/g, "Alt")
       .replace(/Return/g, "Enter")
       .split("+")

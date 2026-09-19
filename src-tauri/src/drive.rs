@@ -1,5 +1,5 @@
 //! Drive mode, for producing the site's and docs' screenshots with the app
-//! itself. Off unless `QACUT_DRIVE_DIR` is set at start-up. The app then
+//! itself. Off unless `OMACUT_DRIVE_DIR` is set at start-up. The app then
 //! watches that folder for `*.json` requests, runs each one (open a window
 //! on fixture data, capture a window to a PNG, and so on), and answers with
 //! `<name>.done.json`. Nothing here is reachable from the UI.
@@ -67,7 +67,7 @@ struct Done {
 
 pub fn start(app: AppHandle, dir: PathBuf) {
     let _ = std::fs::create_dir_all(&dir);
-    eprintln!("qacut: drive mode on, watching {}", dir.display());
+    eprintln!("omacut: drive mode on, watching {}", dir.display());
     std::thread::spawn(move || loop {
         let mut reqs: Vec<PathBuf> = std::fs::read_dir(&dir)
             .map(|rd| {
@@ -88,7 +88,7 @@ pub fn start(app: AppHandle, dir: PathBuf) {
             let done = match outcome {
                 Ok(v) => Done { ok: true, result: Some(v), error: None },
                 Err(e) => {
-                    eprintln!("qacut: drive request {} failed: {e}", req.display());
+                    eprintln!("omacut: drive request {} failed: {e}", req.display());
                     Done { ok: false, result: None, error: Some(e) }
                 }
             };

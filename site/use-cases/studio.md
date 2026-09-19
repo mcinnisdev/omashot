@@ -1,9 +1,9 @@
 ---
-title: QACut Studio use cases
-description: "QACut Studio use cases: polished screen recordings with zooms and click effects, narration in sync, a camera bubble, your logo and title, exported as an MP4."
+title: Omacut Studio use cases
+description: "Omacut Studio use cases: polished screen recordings with zooms and click effects, narration in sync, a camera bubble, your logo and title, exported as an MP4."
 ---
 
-# QACut Studio: recordings people will actually watch
+# Omacut Studio: recordings people will actually watch
 
 Raw screen recordings are hard to follow: the cursor is tiny, nothing marks a click, and the interesting part is a small corner of a big screen. Studio records the cursor, clicks and keystrokes as data alongside the video, then draws them back in properly, so everything about the finished video is still editable after you stop recording.
 
@@ -16,6 +16,6 @@ Raw screen recordings are hard to follow: the cursor is tiny, nothing marks a cl
 </div>
 </div>
 
-Studio recordings are how the walkthroughs on this site get made. Record the screen you are working on, and the tool disappears from the footage: its overlays are excluded from capture. Need the same steps as a document rather than a video? That is [QACut Bundles](/use-cases/bundles) with auto-capture.
+Studio recordings are how the walkthroughs on this site get made. Record the screen you are working on, and the tool disappears from the footage: its overlays are excluded from capture. Need the same steps as a document rather than a video? That is [Omacut Bundles](/use-cases/bundles) with auto-capture.
 
 Learn more: [How the studio works in detail](/docs/studio)

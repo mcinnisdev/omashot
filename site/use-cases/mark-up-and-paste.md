@@ -1,13 +1,13 @@
 ---
 title: Mark up a screenshot and paste it anywhere
-description: "Add an arrow, highlight a field and pixelate a name before you paste a screenshot. QACut Basic marks up the shot where it opened and copies it as an image."
+description: "Add an arrow, highlight a field and pixelate a name before you paste a screenshot. Omacut Basic marks up the shot where it opened and copies it as an image."
 ---
 
 # Mark up a screenshot and paste it anywhere
 
 **For:** anyone answering "which button do you mean?" for a colleague or a customer, when the screenshot has to point at the thing and hide what should not leave the building.
 
-A raw screenshot makes the reader hunt. An arrow on the button, a highlight on the field and the customer's name pixelated out turns it into an instruction. Most screenshot tools do this in a second editor with a second save; in QACut Basic the tools are already in the window the shot opened in.
+A raw screenshot makes the reader hunt. An arrow on the button, a highlight on the field and the customer's name pixelated out turns it into an instruction. Most screenshot tools do this in a second editor with a second save; in Omacut Basic the tools are already in the window the shot opened in.
 
 ## The flow
 
@@ -28,7 +28,7 @@ A raw screenshot makes the reader hunt. An arrow on the button, a highlight on t
 
 ## What you get
 
-The marked-up screenshot on the clipboard as an image, ready to paste anywhere that takes one. On disk, the batch folder under `~/QACut/Quick/` holds two files for the shot:
+The marked-up screenshot on the clipboard as an image, ready to paste anywhere that takes one. On disk, the batch folder under `~/Omacut/Quick/` holds two files for the shot:
 
 ```
 01.png        the shot with your marks
@@ -51,4 +51,4 @@ So you can send the arrow-and-blur version now and still have the clean capture 
 - [Organize screenshots into a document and export it](/use-cases/organize-and-export): the same tools on every shot in a bundle, from the bundle window.
 - [Quick shots](/docs/quick) in the docs.
 
-[How it works in detail](/docs/quick) · [Download QACut](https://github.com/mcinnisdev/qacut/releases/latest)
+[How it works in detail](/docs/quick) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)

@@ -1,5 +1,5 @@
 name: Feature request
-description: Something you wish QACut did, or did differently.
+description: Something you wish Omacut did, or did differently.
 title: "[Feature] "
 labels: ["enhancement"]
 body:
@@ -22,9 +22,9 @@ body:
     attributes:
       label: Which mode
       options:
-        - QACut Basic (quick shots)
-        - QACut Bundles
-        - QACut Studio
+        - Omacut Basic (quick shots)
+        - Omacut Bundles
+        - Omacut Studio
         - All of them / not sure
     validations:
       required: true

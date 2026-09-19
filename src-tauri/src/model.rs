@@ -102,7 +102,7 @@ pub enum Purpose {
     Fix,
     /// Screenshots and recordings of a workflow; the agent writes it up.
     Document,
-    /// The user's own prompt template, kept in `~/QACut/custom-prompt.txt`.
+    /// The user's own prompt template, kept in `~/Omacut/custom-prompt.txt`.
     Custom,
     /// One of the user's saved prompts, named by `Session::prompt_id`.
     Saved,
@@ -260,7 +260,7 @@ pub struct Session {
     pub prompt_id: Option<String>,
     #[serde(default)]
     pub doc_format: DocFormat,
-    /// Whether the brand kit in `~/QACut/brand/` is copied into this bundle.
+    /// Whether the brand kit in `~/Omacut/brand/` is copied into this bundle.
     #[serde(default = "default_true")]
     pub include_brand: bool,
     pub groups: Vec<Group>,
@@ -556,7 +556,7 @@ mod tests {
 
     fn temp_base(tag: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!(
-            "qacut-test-{tag}-{}",
+            "omacut-test-{tag}-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&dir).unwrap();
@@ -653,7 +653,7 @@ mod recording_tests {
     #[test]
     fn removing_a_recording_takes_its_frames_too() {
         let base = std::env::temp_dir().join(format!(
-            "qacut-test-rec-{}",
+            "omacut-test-rec-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();
@@ -702,7 +702,7 @@ mod reopen_tests {
     #[test]
     fn a_bundle_reopens_from_its_manifest_even_after_a_move() {
         let base = std::env::temp_dir().join(format!(
-            "qacut-test-reopen-{}",
+            "omacut-test-reopen-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();

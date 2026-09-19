@@ -8,6 +8,7 @@
 // cursor and ripples included, goes through that one mapping.
 
 import { BACKGROUNDS, ZOOM_EASE_MS, type Edits, type Events, type Project, type Zoom } from "./model";
+import { SUPER_LABEL } from "../keys";
 
 export interface Frame {
   t: number;
@@ -50,7 +51,7 @@ export function buildTrack(project: Project, events: Events, edits: Edits): Trac
   };
 }
 
-/// QACut's own chords never belong in a walkthrough. Set from settings by
+/// Omacut's own chords never belong in a walkthrough. Set from settings by
 /// the studio at start-up; the defaults cover a recording made before the
 /// user changed anything.
 let OWN_HOTKEYS = new Set([
@@ -75,7 +76,7 @@ export function setOwnHotkeys(specs: string[]) {
       .map((s) =>
         s
           .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl")
-          .replace(/Super|Meta/g, "Win")
+          .replace(/Super|Meta/g, SUPER_LABEL)
           .replace(/Option/g, "Alt")
           .replace(/Return/g, "Enter"),
       ),

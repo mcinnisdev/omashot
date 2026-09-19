@@ -1,10 +1,10 @@
 ---
-description: "QACut Bundles: capture screenshots in groups with notes, auto-capture a process, then export a document or copy a prompt that an AI agent can work from."
+description: "Omacut Bundles: capture screenshots in groups with notes, auto-capture a process, then export a document or copy a prompt that an AI agent can work from."
 ---
 
 # Bundles for agents
 
-A bundle is a folder: screenshots in groups, a note on each, and a markdown file that reads in order. It is built for handing to an AI agent, whether that is a bug list to fix or a set of steps to turn into documentation. This is the QACut Bundles half of the tray. For one-off fixes, see [quick shots](/docs/quick).
+A bundle is a folder: screenshots in groups, a note on each, and a markdown file that reads in order. It is built for handing to an AI agent, whether that is a bug list to fix or a set of steps to turn into documentation. This is the Omacut Bundles half of the tray. For one-off fixes, see [quick shots](/docs/quick).
 
 ## Capturing
 
@@ -20,7 +20,7 @@ A bundle is a folder: screenshots in groups, a note on each, and a markdown file
 <figcaption>An auto-captured still in the review window, with the moment it was taken and the click ring.</figcaption>
 </figure>
 
-`Ctrl+Shift+3` auto-captures a region instead: while you do something, QACut takes a still at the start, at every click or Enter (with a ring where the click landed), and at the end. Press it again to stop, and the bundle window opens on the sequence. Each still is an ordinary shot: drop the noise, note the keepers, drag any that landed out of order, and mark up or blur what needs it. Use this for a process; use single screenshots for faults.
+`Ctrl+Shift+3` auto-captures a region instead: while you do something, Omacut takes a still at the start, at every click or Enter (with a ring where the click landed), and at the end. Press it again to stop, and the bundle window opens on the sequence. Each still is an ordinary shot: drop the noise, note the keepers, drag any that landed out of order, and mark up or blur what needs it. Use this for a process; use single screenshots for faults.
 
 `Ctrl+Shift+G` wraps up the group you just captured with a master note and opens the next group. Master notes describe the page or area; shot notes describe what is wrong or what is happening.
 

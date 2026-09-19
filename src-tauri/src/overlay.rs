@@ -14,7 +14,7 @@ pub const STUDIO: &str = "studio";
 /// Every window gets the same browser arguments (WebView2 fixes them for
 /// the process at the first window). Tauri's defaults, plus: no permission
 /// prompt for the microphone and camera, since the only pages that ask are
-/// QACut's own, and no gesture needed for the camera preview to play.
+/// Omacut's own, and no gesture needed for the camera preview to play.
 #[cfg(windows)]
 const BROWSER_ARGS: &str = "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection \
                             --use-fake-ui-for-media-stream \
@@ -48,7 +48,7 @@ pub fn open_capture(app: &AppHandle, frames: &[Frame], mode: &str) -> Result<()>
         let url = format!("capture.html?m={}&mode={mode}", frame.monitor_id);
 
         let win = builder(app, &label, WebviewUrl::App(url.into()))
-            .title("QACut capture")
+            .title("Omacut capture")
             .position(frame.x as f64, frame.y as f64)
             .inner_size(frame.width as f64, frame.height as f64)
             .decorations(false)
@@ -97,7 +97,7 @@ pub fn open_note(app: &AppHandle, mode: &str, centre: Option<(f64, f64)>) -> Res
     let url = format!("note.html?mode={mode}");
 
     let win = builder(app, NOTE, WebviewUrl::App(url.into()))
-        .title("QACut note")
+        .title("Omacut note")
         .inner_size(w, h)
         .decorations(false)
         .resizable(false)
@@ -143,7 +143,7 @@ pub fn open_peek(app: &AppHandle, focus: Option<&str>) -> Result<()> {
         None => "peek.html".to_string(),
     };
     let win = builder(app, PEEK, WebviewUrl::App(url.into()))
-        .title("QACut bundle")
+        .title("Omacut bundle")
         .inner_size(900.0, 640.0)
         .min_inner_size(620.0, 420.0)
         .decorations(false)
@@ -190,7 +190,7 @@ pub fn open_rec_badge(
         if studio { 1 } else { 0 }
     );
     let win = builder(app, REC, WebviewUrl::App(url.into()))
-        .title("QACut recording")
+        .title("Omacut recording")
         .position(frame.x as f64, frame.y as f64)
         .inner_size(frame.width as f64, frame.height as f64)
         .decorations(false)
@@ -215,7 +215,7 @@ pub fn open_rec_badge(
             };
             let ok = unsafe { SetWindowDisplayAffinity(hwnd.0 as _, WDA_EXCLUDEFROMCAPTURE) };
             if ok == 0 {
-                eprintln!("qacut: could not exclude the overlay from capture; it will be in the source");
+                eprintln!("omacut: could not exclude the overlay from capture; it will be in the source");
             }
         }
     }
@@ -240,7 +240,7 @@ pub fn open_editor(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: 
         urlencode(label)
     );
     let win = builder(app, EDIT, WebviewUrl::App(url.into()))
-        .title("QACut edit")
+        .title("Omacut edit")
         .inner_size(w, h)
         .min_inner_size(480.0, 320.0)
         .decorations(false)
@@ -261,7 +261,7 @@ pub fn open_review(app: &AppHandle, group: usize, shot_id: &str, img_w: u32, img
     let h = (img_h as f64 + 118.0).clamp(560.0, 940.0);
     let url = format!("edit.html?group={group}&shot={}", urlencode(shot_id));
     let win = builder(app, EDIT, WebviewUrl::App(url.into()))
-        .title("QACut review")
+        .title("Omacut review")
         .inner_size(w, h)
         .min_inner_size(760.0, 420.0)
         .decorations(false)
@@ -283,7 +283,7 @@ pub fn open_quick_editor(app: &AppHandle, path: &str, img_w: u32, img_h: u32) ->
     let h = (img_h as f64 + 118.0).clamp(520.0, 940.0);
     let url = format!("edit.html?quick=1&path={}", urlencode(path));
     let win = builder(app, EDIT, WebviewUrl::App(url.into()))
-        .title("QACut quick shot")
+        .title("Omacut quick shot")
         .inner_size(w, h)
         .min_inner_size(760.0, 420.0)
         .decorations(false)
@@ -347,7 +347,7 @@ fn urlencode(s: &str) -> String {
     out
 }
 
-/// QACut Studio, on a project folder or on the list of recordings.
+/// Omacut Studio, on a project folder or on the list of recordings.
 /// The prompt library: every clipboard text and the user's own prompts,
 /// in one window. `select` opens on one of the user's prompts by id.
 pub fn open_prompts(app: &AppHandle, select: Option<&str>) -> Result<()> {
@@ -357,7 +357,7 @@ pub fn open_prompts(app: &AppHandle, select: Option<&str>) -> Result<()> {
         None => "prompts.html".to_string(),
     };
     let win = builder(app, PROMPTS, WebviewUrl::App(url.into()))
-        .title("QACut prompt library")
+        .title("Omacut prompt library")
         .inner_size(960.0, 640.0)
         .min_inner_size(720.0, 480.0)
         .decorations(false)
@@ -377,7 +377,7 @@ pub fn open_studio(app: &AppHandle, project_dir: Option<&str>) -> Result<()> {
         None => "studio.html".to_string(),
     };
     let win = builder(app, STUDIO, WebviewUrl::App(url.into()))
-        .title("QACut Studio")
+        .title("Omacut Studio")
         .inner_size(1360.0, 860.0)
         .min_inner_size(960.0, 600.0)
         .decorations(false)

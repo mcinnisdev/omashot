@@ -2,7 +2,12 @@ import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { AppState, BundleInfo, Export } from "./types";
+import { applyTheme } from "./theme";
+import { SUPER_LABEL } from "./keys";
 
+
+// Wear the current Omarchy theme, and follow it when it changes.
+void applyTheme();
 const body = document.getElementById("body") as HTMLDivElement;
 const count = document.getElementById("count") as HTMLSpanElement;
 const bundleName = document.getElementById("bundle-name") as HTMLInputElement;
@@ -65,7 +70,7 @@ let hk: Hotkeys = {
 function keyLabel(spec: string) {
   return spec
     .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl")
-    .replace(/Super|Meta/g, "Win")
+    .replace(/Super|Meta/g, SUPER_LABEL)
     .replace(/Option/g, "Alt")
     .replace(/Return/g, "Enter");
 }
@@ -834,9 +839,9 @@ const menus: Menu[] = [
     items: () => [
       { label: "Show bundle window", keys: keyLabel(hk.peek), run: () => toast("You are looking at it") },
       { label: "Keyboard shortcuts…", run: showShortcuts },
-      { label: "Open QACut folder", run: () => call("open_base_folder") },
+      { label: "Open Omacut folder", run: () => call("open_base_folder") },
       "-",
-      { label: "Quit QACut", run: () => call("quit") },
+      { label: "Quit Omacut", run: () => call("quit") },
     ],
   },
 ];

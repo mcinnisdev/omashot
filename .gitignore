@@ -23,3 +23,7 @@ site/.vitepress/cache/
 
 # Internal notes and plans: Nick-only, never pushed
 /notes/
+
+# Python bytecode from scripts/
+__pycache__/
+*.pyc

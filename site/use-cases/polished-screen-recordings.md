@@ -1,6 +1,6 @@
 ---
 title: Record polished screen recordings with zooms and click effects
-description: "Record a screen with QACut Studio and get zooms that follow the cursor, click ripples, keystroke badges, trims and cuts, exported as an H.264 MP4 up to 1440p."
+description: "Record a screen with Omacut Studio and get zooms that follow the cursor, click ripples, keystroke badges, trims and cuts, exported as an H.264 MP4 up to 1440p."
 ---
 
 # Record polished screen recordings with zooms and click effects
@@ -24,7 +24,7 @@ Raw screen recordings are hard to follow: the cursor is tiny, nothing marks a cl
 
 ## What you get
 
-An H.264 MP4, exactly as previewed, written into the recording's folder under `~/QACut/`. Naming the recording names the file and the folder. The preview and the export share one renderer, so what you saw is what you send.
+An H.264 MP4, exactly as previewed, written into the recording's folder under `~/Omacut/`. Naming the recording names the file and the folder. The preview and the export share one renderer, so what you saw is what you send.
 
 In the studio, everything the recording captured is a control rather than a fact:
 
@@ -38,7 +38,7 @@ In the studio, everything the recording captured is a control rather than a fact
 - `Ctrl+Space` is only taken over while a recording runs, so your editor keeps it the rest of the time.
 - In the studio, `Space` plays or pauses, `I` and `O` set where the video starts and ends at the playhead, `X` cuts, and `Delete` removes the selected zoom or cut.
 - Export uses the machine's hardware encoder where it has one. Expect a few times real time at 1080p30; the camera bubble is the slow part.
-- QACut's own overlays are excluded from capture, so a recording of QACut in use does not show the tool.
+- Omacut's own overlays are excluded from capture, so a recording of Omacut in use does not show the tool.
 
 ## Related
 
@@ -48,4 +48,4 @@ In the studio, everything the recording captured is a control rather than a fact
 - [Auto-capture a process into step-by-step screenshots](/use-cases/automated-process-capture): document or video? Auto-capture gives you stills and a document instead of an MP4.
 - [Polished screen recordings](/docs/studio) in the docs.
 
-[How it works in detail](/docs/studio) · [Download QACut](https://github.com/mcinnisdev/qacut/releases/latest)
+[How it works in detail](/docs/studio) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)

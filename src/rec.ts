@@ -10,7 +10,12 @@
 // moment the recorder started.
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { applyTheme } from "./theme";
+import { SUPER_LABEL } from "./keys";
 
+
+// Wear the current Omarchy theme, and follow it when it changes.
+void applyTheme();
 const params = new URLSearchParams(location.search);
 const num = (k: string) => Number(params.get(k) ?? 0);
 const region = { x: num("x"), y: num("y"), w: num("w"), h: num("h") };
@@ -86,7 +91,7 @@ const keys = { record: "Ctrl+Shift+3", studio: "Ctrl+Shift+R", zoom: "Ctrl+Space
 function kbd(spec: string) {
   return spec
     .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl/Cmd")
-    .replace(/Super|Meta/g, "Win")
+    .replace(/Super|Meta/g, SUPER_LABEL)
     .replace(/Option/g, "Alt")
     .replace(/Return/g, "Enter")
     .split("+")

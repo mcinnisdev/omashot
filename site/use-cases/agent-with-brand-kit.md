@@ -1,6 +1,6 @@
 ---
 title: Hand a bundle to an AI agent with your brand kit
-description: "Hand a QACut bundle to an AI agent with the Write process doc prompt and your brand kit, so the process document it writes reads like it came from your company."
+description: "Hand a Omacut bundle to an AI agent with the Write process doc prompt and your brand kit, so the process document it writes reads like it came from your company."
 ---
 
 # Hand a bundle to an AI agent with your brand kit
@@ -11,7 +11,7 @@ Your notes say what each step does. They do not read like your published docs, a
 
 ## The flow
 
-1. Put your logo, colours and voice notes in `~/QACut/brand/`, once. Open **Hand off → Brand kit…** in the bundle window to write the notes: tone, audience, terminology, things never to say. They are saved as `brand/brand.md`.
+1. Put your logo, colours and voice notes in `~/Omacut/brand/`, once. Open **Hand off → Brand kit…** in the bundle window to write the notes: tone, audience, terminology, things never to say. They are saved as `brand/brand.md`.
 2. Capture the process with `Ctrl+Shift+2`, or auto-capture it with `Ctrl+Shift+3`, and note the steps.
 3. In the bundle window (`Ctrl+Shift+Q`), set the purpose to **Write process doc** and pick Markdown or a web page.
 4. Press **Copy agent prompt**. The bundle is written, and an instruction with the folder path filled in is on the clipboard.
@@ -57,6 +57,6 @@ The built-in prompt tells the agent to match the kit. The agent reads `bundle.md
 - [Auto-capture a process into step-by-step screenshots](/use-cases/automated-process-capture), the fastest way to build the bundle the agent writes from.
 - [Build a task list of UI fixes for an AI agent](/use-cases/task-list-for-agents), the other built-in purpose.
 - [Brand a screen recording with your logo and title](/use-cases/record-with-brand): the same brand folder, on a video.
-- [Bundles for agents](/docs/qacut) and [Brand kit](/docs/brand-kit) in the docs.
+- [Bundles for agents](/docs/omacut) and [Brand kit](/docs/brand-kit) in the docs.
 
-[How it works in detail](/docs/qacut) · [Download QACut](https://github.com/mcinnisdev/qacut/releases/latest)
+[How it works in detail](/docs/omacut) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)

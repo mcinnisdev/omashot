@@ -1,148 +1,151 @@
 <p align="center">
-  <img src="site/public/og.png" alt="QACut: capture your screen, hand off the work" width="720" />
+  <img src="assets/mark.png" alt="Omacut" width="120" />
 </p>
 
-<h1 align="center">QACut</h1>
+<h1 align="center">Omacut</h1>
 
 <p align="center">
-  Screen capture that hands off. Screenshots an AI agent can act on. Screen recordings people will actually watch.
+  Screen capture that hands off. Screenshots an AI agent can act on, made for Omarchy.
 </p>
 
 <p align="center">
-  <a href="https://github.com/mcinnisdev/qacut/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/mcinnisdev/qacut?color=ff5b5b&label=download" /></a>
-  <a href="https://github.com/mcinnisdev/qacut/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/mcinnisdev/qacut/actions/workflows/ci.yml/badge.svg" /></a>
   <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2f4e6f" /></a>
-  <a href="https://qacut.com"><img alt="Docs" src="https://img.shields.io/badge/docs-qacut.com-2ac4ea" /></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/mcinnisdev/qacut/releases/latest"><b>Download for Windows</b></a> ·
-  <a href="https://qacut.com/docs/getting-started">Getting started</a> ·
-  <a href="https://qacut.com/use-cases/quick-shots">Use cases</a> ·
-  <a href="https://qacut.com/docs/shortcuts">Shortcuts</a>
+  <a href="https://omacut.com"><img alt="Docs" src="https://img.shields.io/badge/docs-omacut.com-ff9e64" /></a>
 </p>
 
 ---
 
-QACut lives in the system tray. Press a hotkey, drag a region, do the thing. No account, no upload, no telemetry: everything is plain files under `~/QACut/` until you choose to send them somewhere.
+Omarchy already takes screenshots and records the screen. What it has no answer
+for is the **hand-off**: turning what you just saw into something an agent can
+act on. That is all Omacut does.
 
-Free and open source under the [MIT License](LICENSE). Windows 10 (2004+) or 11, x64. The installers are not code-signed yet, so SmartScreen warns on first run: **More info**, then **Run anyway**.
+Press a key, drag a region, type a note. Keep going. When you are done, the
+whole batch is on your clipboard as paths and notes, or as a folder with a
+`bundle.md` an agent reads top to bottom. No account, no upload, no telemetry:
+everything is plain files under `~/Omacut/`.
 
-## Three modes, one tray
+Omacut is a fork of [QACut](https://github.com/mcinnisdev/qacut), rebuilt around
+Omarchy's own picker, keys, menu and themes. The capture, bundle and markup code
+is shared; the desktop integration is not.
+
+## It wears your theme
+
+Omacut has no palette of its own. Omarchy renders its colours from whatever
+theme you are on, and the app follows along — windows and tray mark alike —
+the moment you switch. Nothing to configure.
+
+That is one template file, `omarchy/themed/omacut.css.tpl`. There is no
+theme-set hook: the app watches the rendered stylesheet and re-skins itself.
+
+## Three modes
 
 | | Mode | For | How |
 | --- | --- | --- | --- |
-| **1** | **QACut Basic** · quick shots | One fix, or three, for an agent; or a marked-up screenshot for a person. | `Ctrl+Shift+1`, drag, mark up, note. `Ctrl+Enter` copies the path and note for an agent; **Copy image** puts the marked-up PNG on the clipboard for a chat or email. Keep going to build a batch and paste them together. |
-| **2** | **QACut Bundles** · bigger jobs | A fix list across a whole app, or the raw material for a process doc or tutorial. | `Ctrl+Shift+2` for a screenshot, `Ctrl+Shift+3` to auto-capture a process. Group by page, note each shot, finish, hand the folder to an agent with a prompt written for the job. |
-| **R** | **QACut Studio** · recordings for people | A walkthrough someone will actually watch. | `Ctrl+Shift+R` records the screen with the cursor as data. Get it back smoothed and enlarged, with click ripples, follow zooms, key badges, a camera bubble and narration. Trim, cut, export to MP4. |
+| **1** | **Basic** · quick shots | One fix, or three, for an agent; or a marked-up screenshot for a person. | `SUPER+ALT+Q`, drag, mark up, note. Finish and the paths and notes land on the clipboard; **Copy image** puts the marked-up PNG there instead. |
+| **2** | **Bundles** · bigger jobs | A fix list across a whole app, or the raw material for a process doc. | `SUPER+ALT+C` for a shot, `SUPER+ALT+A` to auto-capture a process. Group by page, note each shot, finish, hand the folder over. |
+| **R** | **Studio** · recordings for people | A walkthrough someone will actually watch. | `SUPER+ALT+V`. Cursor smoothing, click ripples, follow zooms, camera bubble, narration, trim and cut, MP4 out. |
 
-## QACut Basic: quick shots
-
-`Ctrl+Shift+1` freezes the screen. Drag a region, type a note, `Enter` saves it. `Ctrl+Enter` finishes and hands off: the screenshot's path and your note land on the clipboard.
-
-```
-C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
-The save button is clipped at 125% scaling.
-```
-
-The shot opens large with the markup tools (arrow, highlight, blur, step counters) and the note beside it. **Copy image** (`Ctrl+Shift+C`) puts the marked-up screenshot on the clipboard as an image, for pasting into Teams, Slack, an email or a ticket: the fastest answer to "which button do you mean?"
-
-Take a few in a row and `Ctrl+Enter` on the last one copies the whole batch, each shot tied to its note. The batch then closes, so the next quick shot starts a fresh folder and an agent is never pointed at shots you've already dealt with. The **Prompt library…** in the tray holds every clipboard text, quick-shot lines and bundle prompts alike, and the prompts you add yourself, picked by name before a hand-off; words in braces are filled in.
-
-## QACut Bundles
-
-A bundle is a folder: screenshots in groups, a note on each, and a `bundle.md` that reads top to bottom with every image linked relatively. An agent reads the file, opens the images, and knows which page each note belongs to.
-
-- **Capture** with `Ctrl+Shift+2`. The header reads "Group 1 / Shot 1"; click either to name it. `Ctrl+Shift+G` wraps up a group with a master note and starts the next.
-- **Auto-capture** with `Ctrl+Shift+3`. While you do something, QACut takes a full-resolution still at the start, at every click or Enter (ringed where the click landed), and at the end. Press it again to stop and the bundle window opens on the sequence. Every still is an ordinary shot: drop the noise, note the keepers, drag any that landed out of order. No video is made; agents can't use one, and recordings for people are the Studio's job.
-- **Review** any shot from the bundle window: the image large, markup tools (arrow, highlight, blur that really removes pixels, step counters, a movable click ring), its note beside it, arrows to the next and previous shot, and delete. A whole auto-captured run can be cleaned up without leaving the window.
-- **Finish** with `Ctrl+Shift+Enter`. The folder path is on your clipboard and the bundle is closed; the next capture starts a new one. **Copy agent prompt** fills the path into an instruction for a CLI agent. **Save ZIP for chat** packages the folder for an agent that only takes uploads. Reopen any bundle from **Bundle → Open bundle…** to add to it.
-- **Export doc** writes a finished process document straight from the bundle: sections from the groups, numbered steps from the notes, images under each. One self-contained web page you can send, or Markdown beside the images. No agent needed.
-- **Purpose** changes the agent prompt: fix issues, write a process doc (for an agent to polish), or your own template.
-- **Brand kit**: put your logo, colours and voice notes in `~/QACut/brand/` and they ride along in every bundle, so what the agent produces sounds and looks like you.
+A bundle is a folder: screenshots in groups, a note on each, and a `bundle.md`
+that reads top to bottom with every image linked relatively.
 
 ```
-~/QACut/2026-09-19_143022-settings-review/
+~/Omacut/2026-09-19_143022-settings-review/
   bundle.md              everything in reading order, images linked relatively
   manifest.json          the same data, structured
-  01-settings-page/      01.png 02.png 03.png  (NN.orig.png and NN.marks.json beside an edited one)
+  01-settings-page/      01.png 02.png 03.png
   02-billing/            01.png
-  brand/                 copy of ~/QACut/brand, if included
 ```
 
-## QACut Studio
+Set `$OMACUT_DIR` to put that somewhere else.
 
-`Ctrl+Shift+R` records a source: the monitor under the region at up to 60 fps as H.264, with the cursor hidden, plus `events.json` carrying the cursor path at 120 Hz, cursor shapes, clicks, keystrokes (opt-in) and window titles, all on one clock. With the tray toggles on, the microphone and camera are recorded beside it.
+## Keys
 
-When the recording stops the studio opens on it. Everything is drawn back in from data, so everything is editable after the fact:
+The compositor owns the keys, because Wayland has no global hotkey API and an
+app that claims otherwise is lying to you. Every binding runs `omacut <verb>`,
+which reaches the running app over a socket — and starts it first if it is not
+up, so the first press after a login just works.
 
-- **Zooms** marked live with `Ctrl+Space` (only registered while recording) become blocks on the timeline; add more later. New zooms follow the cursor, with a dead zone so they never twitch and a tightness slider.
-- **Trim and cut** with handles you can grab; cut a stretch out of the middle and put it back if you change your mind. The preview follows every move.
-- **Cursor, clicks and keys**: smoothed and enlarged cursor, ripple on every click, keystroke badges for shortcuts only or every key, any badge hideable.
-- **Camera bubble and narration**, any corner, any size, in sync.
-- **Frame**: padding, corner radius, background, a title above the frame, your logo in a corner.
-- **Export**: H.264 MP4 with AAC narration, 720p to 1440p, 30 or 60 fps, exactly as previewed, written into the recording's folder.
+| Key | Command | Does |
+| --- | --- | --- |
+| `SUPER+ALT+Q` | `omacut quick` | **Q**uick shot |
+| `SUPER+ALT+C` | `omacut capture` | **C**apture a region into the bundle |
+| `SUPER+ALT+A` | `omacut record` | **A**uto-capture start / stop |
+| `SUPER+ALT+N` | `omacut group` | **N**ew group |
+| `SUPER+ALT+B` | `omacut peek` | **B**undle window |
+| `SUPER+ALT+E` | `omacut finish` | **E**nd the bundle and copy its path |
+| `SUPER+ALT+V` | `omacut studio` | **V**ideo: Studio recording start / stop |
+| `SUPER+ALT+Z` | `omacut zoom` | Mark a **z**oom, while recording |
 
-## Shortcuts
+Every one of those is a chord Omarchy leaves free, so installing Omacut
+unbinds nothing. `SUPER+SHIFT+1..9` stays on *move window to workspace* and
+`SUPER+ALT+1..5` stays on the window groups.
 
-All of these can be changed in **Keyboard shortcuts…** (tray, or Help in the bundle window).
+Everything is also in the Omarchy menu under **Omacut**, and `omacut help`
+lists the verbs.
 
-| Default | Does |
-| --- | --- |
-| `Ctrl+Shift+1` | Quick shot |
-| `Ctrl+Shift+2` | Capture a region into the bundle |
-| `Ctrl+Shift+3` | Auto-capture start / stop |
-| `Ctrl+Shift+G` | New group (wrap up the current one with a master note) |
-| `Ctrl+Shift+Q` | View / edit bundle |
-| `Ctrl+Shift+Enter` | Finish the bundle and copy its path |
-| `Ctrl+Shift+R` | Studio recording start / stop |
-| `Ctrl+Space` | Zoom in here / out, only while a Studio recording runs |
+## Install
 
-In a note box: `Enter` saves, `Shift+Enter` adds a line, `Esc` keeps the shot with no note, `Ctrl+E` opens the markup editor on it. Quick shots: `Ctrl+Enter` finishes the batch, `Ctrl+Shift+C` copies the marked-up image. In the review window: `←` `→` previous and next shot, `M A H B S` tools, `Ctrl+Z` undo, `Ctrl+S` save, `Esc` close.
+Not packaged yet. From source, with Node 22+, a Rust toolchain and the
+[Tauri prerequisites](https://v2.tauri.app/start/prerequisites/):
+
+```bash
+git clone https://github.com/mcinnisdev/omacut
+cd omacut
+npm install
+npm run tauri build
+./omarchy/install.sh          # theme template, keys and menu entries
+```
+
+`install.sh` is additive and idempotent, skips anything you have edited
+yourself, and `--uninstall` takes it back out. It adds four things: the theme
+template, the key bindings, the menu entries, and one window rule that opts
+Omacut out of Omarchy's default window opacity — a review surface you are
+marking screenshots up in should show the pixels you captured and nothing
+behind them.
+
+## Status
+
+Honest about where this is:
+
+- **Basic and Bundles** work on Omarchy. Region picking goes through
+  `omarchy-capture-region`, so it snaps to windows and monitors exactly like a
+  screenshot does, and stills are captured through wlroots screencopy.
+- **Studio** edits, composites and exports on Linux, but **recording a source
+  is still Windows-only**. The Linux path will go through
+  `gpu-screen-recorder`, which Omarchy already ships.
+- **Keystroke badges** and click-triggered auto-capture need `/dev/input`
+  access that Wayland does not hand out. Auto-capture falls back to interval
+  stills; badges are not available yet.
+- Windows still builds. The Omarchy-specific pieces are behind `cfg`, and the
+  capture, bundle and markup code is shared.
 
 ## Development
 
-Tauri 2: a Rust backend and a vanilla TypeScript frontend built with Vite. Needs Node 22+ and a Rust toolchain, plus the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your platform. The bundle and quick-shot halves are cross-platform in principle; Studio capture is Windows only (Windows Graphics Capture).
+Tauri 2: a Rust backend and vanilla TypeScript built with Vite.
 
 ```bash
-npm install
-npm run tauri dev        # the app, with hot reload
-cd site && npm install && npm run dev   # the docs site
+npm run tauri dev
+npm run build                 # type-check and bundle
+cd src-tauri && cargo test
 ```
 
 ```
-capture.html note.html peek.html rec.html edit.html studio.html   one Vite entry per window
-src/            capture, note, peek (bundle window), rec (recording badge), edit (markup + review)
-src/studio/     compositor, timeline, export (WebCodecs)
-src-tauri/src/  main.rs (tray, hotkeys, commands), model.rs, capture.rs, export.rs, overlay.rs
-src-tauri/src/studio/  source capture, events, project files, settings
-site/           VitePress docs deployed to qacut.com
-scripts/        release.mjs
-notes/          your own plans and scratch, gitignored
+src/                capture, note, peek (bundle), rec, edit, prompts, theme
+src/studio/         compositor, timeline, export (WebCodecs)
+src-tauri/src/      main.rs (tray, commands), capture.rs, export.rs, model.rs
+src-tauri/src/      picker.rs (Omarchy region picking), ipc.rs (the CLI), theme.rs
+omarchy/            theme template, key bindings, menu entries, install.sh
+scripts/logo.py     the mark, as pixel art, at any size and any colour
 ```
 
-Where things are decided:
-
-- Hotkey defaults: `src-tauri/src/studio/settings.rs`. Saved to `~/QACut/settings.json`.
-- What `bundle.md` looks like: `render_markdown()` in `src-tauri/src/export.rs`. The agent prompts: `agent_prompt()` in `main.rs`.
-- Auto-capture timing: the constants at the top of the auto-capture section in `src-tauri/src/capture.rs`.
-- App icons come from `npx tauri icon assets/logo.png`; `src-tauri/icons/tray.png` is cropped by hand so the mark fills the tray.
-- `harness.html` renders click moments through the Studio compositor in a browser, for checking cursor alignment against a real recording.
-
-Checks: `npm run build` (type-check and bundle) and `cd src-tauri && cargo test`. CI runs both on every push and pull request.
-
-## Releasing
+The mark is a 16x16 pixel grid scaled by whole numbers, so it is crisp at every
+icon size and can be re-rendered in any accent:
 
 ```bash
-npm run release 2.1.0     # or patch | minor | major
+python3 scripts/logo.py --ascii
+./scripts/icons.sh            # regenerate every icon
 ```
-
-That bumps the version in `package.json`, `tauri.conf.json` and `Cargo.toml`, commits, tags `vX.Y.Z` and pushes. The Release workflow builds the MSI and NSIS installers on a Windows runner and publishes the GitHub release with notes generated from the commits. The site's Download links point at `releases/latest`, so nothing else moves. `main` takes pull requests with a green CI, or a direct push from a repository admin.
-
-## Site
-
-`site/` is a VitePress site deployed to [qacut.com](https://qacut.com) by the Site workflow on every push to `main`. The docs are written with QACut itself: process docs exported from a bundle land under `site/docs/` with their images beside them.
 
 ---
 
-Made by [Nick McInnis](https://github.com/mcinnisdev). If QACut saves you a round of "which button do you mean?", a star helps the next person find it.
+MIT. Made by [Nick McInnis](https://github.com/mcinnisdev).

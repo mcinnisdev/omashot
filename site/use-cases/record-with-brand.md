@@ -1,6 +1,6 @@
 ---
 title: Brand a screen recording with your logo and title
-description: "Add a logo from your brand folder, a title and a subtitle to a QACut Studio recording. Background, padding and corners are set too, all baked into the MP4."
+description: "Add a logo from your brand folder, a title and a subtitle to a Omacut Studio recording. Background, padding and corners are set too, all baked into the MP4."
 ---
 
 # Brand a screen recording with your logo and title
@@ -11,7 +11,7 @@ A raw recording is a rectangle of someone's desktop. Put it on a background with
 
 ## The flow
 
-1. Put your logo in `~/QACut/brand/`, once. The same folder feeds the [brand kit](/docs/brand-kit) for bundles.
+1. Put your logo in `~/Omacut/brand/`, once. The same folder feeds the [brand kit](/docs/brand-kit) for bundles.
 2. Record as usual: `Ctrl+Shift+R`, drag the region, **Record**, do the thing, `Ctrl+Shift+R` to stop.
 3. In the studio's inspector, choose a background, and set the padding, corner radius and shadow of the frame.
 4. In the **Branding** section, add a title and subtitle in the padding above or below the frame, and pick the logo for a corner.
@@ -36,4 +36,4 @@ An MP4 in the recording's folder with the background, frame, title, subtitle and
 - [Hand a bundle to an AI agent with your brand kit](/use-cases/agent-with-brand-kit): the same brand folder, in a document an agent writes.
 - [Polished screen recordings](/docs/studio) and [Brand kit](/docs/brand-kit) in the docs.
 
-[How it works in detail](/docs/studio) · [Download QACut](https://github.com/mcinnisdev/qacut/releases/latest)
+[How it works in detail](/docs/studio) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)

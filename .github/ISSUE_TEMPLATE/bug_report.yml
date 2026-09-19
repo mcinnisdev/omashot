@@ -35,7 +35,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: QACut version
+      label: Omacut version
       description: In the installer's file name, or on the releases page.
       placeholder: "2.2.0"
     validations:

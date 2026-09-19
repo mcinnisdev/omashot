@@ -46,14 +46,14 @@ Settings review
      Step 1  [01.png]  Change the display name, then Save.
 ```
 
-As a web page it is one self-contained file with the images embedded, ready to send. As Markdown it sits beside the images, ready for a docs platform. The bundle itself stays where it is: a folder under `~/QACut/` with the screenshots and a `bundle.md` that reads top to bottom.
+As a web page it is one self-contained file with the images embedded, ready to send. As Markdown it sits beside the images, ready for a docs platform. The bundle itself stays where it is: a folder under `~/Omacut/` with the screenshots and a `bundle.md` that reads top to bottom.
 
 ## Tips
 
 - No agent is involved. Hand the document to one only if you want the prose polished; see [Hand a bundle to an AI agent with your brand kit](/use-cases/agent-with-brand-kit).
 - Rename the bundle in the bundle window and its folder is renamed with it. While capturing, click **Group 1** or **Shot 1** in the note box header to name things as you go.
 - **Capture here** in the bundle window points new captures at an earlier group, so a screenshot you forgot lands in the right section. A finished bundle can be reopened later from **Bundle → Open bundle…**.
-- If there is a logo in `~/QACut/brand/`, **Export doc** embeds it in the document. Blur in the editor is pixelation, so what you hide is really gone from the exported image.
+- If there is a logo in `~/Omacut/brand/`, **Export doc** embeds it in the document. Blur in the editor is pixelation, so what you hide is really gone from the exported image.
 
 ## Related
 
@@ -61,6 +61,6 @@ As a web page it is one self-contained file with the images embedded, ready to s
 - [Hand a bundle to an AI agent with your brand kit](/use-cases/agent-with-brand-kit), when the prose should be in your company's voice.
 - [Build a task list of UI fixes for an AI agent](/use-cases/task-list-for-agents), when the bundle is a list of things to fix rather than steps to follow.
 - [Record polished screen recordings](/use-cases/polished-screen-recordings), when the same steps should be a video rather than a document.
-- [Bundles for agents](/docs/qacut) in the docs.
+- [Bundles for agents](/docs/omacut) in the docs.
 
-[How it works in detail](/docs/qacut) · [Download QACut](https://github.com/mcinnisdev/qacut/releases/latest)
+[How it works in detail](/docs/omacut) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)

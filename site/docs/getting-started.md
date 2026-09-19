@@ -1,14 +1,14 @@
 ---
-description: "Install QACut on Windows, find it in the tray, and take your first bundle: hotkey, region, note, group, hand off. Free and open source, no account needed."
+description: "Install Omacut on Windows, find it in the tray, and take your first bundle: hotkey, region, note, group, hand off. Free and open source, no account needed."
 ---
 
 # Getting started
 
-QACut lives in the system tray. There is no window to open first: press a hotkey, drag a region, do the thing.
+Omacut lives in the system tray. There is no window to open first: press a hotkey, drag a region, do the thing.
 
 ## Install
 
-Download the installer from the [latest release](https://github.com/mcinnisdev/qacut/releases/latest) and run it. Windows 10 (2004 or later) or Windows 11, 64-bit.
+Download the installer from the [latest release](https://github.com/mcinnisdev/omacut/releases/latest) and run it. Windows 10 (2004 or later) or Windows 11, 64-bit.
 
 The installers are not code-signed yet, so SmartScreen will warn on first run. Choose **More info**, then **Run anyway**.
 
@@ -18,13 +18,13 @@ After install, look for the coral scissors in the tray. Left-click it for the me
 
 The menu has three sections.
 
-**QACut Basic** is the quick lane: one screenshot, one note, pasted straight into an agent. Read [Quick shots](/docs/quick).
+**Omacut Basic** is the quick lane: one screenshot, one note, pasted straight into an agent. Read [Quick shots](/docs/quick).
 
-**QACut Bundles** is the structured lane: screenshots, auto-captured sequences, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
+**Omacut Bundles** is the structured lane: screenshots, auto-captured sequences, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/omacut).
 
-**QACut Studio** is for people: a screen recording edited into something polished, with zooms, a camera bubble and narration, exported as a video. Read [Polished screen recordings](/docs/studio).
+**Omacut Studio** is for people: a screen recording edited into something polished, with zooms, a camera bubble and narration, exported as a video. Read [Polished screen recordings](/docs/studio).
 
-Both put their files under `~/QACut/`. Everything is plain files you can open, move or delete.
+Both put their files under `~/Omacut/`. Everything is plain files you can open, move or delete.
 
 ## Your first bundle
 
@@ -54,7 +54,7 @@ Turn on the microphone and camera toggles in the tray's Studio section first if 
 ## Where things go
 
 ```
-~/QACut/
+~/Omacut/
   2026-09-17_143022-settings-review/   a bundle
   Studio/2026-09-18_125833-onedrive/   a studio recording
   brand/                                your logo, colours and voice notes

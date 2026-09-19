@@ -1,5 +1,5 @@
 ---
-description: "Put a logo, colours and voice notes in ~/QACut/brand and QACut carries them into every bundle an AI agent writes from and every video the studio exports."
+description: "Put a logo, colours and voice notes in ~/Omacut/brand and Omacut carries them into every bundle an AI agent writes from and every video the studio exports."
 ---
 
 # Brand kit
@@ -8,7 +8,7 @@ Anything an agent writes from a bundle, and anything the studio renders, can car
 
 ## The folder
 
-Put whatever describes the business in `~/QACut/brand/`: a logo, colour swatches, fonts, a style guide, a document whose voice to imitate. Subfolders are fine. The bundle window's **Brand kit…** panel opens the folder and takes voice notes: tone, audience, terminology, things never to say. Notes are saved as `brand/brand.md`.
+Put whatever describes the business in `~/Omacut/brand/`: a logo, colour swatches, fonts, a style guide, a document whose voice to imitate. Subfolders are fine. The bundle window's **Brand kit…** panel opens the folder and takes voice notes: tone, audience, terminology, things never to say. Notes are saved as `brand/brand.md`.
 
 ## In bundles
 

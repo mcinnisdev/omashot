@@ -71,8 +71,8 @@ sh("cargo metadata --format-version 1 --offline", { cwd: resolve(root, "src-taur
 
 sh("git add package.json package-lock.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock");
 sh(`git commit -q -m "Release v${next}"`);
-sh(`git tag -a v${next} -m "QACut v${next}"`);
+sh(`git tag -a v${next} -m "Omacut v${next}"`);
 sh("git push origin main --follow-tags", { stdio: "inherit" });
 
-console.log(`\nv${next} tagged and pushed. Watch the build: gh run watch --repo mcinnisdev/qacut`);
-console.log(`Release page: https://github.com/mcinnisdev/qacut/releases/tag/v${next}`);
+console.log(`\nv${next} tagged and pushed. Watch the build: gh run watch --repo mcinnisdev/omacut`);
+console.log(`Release page: https://github.com/mcinnisdev/omacut/releases/tag/v${next}`);

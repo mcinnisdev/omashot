@@ -1,14 +1,14 @@
 ---
-description: "Edit the text QACut puts on your clipboard. Six built-in prompts with placeholders, your own quick shot and bundle prompts, and a live preview as you type."
+description: "Edit the text Omacut puts on your clipboard. Six built-in prompts with placeholders, your own quick shot and bundle prompts, and a live preview as you type."
 ---
 
 # Prompt library
 
-Every text QACut puts on your clipboard is a template, and the Prompt library is where you edit them and add your own. Open it from **Prompt library…** in the tray, or **Hand off → Prompt library…** in the bundle window.
+Every text Omacut puts on your clipboard is a template, and the Prompt library is where you edit them and add your own. Open it from **Prompt library…** in the tray, or **Hand off → Prompt library…** in the bundle window.
 
 ## Built in
 
-Six texts ship with QACut. Each can be rewritten, and Reset puts the default back.
+Six texts ship with Omacut. Each can be rewritten, and Reset puts the default back.
 
 <figure class="qc-shot">
 <img src="/media/docs/prompts-library.png" alt="The prompt library with a built-in prompt open and its preview filled with sample values." loading="lazy" />
@@ -42,4 +42,4 @@ Six texts ship with QACut. Each can be rewritten, and Reset puts the default bac
 
 ## Editing
 
-The placeholders for the selected prompt are chips; click one to insert it at the cursor. The preview underneath fills them with sample values so you can see the shape before it is used. Nothing is written until **Save** (`Ctrl+S`), and switching prompts or closing with unsaved changes asks first. Prompts are stored in `~/QACut/prompts.json`.
+The placeholders for the selected prompt are chips; click one to insert it at the cursor. The preview underneath fills them with sample values so you can see the shape before it is used. Nothing is written until **Save** (`Ctrl+S`), and switching prompts or closing with unsaved changes asks first. Prompts are stored in `~/Omacut/prompts.json`.

@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "QACut",
-  "version": "2.2.0",
-  "identifier": "dev.qacut.app",
+  "productName": "Omacut",
+  "version": "0.1.0",
+  "identifier": "dev.omacut.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -16,8 +16,8 @@
       "assetProtocol": {
         "enable": true,
         "scope": [
-          "$HOME/QACut/**",
-          "$TEMP/qacut-frames/**"
+          "$HOME/Omacut/**",
+          "$TEMP/omacut-frames/**"
         ]
       }
     }

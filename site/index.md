@@ -127,12 +127,12 @@ Toggle animates but the state never saves.
 <div class="qc-flow-step">
 <div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>2</kbd></div>
 <h3>Capture</h3>
-<p>Docs. Group shots and notes into a bundle an agent works from.</p>
+<p>Group shots and notes into a bundle an agent works from.</p>
 </div>
 <div class="qc-flow-step">
 <div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>R</kbd></div>
 <h3>Record</h3>
-<p>Studio. Drag a region, do the thing, press it again.</p>
+<p>Drag a region, hit record, edit in the studio.</p>
 </div>
 </div>
 </section>

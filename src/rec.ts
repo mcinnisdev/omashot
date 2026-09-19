@@ -79,6 +79,31 @@ const opened = Date.now();
 let started: number | null = countdownMs > 0 ? null : opened;
 let zoomed = false;
 
+// The badge names the real shortcuts, read from settings, so a rebound
+// key or a moved default never leaves a stale hint on screen.
+const keys = { record: "Ctrl+Shift+3", studio: "Ctrl+Shift+R", zoom: "Ctrl+Space" };
+
+function kbd(spec: string) {
+  return spec
+    .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl/Cmd")
+    .replace(/Super|Meta/g, "Win")
+    .replace(/Option/g, "Alt")
+    .replace(/Return/g, "Enter")
+    .split("+")
+    .map((k) => `<kbd>${k}</kbd>`)
+    .join("+");
+}
+
+void invoke<Record<string, string>>("get_hotkeys")
+  .then((hk) => {
+    if (hk.record) keys.record = hk.record;
+    if (hk.studio) keys.studio = hk.studio;
+    if (hk.zoom) keys.zoom = hk.zoom;
+  })
+  .catch(() => {
+    // Defaults stand.
+  });
+
 function fmt(ms: number) {
   const s = Math.floor(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -91,7 +116,7 @@ function tick() {
     time.textContent = String(
       Math.max(1, Math.ceil((countdownMs - (Date.now() - opened)) / 1000)),
     );
-    stop.innerHTML = "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> cancels";
+    stop.innerHTML = `${kbd(studio ? keys.studio : keys.record)} cancels`;
   } else {
     pill.classList.remove("arming");
     pill.classList.toggle("zoomed", zoomed);
@@ -99,9 +124,9 @@ function tick() {
     time.textContent = fmt(Date.now() - started);
     stop.innerHTML = studio
       ? zoomed
-        ? "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> zooms out"
-        : "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> zoom here · <kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>3</kbd> stops"
-      : "<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> stops";
+        ? `${kbd(keys.zoom)} zooms out`
+        : `${kbd(keys.zoom)} zoom here · ${kbd(keys.studio)} stops`
+      : `${kbd(keys.record)} stops`;
   }
   placePill();
 }

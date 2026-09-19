@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OneDrive settings</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font: 14px/1.45 "Segoe UI", system-ui, sans-serif; color: #1b1b1b; background: #dfe3e8; display: flex; align-items: center; justify-content: center; }
+  .dlg { width: 760px; height: 560px; background: #f3f3f3; border: 1px solid #b9bcc2; border-radius: 8px; box-shadow: 0 18px 50px rgba(0,0,0,.25); display: grid; grid-template-columns: 200px 1fr; overflow: hidden; }
+  .head { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fff; border-bottom: 1px solid #e1e1e1; }
+  .head i { width: 18px; height: 12px; border-radius: 6px 6px 6px 6px; background: #0a64c8; }
+  .head span { flex: 1; font-weight: 600; }
+  .head b { font-weight: 400; color: #666; }
+  .side { background: #ebebeb; padding: 14px 8px; }
+  .side a { display: block; padding: 8px 12px; border-radius: 5px; color: #1b1b1b; text-decoration: none; }
+  .side a.on { background: #fff; font-weight: 600; box-shadow: inset 3px 0 0 #0a64c8; }
+  .body { background: #fff; padding: 22px 26px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 0 0 16px; }
+  .acct { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid #e1e1e1; border-radius: 6px; margin-bottom: 14px; }
+  .acct .av { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #0a64c8, #34a3ff); }
+  .acct b { display: block; }
+  .acct small { color: #666; }
+  .storage { margin: 10px 0 22px; }
+  .bar { height: 6px; border-radius: 3px; background: #e1e1e1; margin-top: 6px; }
+  .bar i { display: block; width: 38%; height: 100%; border-radius: 3px; background: #0a64c8; }
+  .links a { display: inline-block; margin-right: 18px; color: #0a64c8; text-decoration: none; }
+  .unlink { margin-top: 26px; padding-top: 18px; border-top: 1px solid #e1e1e1; }
+  .btn { font: inherit; padding: 7px 16px; border-radius: 5px; border: 1px solid #c9c9c9; background: #fbfbfb; }
+  .btn.blue { background: #0a64c8; color: #fff; border-color: #0a64c8; }
+</style>
+</head>
+<body>
+<div class="dlg">
+  <div class="head"><i></i><span>Microsoft OneDrive</span><b>Settings</b></div>
+  <nav class="side">
+    <a href="#">Sync and backup</a>
+    <a href="#" class="on">Account</a>
+    <a href="#">Notifications</a>
+    <a href="#">About</a>
+  </nav>
+  <div class="body">
+    <h2>Account</h2>
+    <div class="acct"><div class="av"></div><div><b>Nick McInnis</b><small>nick@northwind.example</small></div></div>
+    <div class="storage">OneDrive · 38.2 GB of 100 GB used<div class="bar"><i></i></div></div>
+    <div class="links"><a href="#">Manage storage</a><a href="#">Choose folders</a><a href="#">Add an account</a></div>
+    <div class="unlink">
+      <div style="margin-bottom:10px">Unlinking stops syncing on this PC. Your files stay in OneDrive.</div>
+      <button class="btn blue">Unlink this PC</button>
+      <button class="btn" style="margin-left:8px">Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

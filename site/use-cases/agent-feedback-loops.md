@@ -18,6 +18,15 @@ Describing a layout bug in words is slow, and the agent still guesses. A screens
 
 Three small things on the same page? Press `Enter` on each note instead of `Ctrl+Enter` and keep going. The note box header counts the batch. On the last one, `Ctrl+Enter` copies all of them with their notes, so the agent gets one message with three screenshots and three instructions.
 
+<figure class="qc-shot">
+<img src="/media/use-cases/agent-feedback-loops-1.png" alt="Step 2: the note typed. Ctrl+Enter puts the path and this note on the clipboard." loading="lazy" />
+<figcaption>Step 2: the note typed. Ctrl+Enter puts the path and this note on the clipboard.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/agent-feedback-loops-3.png" alt="Three shots in one batch; the header counts them." loading="lazy" />
+<figcaption>Three shots in one batch; the header counts them.</figcaption>
+</figure>
+
 ## What you get
 
 For a single shot, the clipboard holds a path the agent can open and the note that tells it what to do:

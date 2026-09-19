@@ -17,6 +17,11 @@ Raw screen recordings are hard to follow: the cursor is tiny, nothing marks a cl
 4. Tidy it: retime the zooms, trim the start and end, cut the stretch where you waited for a page to load.
 5. Press **Export…** and pick 720p, 1080p or 1440p at 30 or 60 fps.
 
+<figure class="qc-shot">
+<img src="/media/use-cases/polished-screen-recordings-1.png" alt="Step 1: the region drawn, its handles ready to adjust, and Record." loading="lazy" />
+<figcaption>Step 1: the region drawn, its handles ready to adjust, and Record.</figcaption>
+</figure>
+
 ## What you get
 
 An H.264 MP4, exactly as previewed, written into the recording's folder under `~/QACut/`. Naming the recording names the file and the folder. The preview and the export share one renderer, so what you saw is what you send.

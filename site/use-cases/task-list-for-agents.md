@@ -16,6 +16,15 @@ Twenty problems across six pages do not fit in a chat message. Paste them one at
 3. Mark up where words are slow: press `Ctrl+Shift+Q`, open a shot in the editor, and put an arrow at the misaligned label or a highlight on the wrong colour.
 4. Press `Ctrl+Shift+Enter` to finish. Set the purpose to **Fix issues**, press **Copy agent prompt**, and paste into your agent.
 
+<figure class="qc-shot">
+<img src="/media/use-cases/task-list-for-agents-1.png" alt="Step 2: two groups, six shots, every note visible." loading="lazy" />
+<figcaption>Step 2: two groups, six shots, every note visible.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/task-list-for-agents-2.png" alt="Step 3: an arrow at the misaligned label, drawn in the review window." loading="lazy" />
+<figcaption>Step 3: an arrow at the misaligned label, drawn in the review window.</figcaption>
+</figure>
+
 ## What you get
 
 A folder the agent can work from, in order, and a `bundle.md` that explains itself at the top: each group is a page or area, the quoted note under a heading applies to everything in the group, and each numbered item is a screenshot with its note.

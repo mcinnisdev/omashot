@@ -10,6 +10,16 @@ A bundle is a folder: screenshots in groups, a note on each, and a markdown file
 
 `Ctrl+Shift+2` freezes the screen. Drag a region and a note box appears under it. The header reads **Group 1 / Shot 1**; click either name and type to rename it. `Enter` saves, `Shift+Enter` adds a line, `Esc` keeps the screenshot with no note.
 
+<figure class="qc-shot">
+<img src="/media/docs/capture-overlay.png" alt="The capture overlay: the screen is frozen and dimmed; drag the region you want." loading="lazy" />
+<figcaption>The capture overlay: the screen is frozen and dimmed; drag the region you want.</figcaption>
+</figure>
+
+<figure class="qc-shot">
+<img src="/media/docs/bundle-review.png" alt="An auto-captured still in the review window, with the moment it was taken and the click ring." loading="lazy" />
+<figcaption>An auto-captured still in the review window, with the moment it was taken and the click ring.</figcaption>
+</figure>
+
 `Ctrl+Shift+3` auto-captures a region instead: while you do something, QACut takes a still at the start, at every click or Enter (with a ring where the click landed), and at the end. Press it again to stop, and the bundle window opens on the sequence. Each still is an ordinary shot: drop the noise, note the keepers, drag any that landed out of order, and mark up or blur what needs it. Use this for a process; use single screenshots for faults.
 
 `Ctrl+Shift+G` wraps up the group you just captured with a master note and opens the next group. Master notes describe the page or area; shot notes describe what is wrong or what is happening.
@@ -17,6 +27,11 @@ A bundle is a folder: screenshots in groups, a note on each, and a markdown file
 ## The bundle window
 
 `Ctrl+Shift+Q` shows the bundle: every group and shot, editable in place. From here you can
+
+<figure class="qc-shot">
+<img src="/media/docs/bundle-window.png" alt="The bundle window: two named groups with master notes, each shot with its note." loading="lazy" />
+<figcaption>The bundle window: two named groups with master notes, each shot with its note.</figcaption>
+</figure>
 
 - rename the bundle, which renames its folder,
 - drag shots to reorder them or move them between groups,
@@ -28,6 +43,11 @@ A bundle is a folder: screenshots in groups, a note on each, and a markdown file
 ## Handing off
 
 **Export doc** writes a finished process document from the bundle, no agent needed: each group is a section with its master note as the intro, each shot a numbered step with its note and image. As a web page it is one file with the images embedded, ready to send; as Markdown it sits beside the images for a docs platform. Hand it to an agent only if you want the prose polished.
+
+<figure class="qc-shot">
+<img src="/media/docs/bundle-export.png" alt="The exported document: groups as sections, notes as numbered steps, the screenshot under each." loading="lazy" />
+<figcaption>The exported document: groups as sections, notes as numbered steps, the screenshot under each.</figcaption>
+</figure>
 
 **Copy agent prompt** writes the bundle and copies an instruction with the folder path filled in. Paste it into a CLI agent.
 

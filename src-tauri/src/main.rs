@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod capture;
+mod drive;
 mod export;
 mod model;
 mod overlay;
@@ -2331,6 +2332,10 @@ fn main() {
             let handle = app.handle().clone();
             let settings = studio::settings::Settings::load(&base_dir(&handle));
             apply_hotkeys(&handle, &settings.hotkeys);
+            // Dev only: drive the app from request files to make screenshots.
+            if let Ok(dir) = std::env::var("QACUT_DRIVE_DIR") {
+                drive::start(handle.clone(), std::path::PathBuf::from(dir));
+            }
             let menu = build_tray_menu(&handle)?;
 
             // A trimmed copy of the mark rather than the app icon, whose

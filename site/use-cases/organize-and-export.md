@@ -16,6 +16,23 @@ The captures are the easy part. What takes the afternoon is the document: a head
 3. Press `Ctrl+Shift+Q` to open the bundle window. Rename the bundle, drag shots to reorder them or move them between groups, and open any shot in the editor to add arrows, highlights and step counters, or to blur something that should not leave the building.
 4. Press **Export doc** and pick Markdown or a web page.
 
+<figure class="qc-shot">
+<img src="/media/use-cases/organize-and-export-1.png" alt="Step 1: the note box, with the group and shot named." loading="lazy" />
+<figcaption>Step 1: the note box, with the group and shot named.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/organize-and-export-2.png" alt="Step 3: the bundle window with two groups and their shots." loading="lazy" />
+<figcaption>Step 3: the bundle window with two groups and their shots.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/organize-and-export-3.png" alt="Step 3: the review window with step counters added." loading="lazy" />
+<figcaption>Step 3: the review window with step counters added.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/organize-and-export-4.png" alt="Step 4: the exported document." loading="lazy" />
+<figcaption>Step 4: the exported document.</figcaption>
+</figure>
+
 ## What you get
 
 A document with a section per group and a numbered step per shot. In outline:

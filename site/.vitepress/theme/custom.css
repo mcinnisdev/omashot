@@ -1057,3 +1057,24 @@
     display: none;
   }
 }
+
+/* Real screenshots on docs and use-case pages. */
+.vp-doc figure.qc-shot {
+  margin: var(--qc-s-5) 0 var(--qc-s-6);
+}
+.vp-doc figure.qc-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--qc-radius-sm);
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+}
+.vp-doc figure.qc-shot figcaption {
+  margin-top: var(--qc-s-2);
+  font-size: var(--qc-fs-small);
+  color: var(--vp-c-text-2);
+}
+.vp-doc figure.qc-shot.narrow {
+  max-width: 560px;
+}

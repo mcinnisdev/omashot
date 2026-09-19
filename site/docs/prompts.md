@@ -10,6 +10,11 @@ Every text QACut puts on your clipboard is a template, and the Prompt library is
 
 Six texts ship with QACut. Each can be rewritten, and Reset puts the default back.
 
+<figure class="qc-shot">
+<img src="/media/docs/prompts-library.png" alt="The prompt library with a built-in prompt open and its preview filled with sample values." loading="lazy" />
+<figcaption>The prompt library with a built-in prompt open and its preview filled with sample values.</figcaption>
+</figure>
+
 | Prompt | Used when | Filled in |
 | --- | --- | --- |
 | Quick shot: one shot | `Ctrl+Enter` on a single quick shot | `{path}`, `{note}` |
@@ -24,6 +29,11 @@ Six texts ship with QACut. Each can be rewritten, and Reset puts the default bac
 ## Your own prompts
 
 **+ New** adds a prompt with a name and a kind:
+
+<figure class="qc-shot">
+<img src="/media/docs/prompts-mine.png" alt="One of your own prompts, kind Quick shots, with {shots} where the paths and notes go." loading="lazy" />
+<figcaption>One of your own prompts, kind Quick shots, with {shots} where the paths and notes go.</figcaption>
+</figure>
 
 - **Quick shots.** The prompt wraps the shots you hand off. Put `{shots}` where the paths and notes should go, or leave it out and they are appended. Once you have one, the quick shot window shows a **Hand off as** picker above the note.
 - **Bundles.** The whole instruction for a bundle, with `{root}` for the folder and `{name}` for the bundle. It appears by name in the bundle window's purpose menu, and the choice is saved with the bundle.

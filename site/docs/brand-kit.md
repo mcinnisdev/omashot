@@ -14,6 +14,11 @@ Put whatever describes the business in `~/QACut/brand/`: a logo, colour swatches
 
 When a bundle is written, the folder is copied into it as `brand/`, so the bundle stays self-contained, and the markdown file gets a **Brand kit** section near the top with your notes inlined and the files listed. The built-in prompts tell the agent to match it. Untick **Include in this bundle** for a bundle where it does not apply.
 
+<figure class="qc-shot">
+<img src="/media/docs/brand-panel.png" alt="The Brand kit panel in the bundle window: the file count, the include toggle and the voice notes." loading="lazy" />
+<figcaption>The Brand kit panel in the bundle window: the file count, the include toggle and the voice notes.</figcaption>
+</figure>
+
 ## In the studio
 
 The **Branding** section of the inspector places a title and subtitle in the padding above or below the frame, and a logo from the brand folder in a corner of it. Both render in the preview and the export.

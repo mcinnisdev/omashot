@@ -20,6 +20,11 @@ All of these can be changed: **Keyboard shortcuts…** in the tray, or **Help �
 | `Ctrl+Shift+R` | Studio recording; again to stop |
 | `Ctrl+Space` | During a Studio recording: zoom in here, again to zoom out. Only registered while a recording runs, so editors keep it the rest of the time |
 
+<figure class="qc-shot">
+<img src="/media/docs/shortcuts-dialog.png" alt="Help → Keyboard shortcuts in the bundle window: the global keys are editable; the per-window keys are listed below them." loading="lazy" />
+<figcaption>Help → Keyboard shortcuts in the bundle window: the global keys are editable; the per-window keys are listed below them.</figcaption>
+</figure>
+
 ## In the note box
 
 | Key | Does |

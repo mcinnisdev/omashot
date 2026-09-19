@@ -240,14 +240,7 @@ Toggle animates but the state never saves.
 </div>
 </div>
 <div class="qc-spot-visual">
-<div class="qc-mock light" role="img" aria-label="An exported process document: a title, a section heading, and numbered steps each with a line of instruction and a screenshot">
-<div class="qc-doc">
-<div class="title">Unlink OneDrive from this computer</div>
-<div class="sec">Find the account</div>
-<div class="step"><i>1</i><div><p>Open OneDrive from the tray and choose Settings, then the Account tab.</p><div class="ph"></div></div></div>
-<div class="step"><i>2</i><div><p>Click Unlink this PC and confirm.</p><div class="ph"></div></div></div>
-</div>
-</div>
+<img class="qc-shot" src="/media/home/spot-export-doc.png" alt="An exported process document: the logo, the title, a section heading and numbered steps each with a screenshot" width="1400" height="1000" loading="lazy" />
 </div>
 </section>
 <section class="qc-spot flip">
@@ -306,31 +299,7 @@ Toggle animates but the state never saves.
 </div>
 </div>
 <div class="qc-spot-visual">
-<div class="qc-mock" role="img" aria-label="The prompt library window: a list of six built-in prompts and two of your own, with the Fix issues prompt open in an editor showing its placeholder chips, its text and a preview with sample values">
-<div class="qc-win qc-lib" aria-hidden="true">
-<div class="list">
-<div class="hd">Built in</div>
-<span>Quick shot: one shot</span>
-<span>Quick shot: a batch</span>
-<span class="on">Bundle: Fix issues</span>
-<span>Bundle: Write process doc</span>
-<span>Process doc as Markdown</span>
-<span>Process doc as web page</span>
-<div class="hd">Yours</div>
-<span>Tailwind refactor<em>bundle</em></span>
-<span>Ask for a diff<em>quick shot</em></span>
-</div>
-<div class="editor">
-<div class="name">Bundle: Fix issues</div>
-<ul class="qc-chips"><li>{location}</li><li>{root}</li><li>{name}</li></ul>
-<pre>Work through the QA bundle at <span class="l">{location}</span>. Start with bundle.md: each group is a page or area, and each screenshot's note says what is wrong. Open each screenshot before changing anything.</pre>
-<div class="pv">
-<div class="hd">Preview, with sample values</div>
-<pre>Work through the QA bundle at C:\Users\nick\QACut\2026-09-17_1430-settings-review. Start with bundle.md: each group is a page or area, and each screenshot's note says what is wrong. Open each screenshot before changing anything.</pre>
-</div>
-</div>
-</div>
-</div>
+<img class="qc-shot" src="/media/home/spot-prompts.png" alt="The prompt library window: six built-in prompts and two of your own listed on the left, the Fix issues prompt open with its placeholders, text and a preview" width="1400" height="1000" loading="lazy" />
 </div>
 </section>
 <section>

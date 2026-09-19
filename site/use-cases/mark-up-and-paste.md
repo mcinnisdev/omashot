@@ -17,6 +17,15 @@ A raw screenshot makes the reader hunt. An arrow on the button, a highlight on t
 4. Press **Copy image**, or `Ctrl+Shift+C`.
 5. Paste into the chat, the email or the ticket.
 
+<figure class="qc-shot">
+<img src="/media/use-cases/mark-up-and-paste-1.png" alt="Step 2: an arrow at the misaligned label." loading="lazy" />
+<figcaption>Step 2: an arrow at the misaligned label.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/mark-up-and-paste-2.png" alt="Step 2: the email pixelated with Blur. The text underneath is gone from the saved file." loading="lazy" />
+<figcaption>Step 2: the email pixelated with Blur. The text underneath is gone from the saved file.</figcaption>
+</figure>
+
 ## What you get
 
 The marked-up screenshot on the clipboard as an image, ready to paste anywhere that takes one. On disk, the batch folder under `~/QACut/Quick/` holds two files for the shot:

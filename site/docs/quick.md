@@ -10,6 +10,11 @@ QACut Basic is the quick lane. A quick shot is one screenshot and one note, save
 
 `Ctrl+Shift+1` freezes the screen. Drag a region and the shot opens large, with the markup tools along the top and the note beside it. Type a note and press `Enter` to save it. `Ctrl+Enter` instead finishes and hands off: the screenshot's path and your note go on the clipboard, ready to paste with whatever else you want to say.
 
+<figure class="qc-shot">
+<img src="/media/docs/quick-window.png" alt="The quick shot window: markup tools along the top, the note and the hand-off picker beside the shot." loading="lazy" />
+<figcaption>The quick shot window: markup tools along the top, the note and the hand-off picker beside the shot.</figcaption>
+</figure>
+
 ```
 C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
 The save button is clipped at 125% scaling.
@@ -24,6 +29,11 @@ Draw an arrow, highlight the button, blur the account number, then press **Copy 
 ## Sending a few together
 
 Just keep going: `Ctrl+Shift+1`, note, `Enter`, again. Each shot joins the open batch, and the note box header counts them. `Ctrl+Enter` on the last one (or **Finish quick batch and copy paths** in the tray) copies every shot in the batch with its note, plus a line naming the folder, in one paste, and closes the batch.
+
+<figure class="qc-shot">
+<img src="/media/docs/quick-batch.png" alt="The second shot of a batch. The header counts them; New batch moves this one to a fresh folder." loading="lazy" />
+<figcaption>The second shot of a batch. The header counts them; New batch moves this one to a fresh folder.</figcaption>
+</figure>
 
 Closing matters: the next quick shot starts a fresh folder, so an agent is never pointed at shots you have already dealt with. **New batch** in the note box moves the shot you are noting into a fresh folder without closing the old one.
 

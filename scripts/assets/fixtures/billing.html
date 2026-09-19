@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Billing · Northwind</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font: 15px/1.5 "Segoe UI", system-ui, sans-serif; color: #1f2328; background: #f6f8fa; }
+  .app { display: grid; grid-template-columns: 232px 1fr; height: 100vh; }
+  .side { background: #fff; border-right: 1px solid #d0d7de; padding: 20px 14px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; padding: 4px 8px 22px; }
+  .brand i { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #2f6fed, #7c3aed); }
+  .nav a { display: block; padding: 8px 10px; border-radius: 7px; color: #57606a; text-decoration: none; margin-bottom: 2px; }
+  .nav a.on { background: #eef2ff; color: #1f2328; font-weight: 600; }
+  .main { padding: 36px 48px; max-width: 900px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .sub { color: #57606a; margin: 0 0 28px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 10px; padding: 22px 24px; margin-bottom: 18px; }
+  .card h2 { font-size: 16px; margin: 0 0 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-top: 1px solid #eaeef2; }
+  th { color: #57606a; font-weight: 600; border-top: 0; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #dafbe1; color: #116329; }
+  .pill.due { background: #fff1e5; color: #953800; }
+  .plan { display: flex; justify-content: space-between; align-items: center; }
+  .plan b { font-size: 20px; }
+  .btn { font: inherit; font-weight: 600; padding: 9px 16px; border-radius: 7px; border: 1px solid #d0d7de; background: #fff; color: #24292f; }
+  .btn.primary { background: #2f6fed; color: #fff; border-color: #2f6fed; }
+  .card-num { font-family: Consolas, monospace; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><i></i>Northwind</div>
+    <nav class="nav">
+      <a href="#">Account</a>
+      <a href="#">Notifications</a>
+      <a href="#" class="on">Billing</a>
+      <a href="#">Team</a>
+      <a href="#">Integrations</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <h1>Billing</h1>
+    <p class="sub">Your plan, payment method and invoices.</p>
+    <section class="card">
+      <div class="plan"><div><div>Current plan</div><b>Team, annual</b></div><button class="btn">Change plan</button></div>
+    </section>
+    <section class="card">
+      <h2>Payment method</h2>
+      <div>Visa ending <span class="card-num">4242</span> · expires 09/28 · Jane Okafor</div>
+      <div style="margin-top:12px"><button class="btn primary">Update card</button></div>
+    </section>
+    <section class="card">
+      <h2>Invoices</h2>
+      <table>
+        <tr><th>Date</th><th>Amount</th><th>Status</th><th></th></tr>
+        <tr><td>Sep 1, 2026</td><td>$480.00</td><td><span class="pill">Paid</span></td><td><a href="#">PDF</a></td></tr>
+        <tr><td>Aug 1, 2026</td><td>$480.00</td><td><span class="pill">Paid</span></td><td><a href="#">PDF</a></td></tr>
+        <tr><td>Jul 1, 2026</td><td>$480.00</td><td><span class="pill due">Past due</span></td><td><a href="#">PDF</a></td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+</body>
+</html>

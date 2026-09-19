@@ -17,6 +17,11 @@ Your notes say what each step does. They do not read like your published docs, a
 4. Press **Copy agent prompt**. The bundle is written, and an instruction with the folder path filled in is on the clipboard.
 5. Paste into a CLI agent. For a chat agent that only takes uploads, **Save ZIP for chat** packages the folder, shows it in Explorer ready to drag in, and copies a prompt that says "the attached ZIP".
 
+<figure class="qc-shot">
+<img src="/media/use-cases/agent-with-brand-kit-2.png" alt="Step 1: the Brand kit panel with the voice notes typed." loading="lazy" />
+<figcaption>Step 1: the Brand kit panel with the voice notes typed.</figcaption>
+</figure>
+
 ## What you get
 
 A folder the agent can work from, with your brand kit inside it. The brand folder is copied into the bundle as `brand/`, so the bundle stays self-contained, and `bundle.md` gets a **Brand kit** section near the top with your notes inlined and the files listed. In outline:

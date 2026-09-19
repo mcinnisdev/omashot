@@ -17,6 +17,23 @@ Writing a process doc by hand means doing the task twice, once to remember it an
 4. Click the first still to open the review view, then walk the run with the arrow keys: delete the noise, type a note for each keeper, move the click ring if the pointer was somewhere unhelpful, blur what needs it. Drag any still that landed out of order.
 5. Press **Export doc**.
 
+<figure class="qc-shot">
+<img src="/media/use-cases/automated-process-capture-1.png" alt="Step 2: the badge and the tinted region while the stills are being taken." loading="lazy" />
+<figcaption>Step 2: the badge and the tinted region while the stills are being taken.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/automated-process-capture-2.png" alt="Step 3: the bundle window on the sequence, each still captioned with its moment." loading="lazy" />
+<figcaption>Step 3: the bundle window on the sequence, each still captioned with its moment.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/automated-process-capture-3.png" alt="Step 4: a click still in the review window, ringed where the click landed." loading="lazy" />
+<figcaption>Step 4: a click still in the review window, ringed where the click landed.</figcaption>
+</figure>
+<figure class="qc-shot">
+<img src="/media/use-cases/automated-process-capture-4.png" alt="Step 5: the exported document." loading="lazy" />
+<figcaption>Step 5: the exported document.</figcaption>
+</figure>
+
 ## What you get
 
 A bundle whose stills are ordinary shots, listed in `bundle.md` as actions:

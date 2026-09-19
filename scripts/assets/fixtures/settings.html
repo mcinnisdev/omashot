@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Settings · Northwind</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font: 15px/1.5 "Segoe UI", system-ui, sans-serif; color: #1f2328; background: #f6f8fa; }
+  .app { display: grid; grid-template-columns: 232px 1fr; height: 100vh; }
+  .side { background: #fff; border-right: 1px solid #d0d7de; padding: 20px 14px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; padding: 4px 8px 22px; }
+  .brand i { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #2f6fed, #7c3aed); }
+  .nav a { display: block; padding: 8px 10px; border-radius: 7px; color: #57606a; text-decoration: none; margin-bottom: 2px; }
+  .nav a.on { background: #eef2ff; color: #1f2328; font-weight: 600; }
+  .main { padding: 36px 48px; max-width: 900px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .sub { color: #57606a; margin: 0 0 28px; }
+  .card { background: #fff; border: 1px solid #d0d7de; border-radius: 10px; padding: 22px 24px; margin-bottom: 18px; }
+  .card h2 { font-size: 16px; margin: 0 0 14px; }
+  .row { display: grid; grid-template-columns: 200px 1fr; gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid #eaeef2; }
+  .row:first-of-type { border-top: 0; }
+  label { color: #24292f; font-weight: 500; }
+  input[type=text], input[type=email] { width: 100%; max-width: 420px; font: inherit; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 7px; }
+  .hint { color: #6e7781; font-size: 13px; margin-top: 4px; }
+  .toggle { display: inline-flex; align-items: center; gap: 10px; }
+  .toggle i { width: 40px; height: 22px; border-radius: 11px; background: #2f6fed; position: relative; }
+  .toggle i::after { content: ""; position: absolute; top: 3px; right: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+  .toggle.off i { background: #c9d1d9; }
+  .toggle.off i::after { right: auto; left: 3px; }
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  /* The bug the story is about: the primary button is too narrow for its label. */
+  .btn { font: inherit; font-weight: 600; padding: 9px 16px; border-radius: 7px; border: 1px solid #d0d7de; background: #fff; color: #24292f; }
+  .btn.primary { background: #2f6fed; color: #fff; border-color: #2f6fed; width: 74px; overflow: hidden; white-space: nowrap; padding: 9px 10px; }
+  .misaligned { margin-left: 18px; }
+  .foot { color: #6e7781; font-size: 13px; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><i></i>Northwind</div>
+    <nav class="nav">
+      <a href="#" class="on">Account</a>
+      <a href="#">Notifications</a>
+      <a href="#">Billing</a>
+      <a href="#">Team</a>
+      <a href="#">Integrations</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <h1>Account settings</h1>
+    <p class="sub">Your profile, sign-in email and how we reach you.</p>
+    <section class="card">
+      <h2>Profile</h2>
+      <div class="row"><label>Display name</label><div><input type="text" value="Nick McInnis" /></div></div>
+      <div class="row"><label>Email</label><div><input type="email" value="nick@northwind.example" /><div class="hint">Used to sign in and for receipts.</div></div></div>
+      <div class="row"><label>Customer ID</label><div>CUS-4471-9902-KLM</div></div>
+      <div class="row"><label class="misaligned">Time zone</label><div><input type="text" value="America/Denver" /></div></div>
+    </section>
+    <section class="card">
+      <h2>Notifications</h2>
+      <div class="row"><label>Weekly summary</label><div><span class="toggle"><i></i>Email me a weekly summary</span></div></div>
+      <div class="row"><label>Product updates</label><div><span class="toggle off"><i></i>Occasional news about new features</span></div></div>
+      <div class="actions"><button class="btn primary">Save changes</button><button class="btn">Cancel</button></div>
+    </section>
+    <p class="foot">Changes apply to this workspace only.</p>
+  </main>
+</div>
+</body>
+</html>

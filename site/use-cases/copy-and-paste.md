@@ -19,6 +19,11 @@ description: "Take a screenshot with one hotkey, drag the region and press Copy 
 
 No note is needed for a person. The note box is there for the times you hand a shot to an [AI agent](/use-cases/agent-feedback-loops) instead.
 
+<figure class="qc-shot">
+<img src="/media/use-cases/copy-and-paste-1.png" alt="Step 2: the shot opens large, with the tools along the top and the note beside it." loading="lazy" />
+<figcaption>Step 2: the shot opens large, with the tools along the top and the note beside it.</figcaption>
+</figure>
+
 ## What you get
 
 An image on the clipboard, pasted straight into whatever you were writing. The same shot is also saved on disk, in a batch folder under `~/QACut/Quick/` named for when the batch started:

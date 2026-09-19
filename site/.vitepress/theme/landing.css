@@ -73,6 +73,16 @@
   margin-top: 0;
 }
 
+/* A real screenshot in the visual column, where one exists. */
+.qc-spot-visual img.qc-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--qc-radius);
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+}
+
 /* The panel every mock sits in. */
 .qc-mock {
   min-width: 0;

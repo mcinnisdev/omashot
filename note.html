@@ -7,8 +7,8 @@
   </head>
   <body class="note">
     <div class="note-wrap">
-      <div class="note-head">
-        <span id="head-label">Note</span>
+      <div class="note-head" data-tauri-drag-region>
+        <span id="head-label" data-tauri-drag-region>Note</span>
         <input class="inline" id="group-title" aria-label="Group name" />
         <span class="sep" id="sep">/</span>
         <input class="inline" id="shot-title" aria-label="Shot name" />
@@ -17,11 +17,12 @@
         <p class="hint" id="group-hint" hidden></p>
         <textarea class="field" id="note" placeholder="What's wrong here?"></textarea>
       </div>
-      <div class="note-foot">
-        <span class="keys" id="keys">
+      <div class="note-foot" data-tauri-drag-region>
+        <span class="keys" id="keys" data-tauri-drag-region>
           <kbd>Enter</kbd> save
           <kbd>Shift</kbd>+<kbd>Enter</kbd> new line
         </span>
+        <button class="linkish" id="copy-all" hidden>Copy all of today</button>
         <button class="linkish" id="secondary">Discard shot</button>
       </div>
     </div>

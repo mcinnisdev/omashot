@@ -15,6 +15,7 @@ const groupHint = document.getElementById("group-hint") as HTMLParagraphElement;
 const note = document.getElementById("note") as HTMLTextAreaElement;
 const secondary = document.getElementById("secondary") as HTMLButtonElement;
 const keysHint = document.getElementById("keys") as HTMLSpanElement;
+const copyAll = document.getElementById("copy-all") as HTMLButtonElement;
 
 let done = false;
 
@@ -42,9 +43,16 @@ async function boot() {
     shotTitle.hidden = true;
     note.placeholder = "What should the agent do with this?";
     secondary.textContent = "Discard shot";
-    keysHint.innerHTML =
-      "<kbd>Enter</kbd> copy path + note <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copy all of today";
+    keysHint.innerHTML = "<kbd>Enter</kbd> copy path + note <kbd>Shift</kbd>+<kbd>Enter</kbd> new line";
     note.focus();
+    // A second and later shot today gets a way to paste the whole batch.
+    const n = await invoke<number>("quick_count");
+    label.textContent = `Quick shot ${String(n).padStart(2, "0")}`;
+    if (n > 1) {
+      copyAll.hidden = false;
+      copyAll.textContent = `Copy all of today (${n})`;
+      keysHint.innerHTML += " <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copy all";
+    }
     return;
   } else {
     label.textContent = "Note";
@@ -136,5 +144,6 @@ groupTitle.addEventListener("keydown", keys);
 shotTitle.addEventListener("keydown", keys);
 note.addEventListener("keydown", keys);
 secondary.addEventListener("click", () => void bail());
+copyAll.addEventListener("click", () => void commit(true));
 
 boot();

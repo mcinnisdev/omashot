@@ -1711,13 +1711,20 @@ async fn save_quick(
             })
             .unwrap_or_default();
         pngs.sort();
-        pngs.iter()
+        let entries = pngs
+            .iter()
             .map(|p| {
                 let n = std::fs::read_to_string(p.with_extension("md")).unwrap_or_default();
                 quick_entry(p, &n)
             })
             .collect::<Vec<_>>()
-            .join("\n\n")
+            .join("\n\n");
+        format!(
+            "{} quick shots in {}. Each PNG has its note in the .md beside it; notes.md lists them all.\n\n{}",
+            pngs.len(),
+            dir.display(),
+            entries
+        )
     } else {
         quick_entry(&path, &note)
     };
@@ -1735,6 +1742,18 @@ async fn discard_quick(app: AppHandle, state: State<'_, Shared>) -> Result<(), S
     }
     overlay::close_note(&app);
     Ok(())
+}
+
+/// How many quick shots today's folder holds, the pending one included.
+#[tauri::command]
+fn quick_count(app: AppHandle) -> usize {
+    std::fs::read_dir(quick_dir(&app))
+        .map(|rd| {
+            rd.filter_map(|e| e.ok())
+                .filter(|e| e.path().extension().map(|x| x == "png").unwrap_or(false))
+                .count()
+        })
+        .unwrap_or(0)
 }
 
 #[tauri::command]
@@ -1821,6 +1840,7 @@ fn main() {
             save_quick,
             discard_quick,
             start_quick,
+            quick_count,
             start_recording,
             stop_recording,
             start_studio,

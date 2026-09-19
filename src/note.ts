@@ -15,7 +15,6 @@ const groupHint = document.getElementById("group-hint") as HTMLParagraphElement;
 const note = document.getElementById("note") as HTMLTextAreaElement;
 const secondary = document.getElementById("secondary") as HTMLButtonElement;
 const keysHint = document.getElementById("keys") as HTMLSpanElement;
-const finishBatch = document.getElementById("finish-batch") as HTMLButtonElement;
 const newBatch = document.getElementById("new-batch") as HTMLButtonElement;
 
 let done = false;
@@ -113,15 +112,14 @@ let quickKey = "Ctrl+Shift+1";
 
 function showBatch(n: number) {
   label.textContent = n > 1 ? `Quick shot ${String(n).padStart(2, "0")} in this batch` : "Quick shot";
-  finishBatch.hidden = false;
-  finishBatch.textContent = n > 1 ? `Finish batch (${n})` : "Finish batch";
   newBatch.hidden = n < 2;
-  keysHint.innerHTML = "<kbd>Enter</kbd> save <kbd>Ctrl</kbd>+<kbd>Enter</kbd> finish batch";
+  keysHint.innerHTML =
+    "<kbd>Enter</kbd> save <kbd>Ctrl</kbd>+<kbd>Enter</kbd> finish and hand off" + (n > 1 ? ` (${n})` : "");
   groupHint.hidden = false;
   groupHint.textContent =
     n > 1
       ? `Enter saves this note and keeps the batch open. Ctrl+Enter copies all ${n} shots with their notes, ready to paste, and closes the batch.`
-      : `Enter saves the note; take more with ${quickKey}. Ctrl+Enter copies every shot's path and note, ready to paste, and closes the batch.`;
+      : `Enter saves the note; take more with ${quickKey}. Ctrl+Enter copies the path and note, ready to paste, and closes the batch.`;
 }
 
 async function startNewBatch() {
@@ -179,7 +177,6 @@ groupTitle.addEventListener("keydown", keys);
 shotTitle.addEventListener("keydown", keys);
 note.addEventListener("keydown", keys);
 secondary.addEventListener("click", () => void bail());
-finishBatch.addEventListener("click", () => void commit(false));
 newBatch.addEventListener("click", () => void startNewBatch());
 
 boot();

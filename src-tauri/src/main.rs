@@ -1772,10 +1772,15 @@ async fn commit_quick(
     overlay::open_note(&app, "quick", Some(anchor)).map_err(|e| e.to_string())
 }
 
-/// The whole batch as one paste: a line naming the folder, then an entry
-/// per shot. Closing the batch is the caller's job.
+/// The whole batch as one paste: an entry per shot, with a line naming the
+/// folder first when there is more than one. Closing the batch is the
+/// caller's job.
 fn quick_batch_text(dir: &std::path::Path) -> String {
     let pngs = quick_pngs(dir);
+    if pngs.len() == 1 {
+        let n = std::fs::read_to_string(pngs[0].with_extension("md")).unwrap_or_default();
+        return quick_entry(&pngs[0], &n);
+    }
     let entries = pngs
         .iter()
         .map(|p| {

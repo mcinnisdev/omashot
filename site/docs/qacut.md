@@ -1,3 +1,7 @@
+---
+description: "QACut Bundles: capture screenshots in groups with notes, auto-capture a process, then export a document or copy a prompt that an AI agent can work from."
+---
+
 # Bundles for agents
 
 A bundle is a folder: screenshots in groups, a note on each, and a markdown file that reads in order. It is built for handing to an AI agent, whether that is a bug list to fix or a set of steps to turn into documentation. This is the QACut Bundles half of the tray. For one-off fixes, see [quick shots](/docs/quick).

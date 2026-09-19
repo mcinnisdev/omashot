@@ -1,3 +1,7 @@
+---
+description: "Quick shots in QACut Basic: one hotkey, one region, a note, then paste the path into an AI agent or copy the marked-up image for a person. Saved either way."
+---
+
 # Quick shots
 
 QACut Basic is the quick lane. A quick shot is one screenshot and one note, saved on its own and pasted straight into whatever agent you are talking to. Or, marked up and copied as an image, sent straight to a person.

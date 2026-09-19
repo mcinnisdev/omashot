@@ -1,64 +1,20 @@
+---
+title: QACut Basic use cases
+description: "QACut Basic use cases: one-hotkey screenshots you copy and paste, mark up with arrows and blur, or hand to an AI agent as a file path and a note it can act on."
+---
+
 # QACut Basic: quick shots
 
-One hotkey, one region, and the shot opens large with the markup tools and a note beside it. Where it goes next is up to you: the clipboard as an image, or an agent as a path and a note.
+One hotkey, one region, and the shot opens large with the markup tools and a note beside it. Where it goes next is up to you: the clipboard as an image for a person, or an AI agent as a path and a note.
 
-## Copy and paste
+<div class="qc qc-embed">
+<div class="qc-cases">
+<a class="qc-case" id="copy-and-paste" href="/use-cases/copy-and-paste"><strong>Copy and paste a screenshot in seconds</strong><span class="sum">Ctrl+Shift+1, drag the region, Copy image, paste. The shot is saved in a batch folder too.</span><span class="more">Read the use case</span></a>
+<a class="qc-case" id="mark-up-copy-paste" href="/use-cases/mark-up-and-paste"><strong>Mark up a screenshot and paste it anywhere</strong><span class="sum">An arrow on the button, the field highlighted, the customer's name pixelated, then Copy image.</span><span class="more">Read the use case</span></a>
+<a class="qc-case" id="agent-feedback-loops" href="/use-cases/agent-feedback-loops"><strong>Send screenshots and notes to an AI agent</strong><span class="sum">Screenshot the bug, type what is wrong, Ctrl+Enter. The agent gets a path it can open and your note.</span><span class="more">Read the use case</span></a>
+</div>
+</div>
 
-**For:** "Here's what I'm seeing." A screenshot into a chat, an email or a ticket, with nothing else in the way.
+When the list grows past a handful, or spans several pages, or you want a document rather than a fix, step up to [QACut Bundles](/use-cases/bundles).
 
-1. `Ctrl+Shift+1`. The screen freezes.
-2. Drag the region.
-3. **Copy image**, or `Ctrl+Shift+C`. Paste.
-
-The shot is also saved in the batch folder under `~/QACut/Quick/`, so it's still there if you need it later. `Esc` closes the window and keeps it.
-
-## Mark up, copy, paste
-
-**For:** "Which button do you mean?" The same screenshot with an arrow on the button, the field highlighted, and the customer's name blurred.
-
-1. `Ctrl+Shift+1`, drag the region.
-2. Pick a tool along the top: **Arrow**, **Highlight**, **Blur**, **Step** counter. Draw. `Ctrl+Z` undoes.
-3. **Copy image**. Paste.
-
-Blur is pixelation, so the text underneath is really gone, not softened. The untouched original stays beside the file as `01.orig.png` in case you need it.
-
-## Agent feedback loops
-
-**For:** the moment you spot a UI problem while an agent is already working with you, and you want it fixed without breaking your stride.
-
-1. `Ctrl+Shift+1`, drag the button that's wrong.
-2. Type what's wrong in the note.
-3. `Ctrl+Enter`. Paste into your agent.
-
-The agent gets a path it can open and the note that tells it what to do:
-
-```
-C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
-The save button is clipped at 125% scaling.
-```
-
-Three small things on the same page? Press `Enter` on each note instead of `Ctrl+Enter` and keep going. The window counts the batch. On the last one, `Ctrl+Enter` copies all of them with their notes, so the agent gets one message with three screenshots and three instructions:
-
-```
-3 quick shots in C:\Users\nick\QACut\Quick\2026-09-19_101512. Each PNG has
-its note in the .md beside it; notes.md lists them all.
-
-C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
-The save button is clipped at 125% scaling.
-
-C:\Users\nick\QACut\Quick\2026-09-19_101512\02.png
-This toggle animates but the state never saves.
-
-C:\Users\nick\QACut\Quick\2026-09-19_101512\03.png
-Align this label with the field above it.
-```
-
-The batch then closes. Your next quick shot starts a fresh folder, and an agent you talk to later never sees the shots you already had fixed.
-
-If you always want the same instruction around the shots, save it once in the [Prompt library](/docs/prompts) and pick it from **Hand off as** above the note.
-
-## When to step up
-
-When the list grows past a handful, or spans several pages, or you want a document rather than a fix, switch to [QACut Bundles](/use-cases/bundles). Groups, master notes and a purpose-specific prompt keep a big job legible.
-
-[How quick shots work in detail](/docs/quick)
+Learn more: [How quick shots work in detail](/docs/quick)

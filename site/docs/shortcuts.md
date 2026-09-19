@@ -1,3 +1,7 @@
+---
+description: "Every QACut keyboard shortcut: global hotkeys for quick shots, bundles and recording, plus the keys in the note box, capture overlay, studio and image editor."
+---
+
 # Keyboard shortcuts
 
 All of these can be changed: **Keyboard shortcuts…** in the tray, or **Help → Keyboard shortcuts…** in the bundle window. Click a field, press the keys, Save. A shortcut another app already owns is reported and the rest still apply. Leave a field empty to turn one off.

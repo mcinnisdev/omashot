@@ -4,6 +4,7 @@ import MobileSidebar from "./MobileSidebar.vue";
 import Footer from "./Footer.vue";
 import "./custom.css";
 import "./landing.css";
+import "./usecases.css";
 
 export default {
   extends: DefaultTheme,

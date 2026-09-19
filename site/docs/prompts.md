@@ -1,3 +1,7 @@
+---
+description: "Edit the text QACut puts on your clipboard. Six built-in prompts with placeholders, your own quick shot and bundle prompts, and a live preview as you type."
+---
+
 # Prompt library
 
 Every text QACut puts on your clipboard is a template, and the Prompt library is where you edit them and add your own. Open it from **Prompt library…** in the tray, or **Hand off → Prompt library…** in the bundle window.

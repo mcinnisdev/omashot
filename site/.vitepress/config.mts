@@ -1,20 +1,24 @@
 import { defineConfig } from "vitepress";
 
+const SITE_URL = "https://qacut.com";
+const SITE_DESCRIPTION =
+  "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows.";
+
 // The docs are written with QACut itself: process docs exported from the
 // studio land under docs/ as markdown with their images and clips beside
 // them. VitePress turns the folder into the site; nothing else to do.
 export default defineConfig({
   title: "QACut",
-  description:
-    "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows.",
+  description: SITE_DESCRIPTION,
   cleanUrls: true,
   lastUpdated: true,
+  sitemap: { hostname: SITE_URL },
   head: [
     ["link", { rel: "icon", href: "/favicon.png" }],
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:site_name", content: "QACut" }],
     ["meta", { property: "og:title", content: "QACut: screen capture that hands off" }],
-    ["meta", { property: "og:description", content: "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows." }],
+    ["meta", { property: "og:description", content: SITE_DESCRIPTION }],
     ["meta", { property: "og:url", content: "https://qacut.com/" }],
     ["meta", { property: "og:image", content: "https://qacut.com/og.png" }],
     ["meta", { property: "og:image:width", content: "1200" }],
@@ -22,9 +26,27 @@ export default defineConfig({
     ["meta", { property: "og:image:alt", content: "QACut: screen capture that hands off" }],
     ["meta", { name: "twitter:card", content: "summary_large_image" }],
     ["meta", { name: "twitter:title", content: "QACut: screen capture that hands off" }],
-    ["meta", { name: "twitter:description", content: "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows." }],
+    ["meta", { name: "twitter:description", content: SITE_DESCRIPTION }],
     ["meta", { name: "twitter:image", content: "https://qacut.com/og.png" }],
   ],
+  // Per-page Open Graph and Twitter tags. The home page keeps the
+  // site-wide values above; every other page describes itself. VitePress
+  // drops a site head tag when the page sets the same one, so these win.
+  transformPageData(pageData) {
+    if (pageData.relativePath === "index.md") return;
+    const path = pageData.relativePath.replace(/\.md$/, "").replace(/(^|\/)index$/, "$1");
+    const url = `${SITE_URL}/${path}`;
+    const title = pageData.frontmatter.title || pageData.title || "QACut";
+    const description = pageData.frontmatter.description || pageData.description || SITE_DESCRIPTION;
+    pageData.frontmatter.head ??= [];
+    pageData.frontmatter.head.push(
+      ["meta", { property: "og:title", content: title }],
+      ["meta", { property: "og:description", content: description }],
+      ["meta", { property: "og:url", content: url }],
+      ["meta", { name: "twitter:title", content: title }],
+      ["meta", { name: "twitter:description", content: description }],
+    );
+  },
   themeConfig: {
     siteTitle: '<span class="qa">QA</span>Cut',
     logo: "/logo.png",
@@ -36,29 +58,30 @@ export default defineConfig({
           {
             text: "QACut Basic",
             items: [
-              { text: "Quick shot: copy and paste", link: "/use-cases/quick-shots#copy-and-paste" },
-              { text: "Quick shot: mark up, copy, paste", link: "/use-cases/quick-shots#mark-up-copy-paste" },
-              { text: "Quick shot: agent feedback loops", link: "/use-cases/quick-shots#agent-feedback-loops" },
+              { text: "Copy and paste a screenshot", link: "/use-cases/copy-and-paste" },
+              { text: "Mark up a screenshot and paste it", link: "/use-cases/mark-up-and-paste" },
+              { text: "Send screenshots to an AI agent", link: "/use-cases/agent-feedback-loops" },
             ],
           },
           {
             text: "QACut Bundles",
             items: [
-              { text: "Organize, mark up, notate, export", link: "/use-cases/bundles#organize-mark-up-notate-export" },
-              { text: "Automated process capture, edit, export", link: "/use-cases/bundles#automated-process-capture-edit-export" },
-              { text: "Send to an agent with prompt and brand kit", link: "/use-cases/bundles#send-to-an-agent-with-prompt-and-brand-kit-for-polish" },
-              { text: "A task list for agents", link: "/use-cases/bundles#organize-mark-up-notate-a-task-list-for-agents" },
+              { text: "Organize screenshots into a document", link: "/use-cases/organize-and-export" },
+              { text: "Auto-capture a process", link: "/use-cases/automated-process-capture" },
+              { text: "Hand a bundle to an agent with your brand kit", link: "/use-cases/agent-with-brand-kit" },
+              { text: "A task list of UI fixes for an agent", link: "/use-cases/task-list-for-agents" },
             ],
           },
           {
             text: "QACut Studio",
             items: [
-              { text: "Create polished screen recordings", link: "/use-cases/studio#create-polished-screen-recordings" },
-              { text: "Include your microphone", link: "/use-cases/studio#include-your-microphone" },
-              { text: "Include your camera", link: "/use-cases/studio#include-your-camera" },
-              { text: "Include your brand", link: "/use-cases/studio#include-your-brand" },
+              { text: "Polished screen recordings", link: "/use-cases/polished-screen-recordings" },
+              { text: "Record with narration", link: "/use-cases/record-with-microphone" },
+              { text: "Add your camera", link: "/use-cases/record-with-camera" },
+              { text: "Brand a recording", link: "/use-cases/record-with-brand" },
             ],
           },
+          { text: "All use cases", link: "/use-cases/" },
         ],
       },
       { text: "Changelog", link: "/changelog" },
@@ -68,12 +91,34 @@ export default defineConfig({
     ],
     sidebar: {
       "/use-cases/": [
+        { text: "All use cases", link: "/use-cases/" },
         {
-          text: "Use cases",
+          text: "QACut Basic",
           items: [
-            { text: "QACut Basic", link: "/use-cases/quick-shots" },
-            { text: "QACut Bundles", link: "/use-cases/bundles" },
-            { text: "QACut Studio", link: "/use-cases/studio" },
+            { text: "Overview", link: "/use-cases/quick-shots" },
+            { text: "Copy and paste a screenshot", link: "/use-cases/copy-and-paste" },
+            { text: "Mark up and paste", link: "/use-cases/mark-up-and-paste" },
+            { text: "Send to an AI agent", link: "/use-cases/agent-feedback-loops" },
+          ],
+        },
+        {
+          text: "QACut Bundles",
+          items: [
+            { text: "Overview", link: "/use-cases/bundles" },
+            { text: "Organize and export a document", link: "/use-cases/organize-and-export" },
+            { text: "Auto-capture a process", link: "/use-cases/automated-process-capture" },
+            { text: "Agent with your brand kit", link: "/use-cases/agent-with-brand-kit" },
+            { text: "Task list for an agent", link: "/use-cases/task-list-for-agents" },
+          ],
+        },
+        {
+          text: "QACut Studio",
+          items: [
+            { text: "Overview", link: "/use-cases/studio" },
+            { text: "Polished screen recordings", link: "/use-cases/polished-screen-recordings" },
+            { text: "Record with narration", link: "/use-cases/record-with-microphone" },
+            { text: "Add your camera", link: "/use-cases/record-with-camera" },
+            { text: "Brand a recording", link: "/use-cases/record-with-brand" },
           ],
         },
       ],

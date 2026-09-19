@@ -1,3 +1,7 @@
+---
+description: "Install QACut on Windows, find it in the tray, and take your first bundle: hotkey, region, note, group, hand off. Free and open source, no account needed."
+---
+
 # Getting started
 
 QACut lives in the system tray. There is no window to open first: press a hotkey, drag a region, do the thing.

@@ -1,3 +1,7 @@
+---
+description: "Put a logo, colours and voice notes in ~/QACut/brand and QACut carries them into every bundle an AI agent writes from and every video the studio exports."
+---
+
 # Brand kit
 
 Anything an agent writes from a bundle, and anything the studio renders, can carry your brand.

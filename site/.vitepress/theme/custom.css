@@ -450,8 +450,13 @@
   padding: 28px;
 }
 .qc-card .qc-more {
+  margin-top: 18px;
+}
+/* The use-case list sits at the bottom of the card, so the last item and
+   Learn more line up across a row. */
+.qc-card ul.qc-uses {
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 14px;
 }
 .qc-card .eyebrow {
   margin-bottom: 8px;

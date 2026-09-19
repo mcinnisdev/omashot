@@ -13,13 +13,18 @@ Raw screen recordings are hard to follow: the cursor is tiny, nothing marks a cl
 
 ## In the studio
 
-Everything the recording captured is now editable, after the fact:
+Everything the recording captured is now editable, after the fact. Everything Screen Studio and Loom charge for, drawn from data you already recorded.
 
-- **Zooms** are blocks on the timeline. Drag them, resize them, add more. New zooms follow the cursor, with a dead zone so they never twitch and a tightness slider for how closely they track.
-- **Trim and cut.** Drag the start and end handles, or cut a stretch out of the middle and put it back if you change your mind. The preview follows every move.
-- **Cursor, clicks and keys.** Cursor size, ripple, badges for shortcuts only or every key. Hide any single badge.
-- **Camera and narration.** Your camera in a bubble, any corner, any size. Narration recorded on the same clock and cut with the video.
-- **Frame.** Padding, corner radius, a background, a title above the frame, your logo in a corner.
+<div class="qc qc-embed">
+<div class="qc-grid">
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21M8 11h6M11 8v6"/></svg></div><h3>Zoom that follows</h3><p>A zoom block pushes in with an eased 600 ms move, holds still while the cursor moves inside the middle of the view, and eases after it near the edges. Tightness is a slider.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8.5"/></svg></div><h3>Clicks and keys</h3><p>A ripple where every click landed. Keystroke badges for shortcuts only, or every key. Hide any single badge from the timeline.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h3l2-2.5h6L17 7h3v11H4z"/><circle cx="12" cy="12.5" r="3.5"/></svg></div><h3>Camera and voice</h3><p>Your camera in a circle or rounded bubble, any corner, any size. Narration recorded on the same clock and cut with the video.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.4 15.6M8.4 8.4 20 20"/></svg></div><h3>Trim and cut</h3><p>Start and end handles you can actually grab. Cut a stretch out of the middle, then drag it, resize it, or put it back. A filmstrip shows where you are.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h13M10.5 5v14"/><rect x="16" y="15" width="5" height="5" rx="1"/></svg></div><h3>Title and logo</h3><p>A title and subtitle in the padding above or below the frame, and a logo from your brand folder in a corner of it. Five backgrounds, or plain.</p></div>
+<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg></div><h3>Export that matches</h3><p>The preview and the export share one renderer. Hardware H.264 where the machine has it, AAC narration, 30 or 60 fps, written straight into the recording's folder.</p></div>
+</div>
+</div>
 
 ## Export
 

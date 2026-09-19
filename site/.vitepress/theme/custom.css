@@ -143,11 +143,11 @@
 }
 .qc-btn.outline {
   background: transparent;
-  border-color: var(--vp-c-text-2);
+  border-color: var(--vp-c-brand-1);
   color: var(--vp-c-text-1) !important;
 }
 .qc-btn.outline:hover {
-  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
   color: var(--vp-c-brand-1) !important;
 }
 .qc-fine {
@@ -573,9 +573,9 @@
 
 .qc-flow {
   display: grid;
-  grid-template-columns: 1fr auto 1fr auto 1fr;
+  grid-template-columns: repeat(3, 1fr);
   align-items: start;
-  gap: 16px;
+  gap: 24px;
   margin-top: 36px;
 }
 .qc-flow-step {
@@ -620,12 +620,69 @@
 .qc-flow-step p {
   color: var(--vp-c-text-2);
 }
-.qc-flow-arrow {
-  width: 28px;
-  height: 28px;
-  margin-top: 16px;
+
+/* "Learn more" on a bento card. */
+.qc-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 650;
   color: var(--vp-c-brand-1);
-  opacity: 0.8;
+  text-decoration: none !important;
+}
+.qc-more svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.12s ease;
+}
+.qc-more:hover svg {
+  transform: translateX(3px);
+}
+
+/* The feature grid embedded in a docs page. */
+.qc-embed {
+  padding: 0;
+  margin: 24px 0 8px;
+}
+.qc-embed .qc-grid {
+  margin-top: 0;
+}
+.qc-embed .qc-feature h3 {
+  margin: 0 0 6px;
+  padding: 0;
+  border: none;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+.qc-embed .qc-feature p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Nav dropdown: a titled group with roomier, bolder rows. */
+.VPFlyout .VPMenu {
+  min-width: 260px;
+  padding: 10px;
+}
+.VPFlyout .VPMenuGroup .title {
+  padding: 4px 12px 8px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vp-c-brand-1);
+}
+.VPFlyout .VPMenuLink .link {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.VPFlyout .VPMenuLink .link:hover {
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
 }
 
 /* ---------------------------------------------------------- features */
@@ -755,10 +812,6 @@
   .qc-flow {
     grid-template-columns: 1fr;
     gap: 24px;
-  }
-  .qc-flow-arrow {
-    transform: rotate(90deg);
-    justify-self: center;
   }
   .qc-oss .qc-actions {
     justify-content: flex-start;

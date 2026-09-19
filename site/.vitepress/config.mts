@@ -29,15 +29,20 @@ export default defineConfig({
     siteTitle: '<span class="qa">QA</span>Cut',
     logo: "/logo.png",
     nav: [
+      { text: "Docs", link: "/docs/getting-started" },
       {
         text: "Use cases",
         items: [
-          { text: "QACut: quick shots for your agent", link: "/use-cases/quick-shots" },
-          { text: "QACut Bundles: bigger jobs for your agent", link: "/use-cases/bundles" },
-          { text: "QACut Studio: recordings for people", link: "/use-cases/studio" },
+          {
+            text: "Three modes",
+            items: [
+              { text: "QACut · Quick shots", link: "/use-cases/quick-shots" },
+              { text: "QACut Bundles · Bigger jobs", link: "/use-cases/bundles" },
+              { text: "QACut Studio · Recordings", link: "/use-cases/studio" },
+            ],
+          },
         ],
       },
-      { text: "Docs", link: "/docs/getting-started" },
       { text: "Download", link: "https://github.com/mcinnisdev/qacut/releases/latest" },
       { text: "GitHub", link: "https://github.com/mcinnisdev/qacut" },
     ],

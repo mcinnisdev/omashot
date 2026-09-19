@@ -9,7 +9,7 @@ titleTemplate: Screen capture that hands off
 <div class="qc">
 <section class="qc-hero">
 <div>
-<span class="eyebrow">Free and open source · Windows</span>
+<span class="eyebrow">Free and open source</span>
 <h1>Capture your screen.<br /><em>Hand off the work.</em></h1>
 <p class="lead">Screenshots and notes become a bundle an AI agent can work from. Screen recordings become walkthroughs people will actually watch. One tray icon, no account, and nothing leaves your machine unless you send it.</p>
 <div class="qc-actions">
@@ -34,9 +34,8 @@ titleTemplate: Screen capture that hands off
 </section>
 <section>
 <div class="center">
-<span class="eyebrow">Three tools, one tray</span>
-<h2>Pick the depth. One key each.</h2>
-<p class="lead">Ctrl+Shift+1 for a quick shot when it's one fix and you want it gone. Ctrl+Shift+2 for a structured bundle an agent can work from. Ctrl+Shift+R for a video a person will actually watch.</p>
+<span class="eyebrow">Three modes</span>
+<h2>Three flexible use cases</h2>
 </div>
 <div class="qc-bento" style="margin-top: 32px">
 <div class="qc-card">
@@ -49,15 +48,17 @@ The save button is clipped at
 <ul class="qc-chips">
 <li>No bundle</li><li>Batch a few, paste once</li>
 </ul>
+<a class="qc-more" href="/use-cases/quick-shots">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 <div class="qc-card wide span2">
 <div>
 <span class="eyebrow">QACut Bundles</span>
 <h3>Bundles for bigger jobs</h3>
-<p>Group shots by page, note each one, and hand an agent a folder it can work from: a fix list across an app, or the raw material for a process doc. Auto-capture records you doing it, with a still at every click.</p>
+<p>Create structured groups of screenshots and notes, and hand them off to an agent to work from. Auto-capture records you doing a process, with a still at every click.</p>
 <ul class="qc-chips">
 <li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Brand kit</li><li>ZIP for chat</li>
 </ul>
+<a class="qc-more" href="/use-cases/bundles">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 <pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
 <span></span>
@@ -81,6 +82,7 @@ Toggle animates but the state never saves.
 <ul class="qc-chips">
 <li>Follow zoom</li><li>Click ripples</li><li>Key badges</li><li>Camera bubble</li><li>Narration</li><li>Title and logo</li><li>Trim and cut</li><li>MP4 export</li>
 </ul>
+<a class="qc-more" href="/use-cases/studio">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 <div>
 <div class="visual qc-stage mini" aria-hidden="true">
@@ -114,7 +116,7 @@ Toggle animates but the state never saves.
 <section>
 <div class="center">
 <span class="eyebrow">How it works</span>
-<h2>Three keys.</h2>
+<h2>Three modes</h2>
 </div>
 <div class="qc-flow">
 <div class="qc-flow-step">
@@ -122,33 +124,16 @@ Toggle animates but the state never saves.
 <h3>Quick shot</h3>
 <p>One shot, one note, Ctrl+Enter, paste.</p>
 </div>
-<svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div class="qc-flow-step">
 <div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>2</kbd></div>
 <h3>Capture</h3>
 <p>Docs. Group shots and notes into a bundle an agent works from.</p>
 </div>
-<svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div class="qc-flow-step">
 <div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>R</kbd></div>
 <h3>Record</h3>
 <p>Studio. Drag a region, do the thing, press it again.</p>
 </div>
-</div>
-</section>
-<section>
-<div class="center">
-<span class="eyebrow">Studio</span>
-<h2>The polish is automatic. The control is yours.</h2>
-<p class="lead">Everything Screen Studio and Loom charge for, drawn from data you already recorded, editable after the fact.</p>
-</div>
-<div class="qc-grid">
-<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21M8 11h6M11 8v6"/></svg></div><h3>Zoom that follows</h3><p>A zoom block pushes in with an eased 600 ms move, holds still while the cursor moves inside the middle of the view, and eases after it near the edges. Tightness is a slider.</p></div>
-<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8.5"/></svg></div><h3>Clicks and keys</h3><p>A ripple where every click landed. Keystroke badges for shortcuts only, or every key. Hide any single badge from the timeline.</p></div>
-<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h3l2-2.5h6L17 7h3v11H4z"/><circle cx="12" cy="12.5" r="3.5"/></svg></div><h3>Camera and voice</h3><p>Your camera in a circle or rounded bubble, any corner, any size. Narration recorded on the same clock and cut with the video.</p></div>
-<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.4 15.6M8.4 8.4 20 20"/></svg></div><h3>Trim and cut</h3><p>Start and end handles you can actually grab. Cut a stretch out of the middle, then drag it, resize it, or put it back. A filmstrip shows where you are.</p></div>
-<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h13M10.5 5v14"/><rect x="16" y="15" width="5" height="5" rx="1"/></svg></div><h3>Title and logo</h3><p>A title and subtitle in the padding above or below the frame, and a logo from your brand folder in a corner of it. Five backgrounds, or plain.</p></div>
-<div class="qc-feature"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg></div><h3>Export that matches</h3><p>The preview and the export share one renderer. Hardware H.264 where the machine has it, AAC narration, 30 or 60 fps, written straight into the recording's folder.</p></div>
 </div>
 </section>
 <section>

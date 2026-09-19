@@ -5,6 +5,7 @@ import type { Session } from "./types";
 const mode = new URLSearchParams(location.search).get("mode") ?? "shot";
 const isGroup = mode === "group";
 const isRecording = mode === "recording";
+const isQuick = mode === "quick";
 
 const label = document.getElementById("head-label") as HTMLSpanElement;
 const groupTitle = document.getElementById("group-title") as HTMLInputElement;
@@ -13,6 +14,7 @@ const shotTitle = document.getElementById("shot-title") as HTMLInputElement;
 const groupHint = document.getElementById("group-hint") as HTMLParagraphElement;
 const note = document.getElementById("note") as HTMLTextAreaElement;
 const secondary = document.getElementById("secondary") as HTMLButtonElement;
+const keysHint = document.getElementById("keys") as HTMLSpanElement;
 
 let done = false;
 
@@ -30,6 +32,20 @@ async function boot() {
     label.textContent = "Auto-capture";
     note.placeholder = "What is happening in this clip?";
     secondary.textContent = "Discard clip";
+  } else if (isQuick) {
+    // No bundle, no group: the shot is already saved under Quick/<today>.
+    // Enter copies its path and note; Ctrl+Enter copies every shot from
+    // today so a handful can be pasted in one go.
+    label.textContent = "Quick shot";
+    sep.hidden = true;
+    groupTitle.hidden = true;
+    shotTitle.hidden = true;
+    note.placeholder = "What should the agent do with this?";
+    secondary.textContent = "Discard shot";
+    keysHint.innerHTML =
+      "<kbd>Enter</kbd> copy path + note <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copy all of today";
+    note.focus();
+    return;
   } else {
     label.textContent = "Note";
     secondary.textContent = "Discard shot";
@@ -75,8 +91,15 @@ async function saveGroup() {
   });
 }
 
-async function commit() {
+async function saveQuick(all: boolean) {
+  if (done) return;
+  done = true;
+  await invoke("save_quick", { note: note.value, all });
+}
+
+async function commit(all = false) {
   if (isGroup) await saveGroup();
+  else if (isQuick) await saveQuick(all);
   else await saveShot();
 }
 
@@ -86,6 +109,8 @@ async function bail() {
   if (isGroup) {
     // Nothing was created yet, so backing out is just closing the window.
     await getCurrentWindow().close();
+  } else if (isQuick) {
+    await invoke("discard_quick");
   } else {
     await invoke("discard_pending");
   }
@@ -94,7 +119,7 @@ async function bail() {
 function keys(e: KeyboardEvent) {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
-    void commit();
+    void commit(isQuick && (e.ctrlKey || e.metaKey));
     return;
   }
   if (e.key === "Escape") {

@@ -2,6 +2,12 @@
 
 A bundle is a folder: screenshots and clips in groups, a note on each, and a markdown file that reads in order. It is built for handing to an AI agent, whether that is a bug list to fix or a set of steps to turn into documentation.
 
+## Quick shots
+
+Not everything needs a bundle. `Ctrl+Shift+1` freezes the screen, you drag a region and type a note, and `Enter` puts the screenshot's path and your note on the clipboard, ready to paste into an agent with whatever else you want to say. The file lands in `~/QACut/Quick/<today>/` with the note beside it as a small markdown file, and the day's `notes.md` lists every shot.
+
+Take a few in a row and press `Ctrl+Enter` on the last note to copy all of today's shots at once. Use quick shots for one-off fixes and short sessions; use a bundle when there are enough shots across enough pages that an agent needs the structure to keep them straight.
+
 ## Capturing
 
 `Ctrl+Shift+2` freezes the screen. Drag a region and a note box appears under it. The header reads **Group 1 / Shot 1**; click either name and type to rename it. `Enter` saves, `Shift+Enter` adds a line, `Esc` keeps the screenshot with no note.

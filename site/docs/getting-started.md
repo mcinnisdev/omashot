@@ -38,6 +38,8 @@ Turn on the microphone and camera toggles in the tray's Studio section first if 
 
 Point an agent at the folder, or use **Copy agent prompt** in the bundle window for a ready-made instruction.
 
+For a one-off, skip the bundle: `Ctrl+Shift+1` takes a quick shot, and `Enter` on its note copies the screenshot's path and the note, ready to paste.
+
 ## Where things go
 
 ```

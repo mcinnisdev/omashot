@@ -10,6 +10,7 @@ use std::path::Path;
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Hotkeys {
+    pub quick: String,
     pub capture: String,
     pub record: String,
     pub studio: String,
@@ -23,6 +24,7 @@ pub struct Hotkeys {
 impl Default for Hotkeys {
     fn default() -> Self {
         Hotkeys {
+            quick: "CommandOrControl+Shift+1".into(),
             capture: "CommandOrControl+Shift+2".into(),
             record: "CommandOrControl+Shift+R".into(),
             studio: "CommandOrControl+Shift+3".into(),
@@ -37,8 +39,9 @@ impl Default for Hotkeys {
 
 impl Hotkeys {
     /// (action id, spec) pairs, for registration and the menu.
-    pub fn entries(&self) -> [(&'static str, &str); 8] {
+    pub fn entries(&self) -> [(&'static str, &str); 9] {
         [
+            ("quick", &self.quick),
             ("capture", &self.capture),
             ("record", &self.record),
             ("studio", &self.studio),

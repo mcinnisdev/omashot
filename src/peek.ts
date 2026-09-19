@@ -27,6 +27,7 @@ const shortcutRows = document.getElementById("shortcut-rows") as HTMLDivElement;
 
 interface Hotkeys {
   capture: string;
+  quick: string;
   record: string;
   studio: string;
   zoom: string;
@@ -37,6 +38,7 @@ interface Hotkeys {
 }
 
 const HOTKEY_LABELS: [keyof Hotkeys, string][] = [
+  ["quick", "Quick shot"],
   ["capture", "Capture region"],
   ["record", "Auto-capture region / stop"],
   ["group", "Wrap up group"],
@@ -48,6 +50,7 @@ const HOTKEY_LABELS: [keyof Hotkeys, string][] = [
 ];
 
 let hk: Hotkeys = {
+  quick: "CommandOrControl+Shift+1",
   capture: "CommandOrControl+Shift+2",
   record: "CommandOrControl+Shift+R",
   studio: "CommandOrControl+Shift+3",
@@ -644,6 +647,7 @@ const menus: Menu[] = [
   {
     title: "Capture",
     items: () => [
+      { label: "Quick shot", keys: keyLabel(hk.quick), run: () => call("start_quick") },
       { label: "Capture region", keys: keyLabel(hk.capture), run: () => call("start_capture") },
       { label: "Auto-capture region", keys: keyLabel(hk.record), run: () => call("start_record") },
       { label: "Wrap up group", keys: keyLabel(hk.group), run: () => call("start_group") },
@@ -754,6 +758,7 @@ brandClose.addEventListener("click", hidePanels);
 (document.getElementById("shortcuts-save") as HTMLButtonElement).addEventListener("click", () => void saveShortcuts());
 (document.getElementById("shortcuts-reset") as HTMLButtonElement).addEventListener("click", () => {
   draft = {
+    quick: "CommandOrControl+Shift+1",
     capture: "CommandOrControl+Shift+2",
     record: "CommandOrControl+Shift+R",
     studio: "CommandOrControl+Shift+3",

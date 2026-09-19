@@ -78,7 +78,7 @@ pub fn close_capture(app: &AppHandle) {
     }
 }
 
-/// The note box. `mode` is "shot" or "group". Anchored under the selection
+/// The note box. `mode` is "shot", "quick", "recording" or "group". Anchored under the selection
 /// when we have one, otherwise centred on the focused monitor.
 pub fn open_note(app: &AppHandle, mode: &str, anchor: Option<(f64, f64)>) -> Result<()> {
     if let Some(w) = app.get_webview_window(NOTE) {

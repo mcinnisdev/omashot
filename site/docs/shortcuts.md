@@ -6,6 +6,7 @@ All of these can be changed: **Keyboard shortcutsâ€¦** in the tray, or **Help â†
 
 | Default | Does |
 | --- | --- |
+| `Ctrl+Shift+1` | Quick shot: capture a region, note it, path and note go to the clipboard |
 | `Ctrl+Shift+2` | Capture a region and note it |
 | `Ctrl+Shift+R` | Auto-capture a region; again to stop |
 | `Ctrl+Shift+G` | Wrap up the current group with a master note |
@@ -21,6 +22,7 @@ All of these can be changed: **Keyboard shortcutsâ€¦** in the tray, or **Help â†
 | --- | --- |
 | `Enter` | Save |
 | `Shift+Enter` | New line |
+| `Ctrl+Enter` | Quick shot: copy every shot from today, not just this one |
 | `Esc` | Keep the screenshot with no note; cancel a group wrap-up |
 
 ## In the capture overlay

@@ -40,6 +40,8 @@ struct Inner {
     capturing: bool,
     /// The shot awaiting a note: (group index, shot id).
     pending: Option<(usize, String)>,
+    /// A quick shot (outside any bundle) awaiting its note.
+    quick_pending: Option<std::path::PathBuf>,
     /// A recording in progress and the shot it will fill in.
     recording: Option<(capture::Recording, usize, String)>,
     /// Set while the pre-recording countdown runs; storing true cancels it.
@@ -227,6 +229,19 @@ fn trigger_capture(app: &AppHandle) {
     open_overlay(app, "shot");
 }
 
+/// A quick shot: one screenshot and one note, saved under ~/QACut/Quick
+/// by day with no bundle around it, and its path and note put on the
+/// clipboard ready to paste into an agent.
+fn trigger_quick(app: &AppHandle) {
+    open_overlay(app, "quick");
+}
+
+fn quick_dir(app: &AppHandle) -> std::path::PathBuf {
+    base_dir(app)
+        .join("Quick")
+        .join(chrono::Local::now().format("%Y-%m-%d").to_string())
+}
+
 /// Toggles: starts a recording via the overlay, cancels a countdown, or
 /// stops the recording that is running.
 fn trigger_record(app: &AppHandle) {
@@ -358,9 +373,11 @@ fn open_overlay(app: &AppHandle, mode: &str) {
     {
         let mut inner = state.lock().unwrap();
         inner.capturing = false;
-        if let Err(e) = ensure_session(app, &mut inner) {
-            eprintln!("qacut: could not start session: {e}");
-            return;
+        if mode != "quick" {
+            if let Err(e) = ensure_session(app, &mut inner) {
+                eprintln!("qacut: could not start session: {e}");
+                return;
+            }
         }
         inner.frames = frames;
     }
@@ -444,6 +461,7 @@ fn trigger_finish(app: &AppHandle) {
 
 fn action_for(id: &str) -> Option<fn(&AppHandle)> {
     Some(match id {
+        "quick" => trigger_quick,
         "capture" => trigger_capture,
         "record" => trigger_record,
         "studio" => trigger_studio,
@@ -496,6 +514,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let acc = |s: &str| if s.trim().is_empty() { None } else { Some(s.trim().to_string()) };
 
     let head_qacut = MenuItem::with_id(app, "h1", "QACut", false, None::<&str>)?;
+    let quick_i = MenuItem::with_id(app, "quick", "Quick shot", true, acc(&hk.quick))?;
     let capture_i = MenuItem::with_id(app, "capture", "Capture region", true, acc(&hk.capture))?;
     let record_i = MenuItem::with_id(app, "record", "Auto-capture region / stop", true, acc(&hk.record))?;
     let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, acc(&hk.group))?;
@@ -520,7 +539,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     Menu::with_items(
         app,
         &[
-            &head_qacut, &peek_i, &new_i, &capture_i, &record_i, &group_i, &finish_i,
+            &head_qacut, &quick_i, &peek_i, &new_i, &capture_i, &record_i, &group_i, &finish_i,
             &folder_i,
             &sep1,
             &head_studio, &open_studio_i, &studio_i, &zoom_i, &keys_i, &mic_i, &cam_i,
@@ -754,12 +773,7 @@ async fn commit_selection(
         inner.frames.clear();
         inner.dirty = true;
 
-        // Anchor the note box just under the selection, nudged back on screen.
-        let nx = frame.x as f64 + x;
-        let ny = frame.y as f64 + y + height + 12.0;
-        let max_y = frame.y as f64 + frame.height as f64 - 200.0;
-        let max_x = frame.x as f64 + frame.width as f64 - 496.0;
-        (nx.min(max_x).max(frame.x as f64 + 8.0), ny.min(max_y))
+        note_anchor(&frame, x, y, height)
     };
 
     capture::clear_scratch();
@@ -1590,6 +1604,144 @@ fn open_path(app: AppHandle, path: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+/// Where the note box goes: just under the selection, nudged back on screen.
+fn note_anchor(frame: &Frame, x: f64, y: f64, height: f64) -> (f64, f64) {
+    let nx = frame.x as f64 + x;
+    let ny = frame.y as f64 + y + height + 12.0;
+    let max_y = frame.y as f64 + frame.height as f64 - 200.0;
+    let max_x = frame.x as f64 + frame.width as f64 - 496.0;
+    (nx.min(max_x).max(frame.x as f64 + 8.0), ny.min(max_y))
+}
+
+/// The overlay, in quick mode, hands over the region. The shot is written
+/// straight into today's Quick folder and the note box opens on it.
+#[tauri::command]
+async fn commit_quick(
+    app: AppHandle,
+    state: State<'_, Shared>,
+    monitor: String,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+) -> Result<(), String> {
+    overlay::close_capture(&app);
+
+    let anchor = {
+        let mut inner = state.lock().unwrap();
+        let (frame, image) = inner
+            .frames
+            .iter()
+            .find(|(f, _)| f.monitor_id == monitor)
+            .map(|(f, i)| (f.clone(), i.clone()))
+            .ok_or_else(|| "that monitor is no longer frozen".to_string())?;
+
+        let dir = quick_dir(&app);
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        let highest = std::fs::read_dir(&dir)
+            .map(|rd| {
+                rd.filter_map(|e| e.ok())
+                    .filter_map(|e| e.file_name().to_string_lossy().split('.').next()?.parse::<usize>().ok())
+                    .max()
+                    .unwrap_or(0)
+            })
+            .unwrap_or(0);
+        let abs = dir.join(format!("{:02}.png", highest + 1));
+        capture::crop_selection(&frame, &image, x, y, width, height, &abs).map_err(|e| e.to_string())?;
+
+        inner.quick_pending = Some(abs);
+        inner.frames.clear();
+        note_anchor(&frame, x, y, height)
+    };
+
+    capture::clear_scratch();
+    overlay::open_note(&app, "quick", Some(anchor)).map_err(|e| e.to_string())
+}
+
+/// One clipboard entry for a quick shot: the path, then the note if any.
+fn quick_entry(png: &std::path::Path, note: &str) -> String {
+    let note = note.trim();
+    if note.is_empty() {
+        png.display().to_string()
+    } else {
+        format!("{}\n{}", png.display(), note)
+    }
+}
+
+/// Saves the note beside the quick shot, adds it to the day's notes.md, and
+/// puts the entry on the clipboard. With `all`, the clipboard gets every
+/// shot from today instead, so a few quick shots can be pasted at once.
+#[tauri::command]
+async fn save_quick(
+    app: AppHandle,
+    state: State<'_, Shared>,
+    note: String,
+    all: bool,
+) -> Result<String, String> {
+    let path = state.lock().unwrap().quick_pending.take();
+    let Some(path) = path else {
+        overlay::close_note(&app);
+        return Ok(String::new());
+    };
+    let note = note.trim().to_string();
+    let dir = path.parent().map(|p| p.to_path_buf()).unwrap_or_default();
+    let file = path.file_name().map(|f| f.to_string_lossy().to_string()).unwrap_or_default();
+    let stem = path.file_stem().map(|f| f.to_string_lossy().to_string()).unwrap_or_default();
+
+    std::fs::write(dir.join(format!("{stem}.md")), format!("{note}\n")).map_err(|e| e.to_string())?;
+
+    let index = dir.join("notes.md");
+    let mut body = std::fs::read_to_string(&index).unwrap_or_else(|_| {
+        format!("# Quick shots, {}\n", chrono::Local::now().format("%Y-%m-%d"))
+    });
+    body.push_str(&format!(
+        "\n## {file} ({})\n\n{}\n",
+        chrono::Local::now().format("%H:%M"),
+        if note.is_empty() { "(no note)" } else { note.as_str() }
+    ));
+    std::fs::write(&index, body).map_err(|e| e.to_string())?;
+
+    let text = if all {
+        let mut pngs: Vec<std::path::PathBuf> = std::fs::read_dir(&dir)
+            .map(|rd| {
+                rd.filter_map(|e| e.ok())
+                    .map(|e| e.path())
+                    .filter(|p| p.extension().map(|x| x == "png").unwrap_or(false))
+                    .collect()
+            })
+            .unwrap_or_default();
+        pngs.sort();
+        pngs.iter()
+            .map(|p| {
+                let n = std::fs::read_to_string(p.with_extension("md")).unwrap_or_default();
+                quick_entry(p, &n)
+            })
+            .collect::<Vec<_>>()
+            .join("\n\n")
+    } else {
+        quick_entry(&path, &note)
+    };
+    app.clipboard().write_text(text.clone()).map_err(|e| e.to_string())?;
+    overlay::close_note(&app);
+    Ok(text)
+}
+
+/// Throws away the quick shot the note box was attached to.
+#[tauri::command]
+async fn discard_quick(app: AppHandle, state: State<'_, Shared>) -> Result<(), String> {
+    let path = state.lock().unwrap().quick_pending.take();
+    if let Some(p) = path {
+        let _ = std::fs::remove_file(p);
+    }
+    overlay::close_note(&app);
+    Ok(())
+}
+
+#[tauri::command]
+async fn start_quick(app: AppHandle) {
+    trigger_quick(&app);
+}
+
 #[tauri::command]
 async fn start_capture(app: AppHandle) {
     trigger_capture(&app);
@@ -1665,6 +1817,10 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             frame_for,
             commit_selection,
+            commit_quick,
+            save_quick,
+            discard_quick,
+            start_quick,
             start_recording,
             stop_recording,
             start_studio,
@@ -1737,6 +1893,7 @@ fn main() {
                 .menu(&menu)
                 .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id().as_ref() {
+                    "quick" => off_main(app, trigger_quick),
                     "capture" => off_main(app, trigger_capture),
                     "record" => off_main(app, trigger_record),
                     "studio" => off_main(app, trigger_studio),

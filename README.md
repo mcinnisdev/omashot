@@ -23,6 +23,7 @@ Windows, macOS and Linux; the Studio's capture is Windows only for now.
 
 | Key | Does |
 | --- | --- |
+| `Ctrl/Cmd + Shift + 1` | Quick shot: drag a region, type a note, and the path plus note land on the clipboard; no bundle |
 | `Ctrl/Cmd + Shift + 2` | Freeze the screen, drag a region, then type a note |
 | `Ctrl/Cmd + Shift + R` | Auto-capture: drag a region, adjust it, Record; press again to stop, then type a note |
 | `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |

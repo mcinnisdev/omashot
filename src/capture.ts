@@ -128,7 +128,13 @@ async function send(r: Rect) {
   sent = true;
   try {
     const command =
-      mode === "studio" ? "start_studio" : recording ? "start_recording" : "commit_selection";
+      mode === "studio"
+        ? "start_studio"
+        : recording
+          ? "start_recording"
+          : mode === "quick"
+            ? "commit_quick"
+            : "commit_selection";
     await invoke(command, {
       monitor,
       x: r.x,

@@ -1316,6 +1316,56 @@ body.edit {
   background: var(--signal);
 }
 
+.edit-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* Review mode's side panel. */
+.edit-side {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-left: 1px solid var(--line);
+  background: var(--raised);
+}
+.edit-side-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+.edit-count {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.edit-moment {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--signal);
+}
+.edit-moment:empty {
+  display: none;
+}
+.edit-side textarea.field {
+  flex: 1;
+  min-height: 120px;
+}
+.edit-side-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.edit-side-nav .spacer {
+  flex: 1;
+}
+.linkish.danger:hover {
+  color: var(--signal);
+}
+
 .edit-body {
   flex: 1;
   display: flex;

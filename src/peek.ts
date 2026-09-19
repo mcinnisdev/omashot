@@ -383,8 +383,13 @@ async function render() {
       const img = document.createElement("img");
       img.src = fileUrl(s.abs_path);
       img.alt = `${isRec ? "Recording" : "Screenshot"} ${label}`;
+      // The thumbnail and Edit both open the review view: the shot large,
+      // markup tools, its note, and arrows to the rest of the bundle.
+      img.title = isRec ? "Open" : "Review: markup, note, next and previous";
       img.addEventListener("click", () =>
-        void invoke("open_path", { path: s.abs_path }),
+        isRec
+          ? void invoke("open_path", { path: s.abs_path })
+          : void invoke("review_shot", { group: g.index, shot: s.id }),
       );
 
       const meta = document.createElement("div");
@@ -405,10 +410,10 @@ async function render() {
       if (!isRec) {
         const edit = document.createElement("button");
         edit.className = "quiet small";
-        edit.textContent = "Edit";
-        edit.title = "Arrows, highlights, blur, step counters";
+        edit.textContent = "Review";
+        edit.title = "Open large: markup, note, and arrows to the next shot";
         edit.addEventListener("click", () =>
-          void invoke("edit_shot", { path: s.abs_path, label: `Edit ${label}` }),
+          void invoke("review_shot", { group: g.index, shot: s.id }),
         );
         left.append(edit);
       }

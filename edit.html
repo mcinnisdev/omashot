@@ -22,12 +22,31 @@
         <button class="btn" id="cancel" title="Cancel (Esc)">Cancel</button>
         <button class="btn primary" id="save" title="Save (Enter)">Save</button>
       </div>
-      <div class="edit-body" id="body">
-        <canvas id="canvas"></canvas>
+      <div class="edit-main">
+        <div class="edit-body" id="body">
+          <canvas id="canvas"></canvas>
+        </div>
+        <!-- Review mode: the shot's place in the bundle, its note, and a way
+             to the next one, so a whole auto-captured run can be cleaned up
+             without going back to the bundle window. -->
+        <aside class="edit-side" id="side" hidden>
+          <div class="edit-side-head">
+            <span class="edit-count" id="count"></span>
+            <span class="edit-moment" id="moment"></span>
+          </div>
+          <input class="field" id="shot-title" placeholder="Shot name (optional)" aria-label="Shot name" />
+          <textarea class="field" id="shot-note" placeholder="What's wrong here, or what is happening?" aria-label="Note"></textarea>
+          <div class="edit-side-nav">
+            <button class="btn" id="prev" title="Previous shot (←)">&larr; Prev</button>
+            <button class="btn" id="next" title="Next shot (→)">Next &rarr;</button>
+            <span class="spacer"></span>
+            <button class="linkish danger" id="delete-shot" title="Remove this shot from the bundle">Delete shot</button>
+          </div>
+        </aside>
       </div>
       <div class="edit-foot">
         <span><kbd>M</kbd> move <kbd>A</kbd> arrow <kbd>H</kbd> highlight <kbd>B</kbd> blur <kbd>S</kbd> step</span>
-        <span><kbd>←↑↓→</kbd> nudge <kbd>Del</kbd> remove <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo <kbd>Enter</kbd> save <kbd>Esc</kbd> cancel</span>
+        <span id="foot-keys"><kbd>←↑↓→</kbd> nudge <kbd>Del</kbd> remove <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo <kbd>Enter</kbd> save <kbd>Esc</kbd> cancel</span>
       </div>
     </div>
     <script type="module" src="/src/edit.ts"></script>

@@ -256,6 +256,29 @@ pub fn open_editor(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: 
     Ok(())
 }
 
+/// The editor in review mode: opened on a shot in the bundle, with the
+/// side panel, sized for the image plus the panel.
+pub fn open_review(app: &AppHandle, group: usize, shot_id: &str, img_w: u32, img_h: u32) -> Result<()> {
+    if let Some(w) = app.get_webview_window(EDIT) {
+        let _ = w.close();
+    }
+    let w = (img_w as f64 + 40.0 + 292.0).clamp(920.0, 1500.0);
+    let h = (img_h as f64 + 118.0).clamp(560.0, 940.0);
+    let url = format!("edit.html?group={group}&shot={}", urlencode(shot_id));
+    let win = builder(app, EDIT, WebviewUrl::App(url.into()))
+        .title("QACut review")
+        .inner_size(w, h)
+        .min_inner_size(760.0, 420.0)
+        .decorations(false)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .focused(true)
+        .build()?;
+    let _ = win.center();
+    let _ = win.set_focus();
+    Ok(())
+}
+
 /// The editor for the shot a note box is open on. The note box hides while
 /// the editor is up and comes back, focused, when it closes.
 pub fn open_editor_over_note(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: u32) -> Result<()> {

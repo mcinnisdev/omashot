@@ -1584,6 +1584,25 @@ async fn edit_shot(app: AppHandle, path: String, label: String) -> Result<(), St
     overlay::open_editor(&app, &path, &label, w, h).map_err(|e| e.to_string())
 }
 
+/// Opens the editor on a shot in review mode: markup plus note, with
+/// arrows to walk the rest of the bundle.
+#[tauri::command]
+async fn review_shot(app: AppHandle, state: State<'_, Shared>, group: usize, shot: String) -> Result<(), String> {
+    let path = {
+        let inner = state.lock().unwrap();
+        let session = inner.session.as_ref().ok_or("nothing captured yet")?;
+        session
+            .groups
+            .iter()
+            .find(|g| g.index == group)
+            .and_then(|g| g.shots.iter().find(|s| s.id == shot))
+            .map(|s| s.abs_path.clone())
+            .ok_or("no such shot")?
+    };
+    let (w, h) = image::image_dimensions(&path).map_err(|e| e.to_string())?;
+    overlay::open_review(&app, group, &shot, w, h).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn load_markup(path: String) -> Result<Markup, String> {
     let png = std::path::Path::new(&path);
@@ -2064,6 +2083,7 @@ fn main() {
             discard_pending,
             pending_shot_path,
             edit_pending,
+            review_shot,
             close_group,
             get_session,
             get_state,

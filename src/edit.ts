@@ -8,6 +8,7 @@
 // else.
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import type { Session, Shot } from "./types";
 
 type Tool = "move" | "arrow" | "rect" | "blur" | "step";
 type Mark =
@@ -23,8 +24,15 @@ interface Markup {
 }
 
 const params = new URLSearchParams(location.search);
-const path = params.get("path") ?? "";
+let path = params.get("path") ?? "";
 const label = params.get("label") ?? "Edit";
+
+// Review mode: opened on a shot in the bundle rather than a bare file. The
+// side panel carries the note, and arrows walk the bundle's shots in
+// reading order, saving marks and notes as you go.
+const reviewGroup = params.get("group");
+const reviewShot = params.get("shot");
+const review = reviewGroup !== null && reviewShot !== null;
 
 const title = document.getElementById("title") as HTMLSpanElement;
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -41,6 +49,7 @@ let draft: Mark | null = null;
 let selected: number | null = null;
 let scale = 1;
 let done = false;
+let marksDirty = false;
 
 const ACCENT = "#ff5b5b";
 const CLICK = "rgb(255, 196, 0)";
@@ -168,6 +177,10 @@ function drawSelection(m: Mark) {
   ctx.restore();
 }
 
+function touch() {
+  marksDirty = true;
+}
+
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0);
@@ -238,6 +251,7 @@ canvas.addEventListener("mousedown", (e) => {
   if (tool === "step") {
     const n = marks.filter((m) => m.kind === "step").length + 1;
     marks.push({ kind: "step", x: p.x, y: p.y, n });
+    touch();
     render();
     return;
   }
@@ -250,6 +264,7 @@ canvas.addEventListener("mousemove", (e) => {
     if (dragFrom !== null && selected !== null) {
       marks[selected] = shift(marks[selected], p.x - dragFrom.x, p.y - dragFrom.y);
       dragFrom = p;
+      touch();
       render();
     } else {
       canvas.style.cursor = hit(p.x, p.y) === null ? "default" : "move";
@@ -277,24 +292,26 @@ window.addEventListener("mouseup", () => {
         : draft.kind === "rect" || draft.kind === "blur"
           ? draft.w > 4 && draft.h > 4
           : true;
-    if (big) marks.push(draft);
+    if (big) {
+      marks.push(draft);
+      touch();
+    }
     draft = null;
     render();
   }
 });
 
-async function save() {
-  if (done) return;
-  done = true;
+/// Writes the composite and the marks for the image on screen. In review
+/// mode this runs whenever you move to another shot, so only a changed
+/// image is rewritten.
+async function writeMarks(): Promise<boolean> {
+  if (review && !marksDirty) return true;
   selected = null;
   render();
   const blob = await new Promise<Blob | null>((res) =>
     canvas.toBlob(res, "image/png"),
   );
-  if (!blob) {
-    done = false;
-    return;
-  }
+  if (!blob) return false;
   const bytes = new Uint8Array(await blob.arrayBuffer());
   let bin = "";
   for (let i = 0; i < bytes.length; i += 0x8000) {
@@ -307,8 +324,19 @@ async function save() {
       marks: JSON.stringify(marks),
     });
   } catch (err) {
-    done = false;
     title.textContent = String(err);
+    return false;
+  }
+  marksDirty = false;
+  return true;
+}
+
+async function save() {
+  if (done) return;
+  done = true;
+  if (review) await saveNote();
+  if (!(await writeMarks())) {
+    done = false;
     return;
   }
   await getCurrentWindow().close();
@@ -317,6 +345,7 @@ async function save() {
 async function cancel() {
   if (done) return;
   done = true;
+  if (review) await saveNote();
   await getCurrentWindow().close();
 }
 
@@ -324,8 +353,117 @@ function removeSelected() {
   if (selected === null) return;
   marks.splice(selected, 1);
   selected = null;
+  touch();
   render();
 }
+
+// ------------------------------------------------------------ review
+
+const side = document.getElementById("side") as HTMLElement;
+const countEl = document.getElementById("count") as HTMLSpanElement;
+const momentEl = document.getElementById("moment") as HTMLSpanElement;
+const shotTitle = document.getElementById("shot-title") as HTMLInputElement;
+const shotNote = document.getElementById("shot-note") as HTMLTextAreaElement;
+const prevBtn = document.getElementById("prev") as HTMLButtonElement;
+const nextBtn = document.getElementById("next") as HTMLButtonElement;
+const deleteBtn = document.getElementById("delete-shot") as HTMLButtonElement;
+const footKeys = document.getElementById("foot-keys") as HTMLSpanElement;
+
+interface Entry {
+  group: number;
+  groupName: string;
+  index: number;
+  total: number;
+  shot: Shot;
+}
+
+let entries: Entry[] = [];
+let at = 0;
+
+/// Every shot in the bundle in reading order, with what the panel says
+/// about where it sits.
+async function loadEntries() {
+  const session = await invoke<Session | null>("get_session");
+  entries = [];
+  if (!session) return;
+  for (const g of session.groups) {
+    const name = g.title.trim() || `Group ${g.index}`;
+    g.shots.forEach((s, i) => {
+      if (s.kind === "recording") return;
+      entries.push({ group: g.index, groupName: name, index: i + 1, total: g.shots.length, shot: s });
+    });
+  }
+}
+
+function frameLabel(m: { at_ms: number; event: string; x: number | null; y: number | null }) {
+  const secs = Math.round(m.at_ms / 1000);
+  let s = `${secs} s`;
+  if (m.event) s += `, ${m.event}`;
+  if (m.x !== null && m.y !== null) s += ` at ${m.x},${m.y}`;
+  return s;
+}
+
+function current(): Entry | null {
+  return entries[at] ?? null;
+}
+
+async function saveNote() {
+  const e = current();
+  if (!e) return;
+  if (shotNote.value.trim() === e.shot.note && shotTitle.value.trim() === e.shot.title) return;
+  e.shot.note = shotNote.value.trim();
+  e.shot.title = shotTitle.value.trim();
+  await invoke("set_shot_note", {
+    group: e.group,
+    shot: e.shot.id,
+    note: e.shot.note,
+    title: e.shot.title,
+  });
+}
+
+/// Puts the shot at `at` on screen: image, marks, note, counter.
+async function showCurrent() {
+  const e = current();
+  if (!e) {
+    await getCurrentWindow().close();
+    return;
+  }
+  path = e.shot.abs_path;
+  title.textContent = `${e.groupName}: shot ${e.index}`;
+  countEl.textContent = `${at + 1} of ${entries.length} in the bundle · ${e.groupName}, ${e.index} of ${e.total}`;
+  momentEl.textContent = e.shot.moment ? `auto · ${frameLabel(e.shot.moment)}` : "";
+  shotTitle.value = e.shot.title;
+  shotTitle.placeholder = `Shot ${e.index}`;
+  shotNote.value = e.shot.note;
+  prevBtn.disabled = at === 0;
+  nextBtn.disabled = at === entries.length - 1;
+  await loadImage();
+}
+
+async function go(delta: number) {
+  const next = at + delta;
+  if (next < 0 || next >= entries.length) return;
+  await saveNote();
+  if (!(await writeMarks())) return;
+  at = next;
+  await showCurrent();
+}
+
+async function deleteCurrent() {
+  const e = current();
+  if (!e) return;
+  await invoke("delete_shot", { group: e.group, shot: e.shot.id });
+  marksDirty = false;
+  await loadEntries();
+  if (at >= entries.length) at = entries.length - 1;
+  await showCurrent();
+}
+
+prevBtn.addEventListener("click", () => void go(-1));
+nextBtn.addEventListener("click", () => void go(1));
+deleteBtn.addEventListener("click", () => void deleteCurrent());
+shotNote.addEventListener("change", () => void saveNote());
+shotTitle.addEventListener("change", () => void saveNote());
 
 for (const b of toolButtons) {
   b.addEventListener("click", () => setTool(b.dataset.tool as Tool));
@@ -335,6 +473,7 @@ for (const b of toolButtons) {
   () => {
     marks.pop();
     selected = null;
+    touch();
     render();
   },
 );
@@ -343,6 +482,7 @@ for (const b of toolButtons) {
   () => {
     marks = [];
     selected = null;
+    touch();
     render();
   },
 );
@@ -356,6 +496,27 @@ for (const b of toolButtons) {
 );
 
 window.addEventListener("keydown", (e) => {
+  // Typing in the side panel: leave the keys to the field, except the
+  // ones that leave it.
+  const inField = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+  if (inField) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      (e.target as HTMLElement).blur();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      void save();
+    } else if (review && (e.ctrlKey || e.metaKey) && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+      e.preventDefault();
+      void go(e.key === "ArrowRight" ? 1 : -1);
+    }
+    return;
+  }
+  if (review && selected === null && (e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "PageDown" || e.key === "PageUp")) {
+    e.preventDefault();
+    void go(e.key === "ArrowRight" || e.key === "PageDown" ? 1 : -1);
+    return;
+  }
   const nudge: Record<string, [number, number]> = {
     ArrowLeft: [-1, 0],
     ArrowRight: [1, 0],
@@ -367,6 +528,7 @@ window.addEventListener("keydown", (e) => {
     const step = e.shiftKey ? 10 : 1;
     const [dx, dy] = nudge[e.key];
     marks[selected] = shift(marks[selected], dx * step, dy * step);
+    touch();
     render();
     return;
   }
@@ -390,6 +552,7 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
     marks.pop();
     selected = null;
+    touch();
     render();
   } else if (!e.ctrlKey && !e.metaKey) {
     const k = e.key.toLowerCase();
@@ -406,19 +569,40 @@ window.addEventListener("resize", () => {
   render();
 });
 
-async function boot() {
+/// Loads `path` and its marks onto the canvas.
+async function loadImage() {
   const markup = await invoke<Markup>("load_markup", { path });
   marks = markup.marks;
-  img.onload = () => {
-    canvas.width = img.width;
-    canvas.height = img.height;
-    fit();
-    // A still that already carries a click mark opens on Move, since
-    // nudging that ring is the likely reason for opening it.
-    setTool(marks.some((m) => m.kind === "click") ? "move" : "arrow");
-    render();
-  };
-  img.src = `${convertFileSrc(markup.original)}?v=${Date.now()}`;
+  marksDirty = false;
+  selected = null;
+  draft = null;
+  await new Promise<void>((resolve) => {
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      fit();
+      // A still that already carries a click mark opens on Move, since
+      // nudging that ring is the likely reason for opening it.
+      setTool(marks.some((m) => m.kind === "click") ? "move" : "arrow");
+      render();
+      resolve();
+    };
+    img.src = `${convertFileSrc(markup.original)}?t=${Date.now()}`;
+  });
+}
+
+async function boot() {
+  if (review) {
+    side.hidden = false;
+    footKeys.innerHTML =
+      "<kbd>←</kbd><kbd>→</kbd> prev / next shot <kbd>Del</kbd> remove mark <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo <kbd>Ctrl</kbd>+<kbd>S</kbd> save <kbd>Esc</kbd> close";
+    await loadEntries();
+    const i = entries.findIndex((e) => e.group === Number(reviewGroup) && e.shot.id === reviewShot);
+    at = Math.max(0, i);
+    await showCurrent();
+    return;
+  }
+  await loadImage();
 }
 
 void boot();

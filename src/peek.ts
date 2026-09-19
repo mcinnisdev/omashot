@@ -21,7 +21,6 @@ const brandFiles = document.getElementById("brand-files") as HTMLSpanElement;
 const brandOpen = document.getElementById("brand-open") as HTMLButtonElement;
 const brandNotes = document.getElementById("brand-notes") as HTMLTextAreaElement;
 const shortcuts = document.getElementById("shortcuts") as HTMLDivElement;
-const prompts = document.getElementById("prompts") as HTMLDivElement;
 const shortcutRows = document.getElementById("shortcut-rows") as HTMLDivElement;
 
 // ------------------------------------------------------------ shortcuts
@@ -679,19 +678,18 @@ function showPanel(panel: HTMLElement, focus?: HTMLElement) {
 }
 
 function hidePanels() {
-  for (const p of [bundles, brand, custom, shortcuts, prompts]) p.hidden = true;
+  for (const p of [bundles, brand, custom, shortcuts]) p.hidden = true;
 }
 
 // ------------------------------------------------------------ prompts
 
-type PromptKey = "quick_entry" | "quick_batch" | "fix" | "document" | "deliverable_markdown" | "deliverable_html";
 interface CustomPrompt {
   id: string;
   name: string;
   kind: "quick" | "bundle";
   template: string;
 }
-type Prompts = Record<PromptKey, string> & { custom: CustomPrompt[] };
+type Prompts = { custom: CustomPrompt[] };
 
 // The saved bundle prompts show up in the purpose menu, so a hand-off can
 // pick one without opening the prompts panel.
@@ -724,116 +722,7 @@ function fillPurposeOptions() {
   if (purpose.value !== keep) purpose.value = "fix";
 }
 
-let customRows: { id: string; name: HTMLInputElement; kind: HTMLSelectElement; template: HTMLTextAreaElement }[] = [];
 
-function addCustomRow(p: CustomPrompt) {
-  const rows = document.getElementById("prompt-custom-rows") as HTMLDivElement;
-  const row = document.createElement("div");
-  row.className = "prompt-row custom";
-  const head = document.createElement("div");
-  head.className = "prompt-head";
-  const name = document.createElement("input");
-  name.className = "prompt-name";
-  name.placeholder = "Name, as it appears in the menu";
-  name.value = p.name;
-  const kind = document.createElement("select");
-  for (const [v, l] of [["quick", "Quick shot"], ["bundle", "Bundle"]] as const) {
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = l;
-    kind.append(o);
-  }
-  kind.value = p.kind;
-  const del = document.createElement("button");
-  del.className = "quiet small";
-  del.textContent = "Delete";
-  const template = document.createElement("textarea");
-  template.value = p.template;
-  template.placeholder = "The prompt. Quick shot: {shots}. Bundle: {root}, {name}.";
-  const entry = { id: p.id, name, kind, template };
-  del.addEventListener("click", () => {
-    customRows = customRows.filter((r) => r !== entry);
-    row.remove();
-  });
-  head.append(name, kind, del);
-  row.append(head, template);
-  rows.append(row);
-  customRows.push(entry);
-}
-
-const PROMPT_FIELDS: [PromptKey, string, string][] = [
-  ["quick_entry", "Quick shot: one shot", "{path} and {note}"],
-  ["quick_batch", "Quick shot: a batch", "{count}, {dir}, and {entries} (one shot per entry)"],
-  ["fix", "Bundle: Fix issues", "{location} is the folder or the ZIP; also {root}, {name}"],
-  ["document", "Bundle: Write process doc", "{location}, {root}, {name}, and {deliverable} (one of the two below)"],
-  ["deliverable_markdown", "Process doc as Markdown", "what to produce; no placeholders needed"],
-  ["deliverable_html", "Process doc as web page", "what to produce; no placeholders needed"],
-];
-
-let promptDefaults: Prompts | null = null;
-const promptFields = new Map<PromptKey, HTMLTextAreaElement>();
-
-async function showPrompts() {
-  const set = await invoke<{ defaults: Prompts; current: Prompts }>("get_prompts");
-  promptDefaults = set.defaults;
-  const rows = document.getElementById("prompt-rows") as HTMLDivElement;
-  rows.replaceChildren();
-  promptFields.clear();
-  (document.getElementById("prompt-custom-rows") as HTMLDivElement).replaceChildren();
-  customRows = [];
-  for (const p of set.current.custom ?? []) addCustomRow(p);
-  for (const [key, label, hint] of PROMPT_FIELDS) {
-    const row = document.createElement("div");
-    row.className = "prompt-row";
-    const head = document.createElement("div");
-    head.className = "prompt-head";
-    const name = document.createElement("span");
-    name.textContent = label;
-    const h = document.createElement("span");
-    h.className = "prompt-hint";
-    h.textContent = hint;
-    const reset = document.createElement("button");
-    reset.className = "quiet small";
-    reset.textContent = "Reset";
-    const field = document.createElement("textarea");
-    field.value = set.current[key].trim() || set.defaults[key];
-    field.setAttribute("aria-label", label);
-    reset.addEventListener("click", () => {
-      field.value = set.defaults[key];
-    });
-    head.append(name, h, reset);
-    row.append(head, field);
-    rows.append(row);
-    promptFields.set(key, field);
-  }
-  showPanel(prompts);
-}
-
-async function savePrompts() {
-  if (!promptDefaults) return;
-  // A field left at its default is stored empty, so a future default
-  // change reaches it.
-  const out = {} as Prompts;
-  for (const [key] of PROMPT_FIELDS) {
-    const v = promptFields.get(key)?.value ?? "";
-    out[key] = v.trim() === promptDefaults[key].trim() ? "" : v;
-  }
-  out.custom = customRows
-    .filter((r) => r.name.value.trim() || r.template.value.trim())
-    .map((r) => ({
-      id: r.id,
-      name: r.name.value.trim() || "Untitled prompt",
-      kind: r.kind.value as "quick" | "bundle",
-      template: r.template.value,
-    }));
-  try {
-    await invoke("set_prompts", { prompts: out });
-    toast("Prompts saved");
-    await loadSavedPrompts();
-  } catch (err) {
-    toast(String(err));
-  }
-}
 
 async function showBundles() {
   const list = await invoke<BundleInfo[]>("list_bundles");
@@ -936,7 +825,7 @@ const menus: Menu[] = [
       { label: "Copy chat prompt", run: () => run("chatprompt") },
       "-",
       { label: "Edit custom prompt…", run: () => showPanel(custom, customPrompt) },
-      { label: "Customize prompts…", run: showPrompts },
+      { label: "Prompt library…", run: () => call("open_prompt_library") },
       { label: "Brand kit…", run: () => showPanel(brand, brandNotes) },
     ],
   },
@@ -1026,17 +915,8 @@ close.addEventListener("click", () => void getCurrentWindow().close());
 bundlesClose.addEventListener("click", hidePanels);
 brandClose.addEventListener("click", hidePanels);
 (document.getElementById("shortcuts-close") as HTMLButtonElement).addEventListener("click", hidePanels);
-(document.getElementById("prompts-close") as HTMLButtonElement).addEventListener("click", hidePanels);
-(document.getElementById("prompt-add") as HTMLButtonElement).addEventListener("click", () => {
-  addCustomRow({ id: `p_${Date.now().toString(36)}`, name: "", kind: "quick", template: "" });
-  customRows[customRows.length - 1]?.name.focus();
-});
 void loadSavedPrompts();
-(document.getElementById("prompts-save") as HTMLButtonElement).addEventListener("click", () => void savePrompts());
-(document.getElementById("prompts-reset") as HTMLButtonElement).addEventListener("click", () => {
-  if (!promptDefaults) return;
-  for (const [key, field] of promptFields) field.value = promptDefaults[key];
-});
+void listen("prompts-changed", () => void loadSavedPrompts());
 (document.getElementById("shortcuts-save") as HTMLButtonElement).addEventListener("click", () => void saveShortcuts());
 (document.getElementById("shortcuts-reset") as HTMLButtonElement).addEventListener("click", () => {
   draft = {
@@ -1123,5 +1003,4 @@ void render().then(() => {
   if (focus === "name") bundleName.focus();
   if (focus === "open") void showBundles();
   if (focus === "shortcuts") void showShortcuts();
-  if (focus === "prompts") void showPrompts();
 });

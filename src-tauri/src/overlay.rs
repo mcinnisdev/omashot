@@ -8,6 +8,7 @@ pub const NOTE: &str = "note";
 pub const PEEK: &str = "peek";
 pub const REC: &str = "rec";
 pub const EDIT: &str = "edit";
+const PROMPTS: &str = "prompts";
 pub const STUDIO: &str = "studio";
 
 /// Every window gets the same browser arguments (WebView2 fixes them for
@@ -347,6 +348,26 @@ fn urlencode(s: &str) -> String {
 }
 
 /// QACut Studio, on a project folder or on the list of recordings.
+/// The prompt library: every clipboard text and the user's own prompts,
+/// in one window. `select` opens on one of the user's prompts by id.
+pub fn open_prompts(app: &AppHandle, select: Option<&str>) -> Result<()> {
+    close_and_wait(app, PROMPTS);
+    let url = match select {
+        Some(id) => format!("prompts.html?select={}", urlencode(id)),
+        None => "prompts.html".to_string(),
+    };
+    let win = builder(app, PROMPTS, WebviewUrl::App(url.into()))
+        .title("QACut prompt library")
+        .inner_size(960.0, 640.0)
+        .min_inner_size(720.0, 480.0)
+        .decorations(false)
+        .focused(true)
+        .build()?;
+    let _ = win.center();
+    let _ = win.set_focus();
+    Ok(())
+}
+
 pub fn open_studio(app: &AppHandle, project_dir: Option<&str>) -> Result<()> {
     if let Some(w) = app.get_webview_window(STUDIO) {
         let _ = w.close();

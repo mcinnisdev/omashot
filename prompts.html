@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Prompt library</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="library">
+    <div class="lib-wrap">
+      <div class="lib-head" data-tauri-drag-region>
+        <span class="lib-title" data-tauri-drag-region>Prompt library</span>
+        <span class="lib-sub" data-tauri-drag-region>Everything QACut puts on your clipboard, and the prompts you add yourself.</span>
+        <span class="spacer" data-tauri-drag-region></span>
+        <span class="lib-status" id="status"></span>
+        <button class="icon-btn" id="close" title="Close (Esc)" aria-label="Close">&times;</button>
+      </div>
+      <div class="lib-main">
+        <!-- Left: every prompt, built-in and yours. -->
+        <nav class="lib-list" id="list" aria-label="Prompts">
+          <div class="lib-group">Built in</div>
+          <div id="list-builtin"></div>
+          <div class="lib-group lib-group-mine">
+            <span>Yours</span>
+            <button class="quiet small" id="add">+ New</button>
+          </div>
+          <div id="list-custom"></div>
+        </nav>
+        <!-- Right: the selected prompt. -->
+        <section class="lib-editor" id="editor">
+          <div class="lib-fields" id="custom-fields" hidden>
+            <label class="lib-field">
+              <span>Name</span>
+              <input class="field" id="name" placeholder="As it appears in the pickers" />
+            </label>
+            <label class="lib-field lib-field-kind">
+              <span>Used for</span>
+              <select class="field" id="kind">
+                <option value="quick">Quick shots: wraps the shots you hand off</option>
+                <option value="bundle">Bundles: the whole instruction for a bundle</option>
+              </select>
+            </label>
+          </div>
+          <p class="lib-about" id="about"></p>
+          <div class="lib-placeholders" id="placeholders"></div>
+          <textarea class="field lib-template" id="template" spellcheck="false" aria-label="Prompt text"></textarea>
+          <div class="lib-preview-head">Preview, with sample values</div>
+          <pre class="lib-preview" id="preview"></pre>
+          <div class="lib-actions">
+            <button class="btn primary" id="save" title="Save (Ctrl+S)">Save</button>
+            <button class="quiet" id="reset" hidden>Reset to default</button>
+            <button class="quiet" id="duplicate" hidden>Duplicate as mine</button>
+            <span class="spacer"></span>
+            <button class="linkish danger" id="delete" hidden>Delete prompt</button>
+          </div>
+        </section>
+      </div>
+    </div>
+    <script type="module" src="/src/prompts.ts"></script>
+  </body>
+</html>

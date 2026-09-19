@@ -7,6 +7,7 @@
 // put there by the recorder, so the cursor ring is movable like anything
 // else.
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Session, Shot } from "./types";
 
@@ -796,6 +797,7 @@ async function boot() {
     }
     showQuickBatch(await invoke<number>("quick_count"));
     await loadQuickPrompts();
+    void listen("prompts-changed", () => void loadQuickPrompts());
     await loadImage();
     quickNote.focus();
     return;

@@ -286,7 +286,11 @@ fn get_prompts(app: AppHandle) -> PromptSet {
 
 #[tauri::command]
 fn set_prompts(app: AppHandle, prompts: Prompts) -> Result<(), String> {
-    prompts.save(&app)
+    prompts.save(&app)?;
+    // Pickers elsewhere (the quick shot window, the bundle window's purpose
+    // menu) refresh from this.
+    let _ = app.emit("prompts-changed", ());
+    Ok(())
 }
 
 /// The instruction handed to an agent alongside the folder path or ZIP.
@@ -774,7 +778,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let studio_folder_i = MenuItem::with_id(app, "studio_folder", "Open Studio folder", true, None::<&str>)?;
 
     let shortcuts_i = MenuItem::with_id(app, "shortcuts", "Keyboard shortcuts...", true, None::<&str>)?;
-    let prompts_i = MenuItem::with_id(app, "prompts", "Customize prompts...", true, None::<&str>)?;
+    let prompts_i = MenuItem::with_id(app, "prompts", "Prompt library...", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
     let sep_quick = PredefinedMenuItem::separator(app)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
@@ -810,9 +814,14 @@ fn refresh_tray_menu(app: &AppHandle) {
 }
 
 fn trigger_prompts(app: &AppHandle) {
-    if let Err(e) = overlay::open_peek(app, Some("prompts")) {
-        eprintln!("qacut: could not open bundle window: {e}");
+    if let Err(e) = overlay::open_prompts(app, None) {
+        eprintln!("qacut: could not open the prompt library: {e}");
     }
+}
+
+#[tauri::command]
+async fn open_prompt_library(app: AppHandle) -> Result<(), String> {
+    overlay::open_prompts(&app, None).map_err(|e| e.to_string())
 }
 
 fn trigger_shortcuts(app: &AppHandle) {
@@ -2278,6 +2287,7 @@ fn main() {
             get_prompts,
             set_prompts,
             set_saved_prompt,
+            open_prompt_library,
             log_error,
             cancel_capture,
             save_note,

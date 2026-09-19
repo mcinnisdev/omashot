@@ -827,3 +827,10 @@
   margin-top: 14px;
   padding: 0;
 }
+
+/* Docs and use-case pages: on wide screens VitePress centres a 1440px
+   layout, which pushes the sidebar in by hundreds of pixels. Let those
+   pages use the full width so the sidebar hugs the left edge. */
+:root:has(.VPSidebar) {
+  --vp-layout-max-width: 100vw;
+}

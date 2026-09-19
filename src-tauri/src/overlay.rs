@@ -136,9 +136,7 @@ pub fn toggle_peek(app: &AppHandle) -> Result<bool> {
 /// Opens (or reopens) the bundle window. `focus` is "name" to land in the
 /// bundle name field or "open" to show the list of past bundles.
 pub fn open_peek(app: &AppHandle, focus: Option<&str>) -> Result<()> {
-    if let Some(w) = app.get_webview_window(PEEK) {
-        let _ = w.close();
-    }
+    close_and_wait(app, PEEK);
     let url = match focus {
         Some(f) => format!("peek.html?focus={f}"),
         None => "peek.html".to_string(),
@@ -322,10 +320,14 @@ pub fn open_editor_over_note(app: &AppHandle, path: &str, label: &str, img_w: u3
 /// window with the same label while the old one is still tearing down
 /// hands the new one a dead handle, and then it can never close itself.
 fn close_editor_and_wait(app: &AppHandle) {
-    if let Some(w) = app.get_webview_window(EDIT) {
+    close_and_wait(app, EDIT);
+}
+
+fn close_and_wait(app: &AppHandle, label: &str) {
+    if let Some(w) = app.get_webview_window(label) {
         let _ = w.close();
         for _ in 0..100 {
-            if app.get_webview_window(EDIT).is_none() {
+            if app.get_webview_window(label).is_none() {
                 break;
             }
             std::thread::sleep(std::time::Duration::from_millis(10));

@@ -11,7 +11,7 @@ export interface Frame {
 }
 
 export type ShotKind = "image" | "recording";
-export type Purpose = "fix" | "document" | "custom";
+export type Purpose = "fix" | "document" | "custom" | "saved";
 export type DocFormat = "markdown" | "html";
 
 export interface KeyFrame {
@@ -54,6 +54,7 @@ export interface Session {
   root: string;
   current: number;
   purpose: Purpose;
+  prompt_id: string | null;
   doc_format: DocFormat;
   include_brand: boolean;
   groups: Group[];

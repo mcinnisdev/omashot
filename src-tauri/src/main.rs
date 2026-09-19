@@ -177,6 +177,21 @@ struct Prompts {
     deliverable_markdown: String,
     /// What `{deliverable}` becomes for a web page.
     deliverable_html: String,
+    /// The user's own prompts, picked by name before a hand-off.
+    custom: Vec<CustomPrompt>,
+}
+
+/// A prompt of the user's own. A quick one wraps the shots it is sent with
+/// (`{shots}` is the path-and-note text, or gets it appended); a bundle one
+/// is a full instruction with `{root}` and `{name}`.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
+struct CustomPrompt {
+    id: String,
+    name: String,
+    /// "quick" or "bundle".
+    kind: String,
+    template: String,
 }
 
 impl Prompts {
@@ -215,6 +230,7 @@ impl Prompts {
                 "the image under its step. Write in second person and keep the file names."
             )
             .into(),
+            custom: Vec::new(),
         }
     }
 
@@ -248,7 +264,12 @@ impl Prompts {
             document: pick(&self.document, d.document),
             deliverable_markdown: pick(&self.deliverable_markdown, d.deliverable_markdown),
             deliverable_html: pick(&self.deliverable_html, d.deliverable_html),
+            custom: self.custom.clone(),
         }
+    }
+
+    fn saved(&self, id: &str) -> Option<&CustomPrompt> {
+        self.custom.iter().find(|p| p.id == id)
     }
 }
 
@@ -870,14 +891,23 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
     };
 
     let prompt_for = |target: Target| -> Result<String, String> {
-        let (purpose, doc_format, name, include_brand) = state
+        let (mut purpose, doc_format, name, include_brand, prompt_id) = state
             .lock()
             .unwrap()
             .session
             .as_ref()
-            .map(|s| (s.purpose, s.doc_format, s.title(), s.include_brand))
-            .unwrap_or((Purpose::Fix, DocFormat::Markdown, String::new(), false));
-        let custom = load_custom_prompt(app);
+            .map(|s| (s.purpose, s.doc_format, s.title(), s.include_brand, s.prompt_id.clone()))
+            .unwrap_or((Purpose::Fix, DocFormat::Markdown, String::new(), false, None));
+        let mut custom = load_custom_prompt(app);
+        if purpose == Purpose::Saved {
+            let prompts = Prompts::load(app);
+            let saved = prompt_id
+                .as_deref()
+                .and_then(|id| prompts.saved(id))
+                .ok_or_else(|| "that saved prompt is gone; pick another".to_string())?;
+            custom = saved.template.clone();
+            purpose = Purpose::Custom;
+        }
         if purpose == Purpose::Custom && custom.trim().is_empty() {
             return Err("write a custom prompt first".into());
         }
@@ -1521,6 +1551,21 @@ fn set_custom_prompt(app: AppHandle, text: String) -> Result<(), String> {
     std::fs::write(&path, text).map_err(|e| e.to_string())
 }
 
+/// Hands the bundle off with one of the user's saved prompts.
+#[tauri::command]
+fn set_saved_prompt(app: AppHandle, state: State<Shared>, id: String) -> Result<(), String> {
+    {
+        let mut inner = state.lock().unwrap();
+        let session = ensure_session(&app, &mut inner)?;
+        session.purpose = Purpose::Saved;
+        session.prompt_id = Some(id);
+        inner.dirty = true;
+        inner.finished = false;
+    }
+    let _ = app.emit("session-changed", ());
+    Ok(())
+}
+
 /// Points new captures at an existing group.
 #[tauri::command]
 fn set_current_group(app: AppHandle, state: State<Shared>, group: usize) -> Result<(), String> {
@@ -2013,6 +2058,7 @@ async fn save_quick(
     state: State<'_, Shared>,
     note: String,
     all: bool,
+    prompt: Option<String>,
 ) -> Result<String, String> {
     let path = state.lock().unwrap().quick_pending.take();
     let Some(path) = path else {
@@ -2044,6 +2090,13 @@ async fn save_quick(
         quick_batch_text(&dir, &Prompts::load(&app))
     } else {
         quick_entry(&path, &note, &Prompts::load(&app))
+    };
+    // A saved quick prompt wraps the shots: `{shots}` where it says, or
+    // appended after it.
+    let text = match prompt.as_deref().and_then(|id| Prompts::load(&app).saved(id).cloned()) {
+        Some(p) if p.template.contains("{shots}") => p.template.replace("{shots}", &text).trim().to_string(),
+        Some(p) => format!("{}\n\n{}", p.template.trim(), text),
+        None => text,
     };
     app.clipboard().write_text(text.clone()).map_err(|e| e.to_string())?;
     overlay::close_note(&app);
@@ -2224,6 +2277,7 @@ fn main() {
             set_hotkeys,
             get_prompts,
             set_prompts,
+            set_saved_prompt,
             log_error,
             cancel_capture,
             save_note,

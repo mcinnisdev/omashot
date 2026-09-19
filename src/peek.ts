@@ -312,7 +312,9 @@ async function render() {
   // Name, purpose and brand can be set before the first capture; the
   // backend starts a session on demand.
   bundleName.value = session?.name ?? "";
-  purpose.value = session?.purpose ?? "fix";
+  purpose.value =
+    session?.purpose === "saved" && session.prompt_id ? `saved:${session.prompt_id}` : (session?.purpose ?? "fix");
+  if (!purpose.value) purpose.value = "fix";
   docFormat.value = session?.doc_format ?? "markdown";
   // The format only matters for a document, and the web page variant is
   // what makes recordings pay off: clips play inline instead of stills.
@@ -683,7 +685,81 @@ function hidePanels() {
 // ------------------------------------------------------------ prompts
 
 type PromptKey = "quick_entry" | "quick_batch" | "fix" | "document" | "deliverable_markdown" | "deliverable_html";
-type Prompts = Record<PromptKey, string>;
+interface CustomPrompt {
+  id: string;
+  name: string;
+  kind: "quick" | "bundle";
+  template: string;
+}
+type Prompts = Record<PromptKey, string> & { custom: CustomPrompt[] };
+
+// The saved bundle prompts show up in the purpose menu, so a hand-off can
+// pick one without opening the prompts panel.
+let savedPrompts: CustomPrompt[] = [];
+
+async function loadSavedPrompts() {
+  try {
+    const set = await invoke<{ defaults: Prompts; current: Prompts }>("get_prompts");
+    savedPrompts = set.current.custom ?? [];
+  } catch {
+    savedPrompts = [];
+  }
+  fillPurposeOptions();
+}
+
+function fillPurposeOptions() {
+  const keep = purpose.value;
+  purpose.replaceChildren();
+  const add = (value: string, label: string) => {
+    const o = document.createElement("option");
+    o.value = value;
+    o.textContent = label;
+    purpose.append(o);
+  };
+  add("fix", "Fix issues");
+  add("document", "Write process doc");
+  for (const p of savedPrompts.filter((p) => p.kind === "bundle")) add(`saved:${p.id}`, p.name || "Untitled prompt");
+  add("custom", "Custom prompt");
+  purpose.value = keep;
+  if (purpose.value !== keep) purpose.value = "fix";
+}
+
+let customRows: { id: string; name: HTMLInputElement; kind: HTMLSelectElement; template: HTMLTextAreaElement }[] = [];
+
+function addCustomRow(p: CustomPrompt) {
+  const rows = document.getElementById("prompt-custom-rows") as HTMLDivElement;
+  const row = document.createElement("div");
+  row.className = "prompt-row custom";
+  const head = document.createElement("div");
+  head.className = "prompt-head";
+  const name = document.createElement("input");
+  name.className = "prompt-name";
+  name.placeholder = "Name, as it appears in the menu";
+  name.value = p.name;
+  const kind = document.createElement("select");
+  for (const [v, l] of [["quick", "Quick shot"], ["bundle", "Bundle"]] as const) {
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = l;
+    kind.append(o);
+  }
+  kind.value = p.kind;
+  const del = document.createElement("button");
+  del.className = "quiet small";
+  del.textContent = "Delete";
+  const template = document.createElement("textarea");
+  template.value = p.template;
+  template.placeholder = "The prompt. Quick shot: {shots}. Bundle: {root}, {name}.";
+  const entry = { id: p.id, name, kind, template };
+  del.addEventListener("click", () => {
+    customRows = customRows.filter((r) => r !== entry);
+    row.remove();
+  });
+  head.append(name, kind, del);
+  row.append(head, template);
+  rows.append(row);
+  customRows.push(entry);
+}
 
 const PROMPT_FIELDS: [PromptKey, string, string][] = [
   ["quick_entry", "Quick shot: one shot", "{path} and {note}"],
@@ -703,6 +779,9 @@ async function showPrompts() {
   const rows = document.getElementById("prompt-rows") as HTMLDivElement;
   rows.replaceChildren();
   promptFields.clear();
+  (document.getElementById("prompt-custom-rows") as HTMLDivElement).replaceChildren();
+  customRows = [];
+  for (const p of set.current.custom ?? []) addCustomRow(p);
   for (const [key, label, hint] of PROMPT_FIELDS) {
     const row = document.createElement("div");
     row.className = "prompt-row";
@@ -739,9 +818,18 @@ async function savePrompts() {
     const v = promptFields.get(key)?.value ?? "";
     out[key] = v.trim() === promptDefaults[key].trim() ? "" : v;
   }
+  out.custom = customRows
+    .filter((r) => r.name.value.trim() || r.template.value.trim())
+    .map((r) => ({
+      id: r.id,
+      name: r.name.value.trim() || "Untitled prompt",
+      kind: r.kind.value as "quick" | "bundle",
+      template: r.template.value,
+    }));
   try {
     await invoke("set_prompts", { prompts: out });
     toast("Prompts saved");
+    await loadSavedPrompts();
   } catch (err) {
     toast(String(err));
   }
@@ -939,6 +1027,11 @@ bundlesClose.addEventListener("click", hidePanels);
 brandClose.addEventListener("click", hidePanels);
 (document.getElementById("shortcuts-close") as HTMLButtonElement).addEventListener("click", hidePanels);
 (document.getElementById("prompts-close") as HTMLButtonElement).addEventListener("click", hidePanels);
+(document.getElementById("prompt-add") as HTMLButtonElement).addEventListener("click", () => {
+  addCustomRow({ id: `p_${Date.now().toString(36)}`, name: "", kind: "quick", template: "" });
+  customRows[customRows.length - 1]?.name.focus();
+});
+void loadSavedPrompts();
 (document.getElementById("prompts-save") as HTMLButtonElement).addEventListener("click", () => void savePrompts());
 (document.getElementById("prompts-reset") as HTMLButtonElement).addEventListener("click", () => {
   if (!promptDefaults) return;
@@ -974,7 +1067,11 @@ bundleName.addEventListener("keydown", (e) => {
 });
 
 purpose.addEventListener("change", async () => {
-  await invoke("set_purpose", { purpose: purpose.value });
+  if (purpose.value.startsWith("saved:")) {
+    await invoke("set_saved_prompt", { id: purpose.value.slice(6) });
+  } else {
+    await invoke("set_purpose", { purpose: purpose.value });
+  }
   docFormat.hidden = purpose.value !== "document";
   if (purpose.value === "custom") showPanel(custom, customPrompt);
   else custom.hidden = true;

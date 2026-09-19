@@ -38,3 +38,4 @@ The markdown file explains itself at the top: each group is a page or area, the 
 - **Fix issues** asks the agent to work through the screenshots and fix what the notes describe.
 - **Write process doc** asks for a step-by-step document, as Markdown or as one self-contained web page, one step per screenshot.
 - **Custom prompt** is yours. `{root}` becomes the folder path and `{name}` the bundle name.
+- **Your saved prompts** appear in the same menu by name. Add them under **Customize prompts…** (tray, or Hand off in the bundle window) as bundle prompts, with the same placeholders.

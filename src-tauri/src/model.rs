@@ -104,6 +104,8 @@ pub enum Purpose {
     Document,
     /// The user's own prompt template, kept in `~/QACut/custom-prompt.txt`.
     Custom,
+    /// One of the user's saved prompts, named by `Session::prompt_id`.
+    Saved,
 }
 
 impl Purpose {
@@ -112,6 +114,7 @@ impl Purpose {
             "fix" => Some(Purpose::Fix),
             "document" => Some(Purpose::Document),
             "custom" => Some(Purpose::Custom),
+            "saved" => Some(Purpose::Saved),
             _ => None,
         }
     }
@@ -252,6 +255,9 @@ pub struct Session {
     pub current: usize,
     #[serde(default)]
     pub purpose: Purpose,
+    /// Which saved prompt, when the purpose is `Saved`.
+    #[serde(default)]
+    pub prompt_id: Option<String>,
     #[serde(default)]
     pub doc_format: DocFormat,
     /// Whether the brand kit in `~/QACut/brand/` is copied into this bundle.
@@ -293,6 +299,7 @@ impl Session {
             root,
             current: 1,
             purpose: Purpose::Fix,
+            prompt_id: None,
             doc_format: DocFormat::Markdown,
             include_brand: true,
             groups: vec![first],

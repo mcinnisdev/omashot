@@ -394,6 +394,30 @@ const quickFinishBtn = document.getElementById("quick-finish") as HTMLButtonElem
 const quickNewBtn = document.getElementById("quick-new-batch") as HTMLButtonElement;
 const quickDiscardBtn = document.getElementById("quick-discard") as HTMLButtonElement;
 const quickStatus = document.getElementById("quick-status") as HTMLSpanElement;
+const quickPrompt = document.getElementById("quick-prompt") as HTMLSelectElement;
+
+/// The user's saved quick-shot prompts, if any, as a picker above the note.
+async function loadQuickPrompts() {
+  try {
+    const set = await invoke<{ current: { custom?: { id: string; name: string; kind: string }[] } }>("get_prompts");
+    const mine = (set.current.custom ?? []).filter((p) => p.kind === "quick");
+    if (mine.length === 0) return;
+    quickPrompt.replaceChildren();
+    const none = document.createElement("option");
+    none.value = "";
+    none.textContent = "Hand off as: path and note";
+    quickPrompt.append(none);
+    for (const p of mine) {
+      const o = document.createElement("option");
+      o.value = p.id;
+      o.textContent = `Hand off as: ${p.name || "Untitled prompt"}`;
+      quickPrompt.append(o);
+    }
+    quickPrompt.hidden = false;
+  } catch {
+    // No picker, then.
+  }
+}
 
 function keyLabel(spec: string) {
   return spec
@@ -432,7 +456,7 @@ async function quickSave(all: boolean) {
       done = false;
       return;
     }
-    await invoke("save_quick", { note: quickNote.value, all });
+    await invoke("save_quick", { note: quickNote.value, all, prompt: quickPrompt.value || null });
   } catch (err) {
     done = false;
     report("quick save", err);
@@ -771,6 +795,7 @@ async function boot() {
       // The default label is fine.
     }
     showQuickBatch(await invoke<number>("quick_count"));
+    await loadQuickPrompts();
     await loadImage();
     quickNote.focus();
     return;

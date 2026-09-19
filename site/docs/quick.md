@@ -1,10 +1,10 @@
 # Quick shots
 
-Not everything needs a bundle. A quick shot is one screenshot and one note, saved on its own and pasted straight into whatever agent you are talking to.
+Not everything needs a bundle. A quick shot is one screenshot and one note, saved on its own and pasted straight into whatever agent you are talking to. Or, marked up and copied as an image, sent straight to a person.
 
 ## Taking one
 
-`Ctrl+Shift+1` freezes the screen. Drag a region, type a note, and press `Enter` to save it. `Ctrl+Enter` instead finishes and hands off: the screenshot's path and your note go on the clipboard, ready to paste with whatever else you want to say.
+`Ctrl+Shift+1` freezes the screen. Drag a region and the shot opens large, with the markup tools along the top and the note beside it. Type a note and press `Enter` to save it. `Ctrl+Enter` instead finishes and hands off: the screenshot's path and your note go on the clipboard, ready to paste with whatever else you want to say.
 
 ```
 C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
@@ -12,6 +12,10 @@ The save button is clipped at 125% scaling.
 ```
 
 The file lands in a batch folder under `~/QACut/Quick/`, named for when the batch started, with the note beside it as a small markdown file and a `notes.md` listing every shot in the batch.
+
+## Sending it to a person
+
+Draw an arrow, highlight the button, blur the account number, then press **Copy image** (or `Ctrl+Shift+C`). The marked-up screenshot is on the clipboard as an image, ready to paste into Teams, Slack, an email or a ticket. No note needed, and the shot is still saved in the batch if you want it later.
 
 ## Sending a few together
 

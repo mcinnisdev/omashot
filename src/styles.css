@@ -1359,6 +1359,26 @@ body.edit {
   align-items: center;
   gap: 6px;
 }
+.edit-side-actions {
+  display: flex;
+  gap: 6px;
+}
+.edit-side-actions .btn {
+  flex: 1;
+}
+.edit-hint {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.edit-hint:empty {
+  display: none;
+}
+.edit-status {
+  min-height: 16px;
+  font-size: 11.5px;
+  color: var(--signal);
+}
 .edit-side-nav .spacer {
   flex: 1;
 }

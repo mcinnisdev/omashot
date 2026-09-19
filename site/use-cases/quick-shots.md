@@ -1,6 +1,6 @@
-# QACut: quick shots for your agent
+# QACut: quick shots
 
-**For:** the moment you spot a UI problem while an agent is already working with you, and you want it fixed without breaking your stride.
+**For:** the moment you spot something on screen and need to show it to someone, whether that is an agent that should fix it or a person who asked "which button?"
 
 You are reviewing a page. The save button is clipped. You could describe it in words, or you could show it. `Ctrl+Shift+1`, drag the button, type "clipped at 125% scaling", `Ctrl+Enter`, paste. The agent gets a path it can open and the note that tells it what to do.
 
@@ -11,7 +11,11 @@ You are reviewing a page. The save button is clipped. You could describe it in w
 3. Type what is wrong, or what you want.
 4. `Ctrl+Enter`. Paste into your agent.
 
-Ten seconds, no window to manage, nothing to name.
+Ten seconds, nothing to name. The shot opens large with the markup tools, so an arrow or a blur is one drag away before you send it.
+
+## For a person
+
+Same start. Draw the arrow, highlight the field, blur the customer's name, then **Copy image** (`Ctrl+Shift+C`). The marked-up screenshot is on your clipboard as an image: paste it into the chat, the email, the ticket. No folder to find, no file to attach.
 
 ## A few at once
 

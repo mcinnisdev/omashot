@@ -16,6 +16,7 @@
     "core:event:default",
     "core:app:default",
     "clipboard-manager:allow-write-text",
+    "clipboard-manager:allow-write-image",
     "opener:allow-open-path",
     "global-shortcut:default"
   ]

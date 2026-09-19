@@ -32,7 +32,7 @@ Free and open source under the [MIT License](LICENSE). Windows 10 (2004+) or 11,
 
 | | Mode | For | How |
 | --- | --- | --- | --- |
-| **1** | **QACut** · quick shots | One fix, or three, straight into whatever agent you're talking to. | `Ctrl+Shift+1`, drag, note, `Enter`. `Ctrl+Enter` copies the path and note, ready to paste. Keep going to build a batch and paste them together. |
+| **1** | **QACut** · quick shots | One fix, or three, for an agent; or a marked-up screenshot for a person. | `Ctrl+Shift+1`, drag, mark up, note. `Ctrl+Enter` copies the path and note for an agent; **Copy image** puts the marked-up PNG on the clipboard for a chat or email. Keep going to build a batch and paste them together. |
 | **2** | **QACut Bundles** · bigger jobs | A fix list across a whole app, or the raw material for a process doc or tutorial. | `Ctrl+Shift+2` for a screenshot, `Ctrl+Shift+3` to auto-capture a process. Group by page, note each shot, finish, hand the folder to an agent with a prompt written for the job. |
 | **R** | **QACut Studio** · recordings for people | A walkthrough someone will actually watch. | `Ctrl+Shift+R` records the screen with the cursor as data. Get it back smoothed and enlarged, with click ripples, follow zooms, key badges, a camera bubble and narration. Trim, cut, export to MP4. |
 
@@ -45,7 +45,9 @@ C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png
 The save button is clipped at 125% scaling.
 ```
 
-Take a few in a row and `Ctrl+Enter` on the last one copies the whole batch, each shot tied to its note. The batch then closes, so the next quick shot starts a fresh folder and an agent is never pointed at shots you've already dealt with. The note box shows the capture; click it (or `Ctrl+E`) to blur or mark it up while it's fresh.
+The shot opens large with the markup tools (arrow, highlight, blur, step counters) and the note beside it. **Copy image** (`Ctrl+Shift+C`) puts the marked-up screenshot on the clipboard as an image, for pasting into Teams, Slack, an email or a ticket: the fastest answer to "which button do you mean?"
+
+Take a few in a row and `Ctrl+Enter` on the last one copies the whole batch, each shot tied to its note. The batch then closes, so the next quick shot starts a fresh folder and an agent is never pointed at shots you've already dealt with.
 
 ## QACut Bundles
 
@@ -95,7 +97,7 @@ All of these can be changed in **Keyboard shortcuts…** (tray, or Help in the b
 | `Ctrl+Shift+R` | Studio recording start / stop |
 | `Ctrl+Space` | Zoom in here / out, only while a Studio recording runs |
 
-In a note box: `Enter` saves, `Shift+Enter` adds a line, `Esc` keeps the shot with no note, `Ctrl+E` opens the markup editor on it. Quick shots: `Ctrl+Enter` finishes the batch. In the review window: `←` `→` previous and next shot, `M A H B S` tools, `Ctrl+Z` undo, `Ctrl+S` save, `Esc` close.
+In a note box: `Enter` saves, `Shift+Enter` adds a line, `Esc` keeps the shot with no note, `Ctrl+E` opens the markup editor on it. Quick shots: `Ctrl+Enter` finishes the batch, `Ctrl+Shift+C` copies the marked-up image. In the review window: `←` `→` previous and next shot, `M A H B S` tools, `Ctrl+Z` undo, `Ctrl+S` save, `Esc` close.
 
 ## Development
 

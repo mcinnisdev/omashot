@@ -41,12 +41,12 @@ titleTemplate: Screen capture that hands off
 <div class="qc-card">
 <span class="eyebrow">QACut</span>
 <h3>Quick shots</h3>
-<p>For one tweak, or three. Drag, note, Enter. Ctrl+Enter puts the path and note on your clipboard, ready to paste into whatever agent you're talking to.</p>
+<p>For one tweak, or three. Drag, mark it up, note it. Ctrl+Enter puts the path and note on your clipboard for an agent; Copy image puts the marked-up screenshot on it for a person.</p>
 <pre class="visual qc-bundle"><span class="l">~\QACut\Quick\2026-09-19_1015\01.png</span>
 The save button is clipped at
 125% scaling.</pre>
 <ul class="qc-chips">
-<li>No bundle</li><li>Batch a few, paste once</li>
+<li>Markup and blur</li><li>Copy image for a person</li><li>Batch a few, paste once</li>
 </ul>
 <a class="qc-more" href="/use-cases/quick-shots">Learn more<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>

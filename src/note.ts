@@ -144,7 +144,7 @@ function showBatch(n: number) {
 
 async function startNewBatch() {
   try {
-    showBatch(await invoke<number>("quick_new_batch"));
+    showBatch((await invoke<{ count: number; path: string }>("quick_new_batch")).count);
     note.focus();
   } catch (err) {
     console.error(err);

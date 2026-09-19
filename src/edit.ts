@@ -34,6 +34,11 @@ const reviewGroup = params.get("group");
 const reviewShot = params.get("shot");
 const review = reviewGroup !== null && reviewShot !== null;
 
+// Quick mode: a quick shot opens here instead of a note box. Marks are
+// written before anything is copied, so what goes to the agent or the
+// clipboard is the marked-up image.
+const quick = params.get("quick") === "1";
+
 const title = document.getElementById("title") as HTMLSpanElement;
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const bodyEl = document.getElementById("body") as HTMLDivElement;
@@ -333,6 +338,10 @@ async function writeMarks(): Promise<boolean> {
 
 async function save() {
   if (done) return;
+  if (quick) {
+    void quickSave(false);
+    return;
+  }
   done = true;
   if (review) await saveNote();
   if (!(await writeMarks())) {
@@ -344,10 +353,110 @@ async function save() {
 
 async function cancel() {
   if (done) return;
+  if (quick) {
+    // Esc on a quick shot keeps it, like the note box did, with the marks
+    // made so far and no note.
+    void quickSave(false);
+    return;
+  }
   done = true;
   if (review) await saveNote();
   await getCurrentWindow().close();
 }
+
+// ------------------------------------------------------------- quick
+
+const quickSide = document.getElementById("quick-side") as HTMLElement;
+const quickCount = document.getElementById("quick-count") as HTMLSpanElement;
+const quickHint = document.getElementById("quick-hint") as HTMLSpanElement;
+const quickNote = document.getElementById("quick-note") as HTMLTextAreaElement;
+const quickSaveBtn = document.getElementById("quick-save") as HTMLButtonElement;
+const quickCopyBtn = document.getElementById("quick-copy-image") as HTMLButtonElement;
+const quickFinishBtn = document.getElementById("quick-finish") as HTMLButtonElement;
+const quickNewBtn = document.getElementById("quick-new-batch") as HTMLButtonElement;
+const quickDiscardBtn = document.getElementById("quick-discard") as HTMLButtonElement;
+const quickStatus = document.getElementById("quick-status") as HTMLSpanElement;
+
+function keyLabel(spec: string) {
+  return spec
+    .replace(/CommandOrControl|CmdOrCtrl|Control/g, "Ctrl")
+    .replace(/Super|Meta/g, "Win")
+    .replace(/Option/g, "Alt")
+    .replace(/Return/g, "Enter");
+}
+
+let quickKey = "Ctrl+Shift+1";
+
+function showQuickBatch(n: number) {
+  quickCount.textContent = n > 1 ? `Quick shot ${String(n).padStart(2, "0")} in this batch` : "Quick shot";
+  quickNewBtn.hidden = n < 2;
+  quickFinishBtn.textContent = n > 1 ? `Finish and hand off (${n})` : "Finish and hand off";
+  quickHint.textContent =
+    n > 1
+      ? `Enter saves this note and keeps the batch open. Ctrl+Enter copies all ${n} shots with their notes and closes the batch. Copy image puts this marked-up screenshot on the clipboard for a person.`
+      : `Enter saves the note; take more with ${quickKey}. Ctrl+Enter copies the path and note for an agent. Copy image puts the marked-up screenshot on the clipboard for a person.`;
+}
+
+function status(text: string) {
+  quickStatus.textContent = text;
+  window.setTimeout(() => {
+    if (quickStatus.textContent === text) quickStatus.textContent = "";
+  }, 2500);
+}
+
+/// Saves the note and this shot's marks, copies (this shot, or the whole
+/// batch with `all`) and closes.
+async function quickSave(all: boolean) {
+  if (done) return;
+  done = true;
+  if (!(await writeMarks())) {
+    done = false;
+    return;
+  }
+  try {
+    await invoke("save_quick", { note: quickNote.value, all });
+  } catch (err) {
+    done = false;
+    status(String(err));
+    return;
+  }
+  await getCurrentWindow().close();
+}
+
+async function quickCopyImage() {
+  if (!(await writeMarks())) return;
+  try {
+    await invoke("copy_image", { path });
+    status("Image copied");
+  } catch (err) {
+    status(String(err));
+  }
+}
+
+async function quickDiscard() {
+  if (done) return;
+  done = true;
+  await invoke("discard_quick");
+  await getCurrentWindow().close();
+}
+
+async function quickNewBatch() {
+  try {
+    if (!(await writeMarks())) return;
+    const r = await invoke<{ count: number; path: string }>("quick_new_batch");
+    path = r.path;
+    showQuickBatch(r.count);
+    quickNote.focus();
+  } catch (err) {
+    status(String(err));
+  }
+}
+
+quickSaveBtn.addEventListener("click", () => void quickSave(false));
+quickCopyBtn.addEventListener("click", () => void quickCopyImage());
+quickFinishBtn.addEventListener("click", () => void quickSave(true));
+quickNewBtn.addEventListener("click", () => void quickNewBatch());
+quickDiscardBtn.addEventListener("click", () => void quickDiscard());
 
 function removeSelected() {
   if (selected === null) return;
@@ -499,10 +608,23 @@ window.addEventListener("keydown", (e) => {
   // Typing in the side panel: leave the keys to the field, except the
   // ones that leave it.
   const inField = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+  if (quick && (e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "c") {
+    e.preventDefault();
+    void quickCopyImage();
+    return;
+  }
+  if (quick && e.key === "Enter" && !e.shiftKey) {
+    // Same keys as the note box: Enter saves and keeps the batch open,
+    // Ctrl+Enter finishes and hands off, Shift+Enter is a new line.
+    e.preventDefault();
+    void quickSave(e.ctrlKey || e.metaKey);
+    return;
+  }
   if (inField) {
     if (e.key === "Escape") {
       e.preventDefault();
-      (e.target as HTMLElement).blur();
+      if (quick) void cancel();
+      else (e.target as HTMLElement).blur();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
       void save();
@@ -592,6 +714,24 @@ async function loadImage() {
 }
 
 async function boot() {
+  if (quick) {
+    quickSide.hidden = false;
+    title.textContent = "Quick shot";
+    (document.getElementById("save") as HTMLButtonElement).hidden = true;
+    (document.getElementById("cancel") as HTMLButtonElement).hidden = true;
+    footKeys.innerHTML =
+      "<kbd>Enter</kbd> save + copy path <kbd>Ctrl</kbd>+<kbd>Enter</kbd> finish and hand off <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> copy image <kbd>Esc</kbd> keep, no note";
+    try {
+      const hk = await invoke<{ quick: string }>("get_hotkeys");
+      if (hk.quick) quickKey = keyLabel(hk.quick);
+    } catch {
+      // The default label is fine.
+    }
+    showQuickBatch(await invoke<number>("quick_count"));
+    await loadImage();
+    quickNote.focus();
+    return;
+  }
   if (review) {
     side.hidden = false;
     footKeys.innerHTML =

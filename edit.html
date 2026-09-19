@@ -29,6 +29,29 @@
         <!-- Review mode: the shot's place in the bundle, its note, and a way
              to the next one, so a whole auto-captured run can be cleaned up
              without going back to the bundle window. -->
+        <!-- Quick shot: note it and hand it to an agent, or mark it up and
+             copy the image for a person. Enter saves and keeps the batch
+             open; Ctrl+Enter finishes and hands off. -->
+        <aside class="edit-side" id="quick-side" hidden>
+          <div class="edit-side-head">
+            <span class="edit-count" id="quick-count">Quick shot</span>
+            <span class="edit-hint" id="quick-hint"></span>
+          </div>
+          <textarea class="field" id="quick-note" placeholder="What should the agent do with this?" aria-label="Note"></textarea>
+          <div class="edit-side-actions">
+            <button class="btn primary" id="quick-save" title="Save the note, copy this shot's path and note (Enter)">Save + copy path</button>
+            <button class="btn" id="quick-copy-image" title="Copy the marked-up image to the clipboard (Ctrl+Shift+C)">Copy image</button>
+          </div>
+          <div class="edit-side-actions">
+            <button class="btn" id="quick-finish" title="Copy every shot in the batch with its note and close the batch (Ctrl+Enter)">Finish and hand off</button>
+          </div>
+          <div class="edit-side-nav">
+            <button class="linkish" id="quick-new-batch" hidden title="Move this shot into a fresh batch">New batch</button>
+            <span class="spacer"></span>
+            <button class="linkish danger" id="quick-discard" title="Delete this shot">Discard shot</button>
+          </div>
+          <span class="edit-status" id="quick-status"></span>
+        </aside>
         <aside class="edit-side" id="side" hidden>
           <div class="edit-side-head">
             <span class="edit-count" id="count"></span>

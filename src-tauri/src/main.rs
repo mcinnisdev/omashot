@@ -1801,7 +1801,7 @@ async fn commit_quick(
 ) -> Result<(), String> {
     overlay::close_capture(&app);
 
-    let anchor = {
+    let abs = {
         let mut inner = state.lock().unwrap();
         let (frame, image) = inner
             .frames
@@ -1815,13 +1815,14 @@ async fn commit_quick(
         let abs = dir.join(format!("{:02}.png", quick_next(&dir)));
         capture::crop_selection(&frame, &image, x, y, width, height, &abs).map_err(|e| e.to_string())?;
 
-        inner.quick_pending = Some(abs);
+        inner.quick_pending = Some(abs.clone());
         inner.frames.clear();
-        note_anchor(&frame, x, y, height)
+        abs
     };
 
     capture::clear_scratch();
-    overlay::open_note(&app, "quick", Some(anchor)).map_err(|e| e.to_string())
+    let (w, h) = image::image_dimensions(&abs).map_err(|e| e.to_string())?;
+    overlay::open_quick_editor(&app, &abs.to_string_lossy(), w, h).map_err(|e| e.to_string())
 }
 
 /// The whole batch as one paste: an entry per shot, with a line naming the
@@ -1952,10 +1953,17 @@ fn quick_count(state: State<Shared>) -> usize {
         .unwrap_or(0)
 }
 
-/// Moves the pending quick shot out of the current batch into a fresh one,
-/// so it becomes shot 01 of a new folder. The old batch is left as it is.
+#[derive(Serialize)]
+struct QuickBatch {
+    count: usize,
+    path: String,
+}
+
+/// Moves the pending quick shot (and any markup beside it) out of the
+/// current batch into a fresh one, so it becomes shot 01 of a new folder.
+/// The old batch is left as it is.
 #[tauri::command]
-fn quick_new_batch(app: AppHandle, state: State<Shared>) -> Result<usize, String> {
+fn quick_new_batch(app: AppHandle, state: State<Shared>) -> Result<QuickBatch, String> {
     let mut inner = state.lock().unwrap();
     let Some(old) = inner.quick_pending.clone() else {
         return Err("no quick shot is waiting".into());
@@ -1965,8 +1973,25 @@ fn quick_new_batch(app: AppHandle, state: State<Shared>) -> Result<usize, String
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let new = dir.join("01.png");
     std::fs::rename(&old, &new).map_err(|e| e.to_string())?;
-    inner.quick_pending = Some(new);
-    Ok(1)
+    let [old_orig, old_marks, _] = model::sidecars(&old);
+    let [orig, marks, _] = model::sidecars(&new);
+    if old_orig.exists() {
+        let _ = std::fs::rename(&old_orig, &orig);
+    }
+    if old_marks.exists() {
+        let _ = std::fs::rename(&old_marks, &marks);
+    }
+    inner.quick_pending = Some(new.clone());
+    Ok(QuickBatch { count: 1, path: new.to_string_lossy().to_string() })
+}
+
+/// Puts a PNG on the clipboard as an image, so a marked-up quick shot can
+/// be pasted straight into a chat or an email.
+#[tauri::command]
+fn copy_image(app: AppHandle, path: String) -> Result<(), String> {
+    let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
+    let img = tauri::image::Image::from_bytes(&bytes).map_err(|e| e.to_string())?;
+    app.clipboard().write_image(&img).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -2056,6 +2081,7 @@ fn main() {
             quick_count,
             quick_new_batch,
             quick_finish,
+            copy_image,
             start_recording,
             stop_recording,
             start_studio,

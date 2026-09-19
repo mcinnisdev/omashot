@@ -8,10 +8,10 @@
 //!
 //! `omarchy-capture-region` freezes the screen with hyprpicker, runs slurp
 //! over it with every window and monitor as a snap target, and supports the
-//! keyboard navigation the rest of the desktop uses. Calling it means Omacut's
+//! keyboard navigation the rest of the desktop uses. Calling it means Omashot's
 //! selection behaves exactly like a screenshot, because it is the same code.
 //!
-//! The pixels still come from the grab Omacut took when the key was pressed,
+//! The pixels still come from the grab Omashot took when the key was pressed,
 //! not from a second one taken afterwards, so the picker's own overlay can
 //! never end up in the shot.
 

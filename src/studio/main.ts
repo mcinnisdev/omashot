@@ -1,4 +1,4 @@
-// Omacut Studio: opens a recording, plays it back composited, and keeps the
+// Omashot Studio: opens a recording, plays it back composited, and keeps the
 // edits in project.json. Playback is driven by the hidden source <video>;
 // every presented frame is drawn through the compositor, so the preview is
 // the export.

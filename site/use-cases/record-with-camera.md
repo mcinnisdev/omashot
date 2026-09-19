@@ -1,6 +1,6 @@
 ---
 title: Add your camera to a screen recording
-description: "Turn on Record camera and Omacut Studio shows a live preview while you record, then composites a camera bubble, circle or rounded, into any corner of the video."
+description: "Turn on Record camera and Omashot Studio shows a live preview while you record, then composites a camera bubble, circle or rounded, into any corner of the video."
 ---
 
 # Add your camera to a screen recording
@@ -35,4 +35,4 @@ An MP4 in the recording's folder with the camera bubble composited on top of the
 - [Brand a screen recording with your logo and title](/use-cases/record-with-brand), for the background, title and logo around the frame.
 - [Polished screen recordings](/docs/studio) in the docs.
 
-[How it works in detail](/docs/studio) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)
+[How it works in detail](/docs/studio) · [Download Omashot](https://github.com/mcinnisdev/omashot/releases/latest)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Wires Omacut into Omarchy: the theme template, the keys and the menu.
+# Wires Omashot into Omarchy: the theme template, the keys and the menu.
 #
 # Everything here is additive and idempotent, and nothing touches a file you
 # have edited yourself. Run it again after an update; it will only fill in
@@ -10,15 +10,15 @@ OMARCHY_CONFIG="$HOME/.config/omarchy"
 HYPR_CONFIG="$HOME/.config/hypr"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-MARK_BEGIN="-- >>> omacut >>>"
-MARK_END="-- <<< omacut <<<"
+MARK_BEGIN="-- >>> omashot >>>"
+MARK_END="-- <<< omashot <<<"
 
 say() { printf '  %s\n' "$*"; }
 skip() { printf '  %s (already done)\n' "$*"; }
 
 need_omarchy() {
   if [[ ! -d $OMARCHY_CONFIG ]]; then
-    echo "omacut: $OMARCHY_CONFIG not found -- this installer is for Omarchy." >&2
+    echo "omashot: $OMARCHY_CONFIG not found -- this installer is for Omarchy." >&2
     echo "The app itself runs on any Wayland compositor; only this wiring is Omarchy-specific." >&2
     exit 1
   fi
@@ -27,13 +27,13 @@ need_omarchy() {
 # ------------------------------------------------------------------- install
 
 install_theme() {
-  local dest="$OMARCHY_CONFIG/themed/omacut.css.tpl"
+  local dest="$OMARCHY_CONFIG/themed/omashot.css.tpl"
   mkdir -p "$(dirname "$dest")"
-  if [[ -e $dest ]] && ! cmp -s "$HERE/themed/omacut.css.tpl" "$dest"; then
+  if [[ -e $dest ]] && ! cmp -s "$HERE/themed/omashot.css.tpl" "$dest"; then
     skip "theme template (yours differs -- leaving it alone)"
     return
   fi
-  install -m 644 "$HERE/themed/omacut.css.tpl" "$dest"
+  install -m 644 "$HERE/themed/omashot.css.tpl" "$dest"
   say "theme template -> $dest"
 }
 
@@ -46,7 +46,7 @@ render_theme() {
   if omarchy theme refresh >/dev/null 2>&1; then
     say "rendered the palette from your ${current:-current} theme"
   else
-    say "could not refresh the theme; switch themes once and Omacut will pick it up"
+    say "could not refresh the theme; switch themes once and Omashot will pick it up"
   fi
 }
 
@@ -84,7 +84,7 @@ append_block() {
 install_menu() {
   local dest="$OMARCHY_CONFIG/extensions/omarchy-menu.jsonc"
   mkdir -p "$(dirname "$dest")"
-  if [[ -f $dest ]] && grep -q '"omacut"' "$dest"; then
+  if [[ -f $dest ]] && grep -q '"omashot"' "$dest"; then
     skip "menu entries"
     return
   fi
@@ -99,15 +99,45 @@ install_menu() {
   say "menu entries -> $dest"
 }
 
+# The bar widget. Omarchy discovers plugins under ~/.config/omarchy/plugins/
+# and the shell reloads when one is saved, so copying it in is the install.
+install_plugin() {
+  local dest="$OMARCHY_CONFIG/plugins/omashot"
+  if [[ -d $dest ]] && diff -rq "$HERE/plugin/omashot" "$dest" >/dev/null 2>&1; then
+    skip "bar widget"
+  else
+    mkdir -p "$dest"
+    install -m 644 "$HERE/plugin/omashot/manifest.json" "$dest/manifest.json"
+    install -m 644 "$HERE/plugin/omashot/BarWidget.qml" "$dest/BarWidget.qml"
+    say "bar widget -> $dest"
+  fi
+
+  # Enabling adds it to the bar's layout in shell.json. Already-enabled is
+  # not an error worth stopping the install over.
+  if omarchy plugin list --json 2>/dev/null | grep -q '"omashot"'; then
+    if omarchy plugin enable omashot right >/dev/null 2>&1; then
+      say "bar widget enabled on the right"
+    else
+      say "bar widget installed; enable it with: omarchy plugin enable omashot"
+    fi
+  fi
+}
+
 install_screenshot_editor() {
+  # Not done for you: this takes over a key you already use, which is the
+  # user's call rather than an installer's.
   cat <<'EOF'
 
-  One more, if you want it: make Omacut the editor for Omarchy's own
-  screenshot key, so every SUPER+SHIFT+S flows into markup, a note and a
-  hand-off. Add this to ~/.config/environment.d/omacut.conf and log back in:
+  Optional: hand Omarchy's own screenshot key to Omashot, so every
+  SUPER+SHIFT+S becomes a shot you can note and hand off. Put this in
+  ~/.config/environment.d/omashot.conf and log back in:
 
-      OMACUT_SCREENSHOT_EDITOR=1
-      OMARCHY_SCREENSHOT_EDITOR=omacut-edit
+      OMARCHY_SCREENSHOT_EDITOR=omashot-edit
+
+  Add this beside it to draw in omasnap instead of Omashot's own editor.
+  You lose re-editable marks; you gain omasnap's drawing tools:
+
+      OMASHOT_MARKUP=omasnap
 
 EOF
 }
@@ -115,7 +145,7 @@ EOF
 # ----------------------------------------------------------------- uninstall
 
 uninstall() {
-  local tpl="$OMARCHY_CONFIG/themed/omacut.css.tpl"
+  local tpl="$OMARCHY_CONFIG/themed/omashot.css.tpl"
   # `set -e` would take a missing file as a failure to abort on, and there is
   # nothing wrong with uninstalling something that was never installed.
   if [[ -e $tpl ]]; then
@@ -127,12 +157,19 @@ uninstall() {
   for f in "$HYPR_CONFIG/bindings.lua" "$HYPR_CONFIG/looknfeel.lua"; do
     [[ -f $f ]] && grep -qF -- "$MARK_BEGIN" "$f" || continue
     sed -i "/^$(printf '%s' "$MARK_BEGIN" | sed 's/[]\/$*.^[]/\\&/g')$/,/^$(printf '%s' "$MARK_END" | sed 's/[]\/$*.^[]/\\&/g')$/d" "$f"
-    say "removed the Omacut block from $f"
+    say "removed the Omashot block from $f"
   done
 
+  local plugin="$OMARCHY_CONFIG/plugins/omashot"
+  if [[ -d $plugin ]]; then
+    omarchy plugin disable omashot >/dev/null 2>&1 || true
+    rm -rf "$plugin"
+    say "removed the bar widget"
+  fi
+
   local menu="$OMARCHY_CONFIG/extensions/omarchy-menu.jsonc"
-  if [[ -f $menu ]] && grep -q '"omacut"' "$menu"; then
-    say "menu: remove the \"omacut\" keys from $menu by hand"
+  if [[ -f $menu ]] && grep -q '"omashot"' "$menu"; then
+    say "menu: remove the \"omashot\" keys from $menu by hand"
   fi
 
   echo
@@ -143,17 +180,18 @@ uninstall() {
 
 if [[ ${1:-} == "--uninstall" ]]; then
   need_omarchy
-  echo "Removing Omacut's Omarchy wiring:"
+  echo "Removing Omashot's Omarchy wiring:"
   uninstall
   exit 0
 fi
 
 need_omarchy
-echo "Wiring Omacut into Omarchy:"
+echo "Wiring Omashot into Omarchy:"
 install_theme
 render_theme
 install_bindings
 install_windowrules
 install_menu
+install_plugin
 install_screenshot_editor
 say "reload Hyprland (SUPER + ESCAPE) to pick up the keys."

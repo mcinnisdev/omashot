@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "omashot",
+  "name": "Omashot",
+  "version": "0.1.0",
+  "author": "Nick McInnis",
+  "description": "What Omashot is holding: open brief, shot count, recording state",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Omashot",
+    "description": "Open brief and shot count, with a click through to it",
+    "category": "Utility",
+    "allowMultiple": false
+  }
+}

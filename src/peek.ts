@@ -839,9 +839,9 @@ const menus: Menu[] = [
     items: () => [
       { label: "Show bundle window", keys: keyLabel(hk.peek), run: () => toast("You are looking at it") },
       { label: "Keyboard shortcuts…", run: showShortcuts },
-      { label: "Open Omacut folder", run: () => call("open_base_folder") },
+      { label: "Open Omashot folder", run: () => call("open_base_folder") },
       "-",
-      { label: "Quit Omacut", run: () => call("quit") },
+      { label: "Quit Omashot", run: () => call("quit") },
     ],
   },
 ];

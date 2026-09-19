@@ -111,7 +111,7 @@ pub fn crop_selection(
 
 /// Per-run scratch directory for frozen frames.
 pub fn scratch_dir() -> PathBuf {
-    std::env::temp_dir().join("omacut-frames")
+    std::env::temp_dir().join("omashot-frames")
 }
 
 pub fn clear_scratch() {

@@ -11,7 +11,7 @@ const columns = [
   {
     title: "Product",
     links: [
-      { text: "Download", href: "https://github.com/mcinnisdev/omacut/releases/latest" },
+      { text: "Download", href: "https://github.com/mcinnisdev/omashot/releases/latest" },
       { text: "Changelog", href: "/changelog" },
       { text: "Keyboard shortcuts", href: "/docs/shortcuts" },
       { text: "Prompt library", href: "/docs/prompts" },
@@ -21,17 +21,17 @@ const columns = [
     title: "Learn",
     links: [
       { text: "Getting started", href: "/docs/getting-started" },
-      { text: "Omacut Basic", href: "/use-cases/quick-shots" },
-      { text: "Omacut Bundles", href: "/use-cases/bundles" },
-      { text: "Omacut Studio", href: "/use-cases/studio" },
+      { text: "Omashot Basic", href: "/use-cases/quick-shots" },
+      { text: "Omashot Bundles", href: "/use-cases/bundles" },
+      { text: "Omashot Studio", href: "/use-cases/studio" },
     ],
   },
   {
     title: "Community",
     links: [
-      { text: "GitHub", href: "https://github.com/mcinnisdev/omacut" },
+      { text: "GitHub", href: "https://github.com/mcinnisdev/omashot" },
       { text: "Report a bug / Request a feature", href: "/feedback" },
-      { text: "hello@omacut.com", href: "mailto:hello@omacut.com" },
+      { text: "hello@omashot.com", href: "mailto:hello@omashot.com" },
     ],
   },
 ];
@@ -43,7 +43,7 @@ const external = (href: string) => /^https?:/.test(href);
   <footer class="qc-footer" :class="{ 'has-sidebar': hasSidebar }">
     <div class="qc-footer-inner">
       <div class="qc-footer-brand">
-        <a href="/" class="qc-footer-logo" aria-label="Omacut home">
+        <a href="/" class="qc-footer-logo" aria-label="Omashot home">
           <img src="/logo.png" alt="" width="256" height="256" />
           <span><span class="qa">QA</span>Cut</span>
         </a>

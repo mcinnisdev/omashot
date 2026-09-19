@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Marks up an image in Omashot and hands it off.
+#
+# This exists because Omarchy's screenshot flow runs its editor as one
+# command with one argument:
+#
+#     omarchy-notification-send ... --exec "$OMARCHY_SCREENSHOT_EDITOR" "$FILEPATH"
+#
+# so it needs a single name on PATH, not `omashot edit`. Point Omarchy at it
+# and every screenshot you take the normal way can become a noted shot:
+#
+#     # ~/.config/environment.d/omashot.conf
+#     OMARCHY_SCREENSHOT_EDITOR=omashot-edit
+#
+# With OMASHOT_MARKUP=omasnap set, the drawing is handed to omasnap first and
+# Omashot picks the result back up; otherwise Omashot's own editor opens,
+# which is the one that keeps marks as data so an edit can be reopened.
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "usage: omashot-edit FILE" >&2
+  exit 2
+fi
+
+file=$1
+
+if [[ ${OMASHOT_MARKUP:-} == "omasnap" ]] && command -v omasnap >/dev/null; then
+  # omasnap writes its result into its own screenshot directory rather than
+  # back over the file it was given, so it gets a directory of its own and
+  # whatever lands there is what we take.
+  out=$(mktemp -d -t omashot-omasnap-XXXXXX)
+  trap 'rm -rf "$out"' EXIT
+  OMASNAP_SCREENSHOT_DIR="$out" omasnap --file "$file" --save || true
+  edited=$(find "$out" -type f -name '*.png' -printf '%T@ %p\n' 2>/dev/null |
+    sort -rn | head -1 | cut -d' ' -f2-)
+  [[ -n $edited ]] && file=$edited
+fi
+
+exec omashot edit "$file"

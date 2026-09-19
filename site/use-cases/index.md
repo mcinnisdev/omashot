@@ -1,13 +1,13 @@
 ---
 title: Use cases
-description: "Eleven ways to use Omacut: quick screenshots for chats and AI agents, bundles that become documents or task lists, and polished screen recordings with zooms."
+description: "Eleven ways to use Omashot: quick screenshots for chats and AI agents, bundles that become documents or task lists, and polished screen recordings with zooms."
 ---
 
 # Use cases
 
-Omacut is one tray icon with three lanes. Omacut Basic is a screenshot and a note in seconds, for a person or an AI agent. Omacut Bundles turns groups of screenshots and notes into a document or a task list an agent can work from. Omacut Studio records the screen and renders a video people will actually watch. Pick the job you have.
+Omashot is one tray icon with three lanes. Omashot Basic is a screenshot and a note in seconds, for a person or an AI agent. Omashot Bundles turns groups of screenshots and notes into a document or a task list an agent can work from. Omashot Studio records the screen and renders a video people will actually watch. Pick the job you have.
 
-## Omacut Basic
+## Omashot Basic
 
 One hotkey, one region, and the shot opens with the markup tools and a note beside it. [Overview](/use-cases/quick-shots) · [Docs](/docs/quick)
 
@@ -19,9 +19,9 @@ One hotkey, one region, and the shot opens with the markup tools and a note besi
 </div>
 </div>
 
-## Omacut Bundles
+## Omashot Bundles
 
-Screenshots in groups, a note on each, and a markdown file that reads top to bottom. [Overview](/use-cases/bundles) · [Docs](/docs/omacut)
+Screenshots in groups, a note on each, and a markdown file that reads top to bottom. [Overview](/use-cases/bundles) · [Docs](/docs/omashot)
 
 <div class="qc qc-embed qc-cases-wrap">
 <div class="qc-cases">
@@ -32,7 +32,7 @@ Screenshots in groups, a note on each, and a markdown file that reads top to bot
 </div>
 </div>
 
-## Omacut Studio
+## Omashot Studio
 
 The cursor, clicks and keystrokes are recorded as data, then drawn back in properly, so the finished video is still editable after you stop. [Overview](/use-cases/studio) · [Docs](/docs/studio)
 
@@ -45,4 +45,4 @@ The cursor, clicks and keystrokes are recorded as data, then drawn back in prope
 </div>
 </div>
 
-[Getting started](/docs/getting-started) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)
+[Getting started](/docs/getting-started) · [Download Omashot](https://github.com/mcinnisdev/omashot/releases/latest)

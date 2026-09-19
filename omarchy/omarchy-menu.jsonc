@@ -1,61 +1,71 @@
 {
-  // Omacut in the Omarchy menu (SUPER + ALT + SPACE, or `omarchy menu`).
+  // Omashot in the Omarchy menu (SUPER + ALT + SPACE, or `omarchy menu`).
   //
   // Merge these keys into ~/.config/omarchy/extensions/omarchy-menu.jsonc.
   // The file is yours and may already have entries in it, so the installer
   // will not overwrite it -- it copies this in only when the file is still
   // the untouched sample, and otherwise points you here.
   //
-  // This is the surface that replaces the Windows tray menu: on Omarchy the
-  // menu is where a keyless action belongs.
+  // On Omarchy the menu is where a keyless action belongs, so everything
+  // Omashot can do is here whether or not it is on a key.
 
-  "omacut": { "icon": "󰄀", "label": "Omacut", "description": "Capture, note, hand off to an agent" },
-
-  "omacut.quick": {
+  "omashot": {
     "icon": "󰹑",
-    "label": "Quick shot",
-    "description": "One shot with a note, copied for an agent",
-    "action": "omacut quick"
+    "label": "Omashot",
+    "description": "Shoot the screen, note it, hand it off"
   },
-  "omacut.capture": {
-    "icon": "󰹉",
-    "label": "Capture into bundle",
-    "description": "Add a noted screenshot to the open bundle",
-    "action": "omacut capture"
+
+  "omashot.shot": {
+    "icon": "󰹑",
+    "label": "Take a shot",
+    "description": "One shot with a note, copied ready to paste",
+    "action": "omashot shot"
   },
-  "omacut.record": {
+  "omashot.copy": {
+    "icon": "󰆏",
+    "label": "Copy loose shots",
+    "description": "Copy everything not in a brief, and clear it",
+    "action": "omashot copy"
+  },
+  "omashot.add": {
+    "icon": "󰐕",
+    "label": "Add to the brief",
+    "description": "Put a noted shot into the open brief",
+    "action": "omashot add"
+  },
+  "omashot.trail": {
+    "icon": "󰄀",
+    "label": "Trail what I do",
+    "description": "Collect a shot at every step, hands free",
+    "action": "omashot trail"
+  },
+  "omashot.record": {
     "icon": "󰑋",
-    "label": "Auto-capture",
-    "description": "Start or stop capturing a process as stills",
-    "action": "omacut record"
+    "label": "Record the screen",
+    "description": "A walkthrough someone will actually watch",
+    "action": "omashot record"
   },
-  "omacut.group": {
+  "omashot.section": {
     "icon": "󰉋",
-    "label": "New group",
-    "description": "Close the current group and start the next",
-    "action": "omacut group"
+    "label": "Next section",
+    "description": "Close this section of the brief and start the next",
+    "action": "omashot section"
   },
-  "omacut.peek": {
+  "omashot.brief": {
     "icon": "󰈙",
-    "label": "Bundle window",
-    "description": "Review, reorder and note the shots",
-    "action": "omacut peek"
+    "label": "Open the brief",
+    "description": "Review, reorder and note what you have shot",
+    "action": "omashot brief"
   },
-  "omacut.finish": {
+  "omashot.done": {
     "icon": "󰄬",
-    "label": "Finish bundle",
-    "description": "Write it out and copy its path",
-    "action": "omacut finish"
+    "label": "Brief is done",
+    "description": "Write it out and copy its path for an agent",
+    "action": "omashot done"
   },
-  "omacut.studio": {
-    "icon": "󰕧",
-    "label": "Studio recording",
-    "description": "Start or stop a screen recording",
-    "action": "omacut studio"
-  },
-  "omacut.folder": {
+  "omashot.folder": {
     "icon": "󰝰",
-    "label": "Open Omacut folder",
-    "action": "omarchy-launch-nautilus ${OMACUT_DIR:-$HOME/Omacut}"
+    "label": "Open the Omashot folder",
+    "action": "omarchy-launch-nautilus ${OMASHOT_DIR:-$HOME/Omashot}"
   }
 }

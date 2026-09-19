@@ -6,21 +6,22 @@
 # those are point-sampled down from a large exact render: still crisp, just
 # with the odd uneven pixel row, which nothing on Omarchy ever sees.
 #
-# Colours live here rather than in logo.py because this is the brand, and
+# The brand is one decision in one place. Colours live here rather than in logo.py because this is the brand, and
 # the brand is one decision in one place. The tray icon is re-rendered in
-# the live theme accent at runtime by omacut-theme-apply; this is the
+# the live theme accent at runtime by omashot-theme-apply; this is the
 # fallback for before a theme has ever been set.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-ACCENT="${OMACUT_ACCENT:-#ff9e64}" # pixel amber
-INK="${OMACUT_INK:-#16181d}"       # the dark the mark is knocked out of
+ACCENT="${OMASHOT_ACCENT:-#ff9e64}" # pixel amber
+INK="${OMASHOT_INK:-#16181d}"       # the dark the mark is knocked out of
 
-logo() { python3 scripts/logo.py --mark letters "$@"; }
+logo() { python3 scripts/logo.py --mark handoff "$@"; }
 
 echo "brand assets"
-logo --style tile --size 1024 --color "$ACCENT" --ink "$INK" --out assets/logo.png
+logo --style tile --size 1024 --color "$ACCENT" --ink "$INK" --out assets/tile.png
+logo --style mark --size 1024 --color "$ACCENT" --out assets/logo.png
 logo --style mark --size 512 --color "$ACCENT" --out assets/mark.png
 
 echo "app icons"
@@ -31,7 +32,7 @@ for size in 32 64 128 256 512; do
   512) name="icon" ;;
   *) name="${size}x${size}" ;;
   esac
-  logo --style tile --size "$size" --color "$ACCENT" --ink "$INK" \
+  logo --style mark --size "$size" --color "$ACCENT" \
     --out "src-tauri/icons/${name}.png"
 done
 

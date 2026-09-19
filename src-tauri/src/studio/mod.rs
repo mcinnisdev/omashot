@@ -151,7 +151,7 @@ mod tests {
     #[test]
     fn records_a_source_and_events_end_to_end() {
         let base = std::env::temp_dir().join(format!(
-            "omacut-test-studio-{}",
+            "omashot-test-studio-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();

@@ -1,4 +1,4 @@
-// The prompt library: a window for every text Omacut puts on the clipboard
+// The prompt library: a window for every text Omashot puts on the clipboard
 // and for the prompts the user adds. Built-ins can be rewritten and reset;
 // the user's own have a name and a kind (quick shot or bundle) and are
 // picked from the quick shot window or the bundle window's purpose menu.
@@ -30,16 +30,16 @@ interface BuiltinInfo {
 }
 
 const SAMPLE: Record<string, string> = {
-  "{path}": "C:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512\\01.png",
+  "{path}": "C:\\Users\\nick\\Omashot\\Quick\\2026-09-19_101512\\01.png",
   "{note}": "The save button is clipped at 125% scaling.",
   "{count}": "3",
-  "{dir}": "C:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512",
+  "{dir}": "C:\\Users\\nick\\Omashot\\Quick\\2026-09-19_101512",
   "{entries}":
-    "C:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.\n\nC:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512\\02.png\nThis toggle never saves.",
+    "C:\\Users\\nick\\Omashot\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.\n\nC:\\Users\\nick\\Omashot\\Quick\\2026-09-19_101512\\02.png\nThis toggle never saves.",
   "{shots}":
-    "C:\\Users\\nick\\Omacut\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.",
-  "{location}": "the QA bundle at C:\\Users\\nick\\Omacut\\2026-09-19_143022-settings-review",
-  "{root}": "C:\\Users\\nick\\Omacut\\2026-09-19_143022-settings-review",
+    "C:\\Users\\nick\\Omashot\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.",
+  "{location}": "the QA bundle at C:\\Users\\nick\\Omashot\\2026-09-19_143022-settings-review",
+  "{root}": "C:\\Users\\nick\\Omashot\\2026-09-19_143022-settings-review",
   "{name}": "Settings review",
   "{deliverable}": "(the Markdown or web page deliverable text)",
 };
@@ -213,7 +213,7 @@ function renderPreview() {
     if (p?.kind === "quick" || (p === undefined && kindEl.value === "quick")) {
       text = text.includes("{shots}") ? text : `${text.trim()}\n\n{shots}`;
     } else if (!text.includes("{root}")) {
-      text = `${text.trim()}\n\nThe bundle is at {root}. Start with bundle.md.`;
+      text = `${text.trim()}\n\nThe brief is at {root}. Start with brief.md.`;
     }
   }
   for (const [ph, val] of Object.entries(SAMPLE)) text = text.split(ph).join(val);

@@ -1,8 +1,8 @@
-//! Omacut takes its colours from whatever Omarchy theme is set.
+//! Omashot takes its colours from whatever Omarchy theme is set.
 //!
 //! Omarchy renders every `*.tpl` in `~/.config/omarchy/themed/` on a theme
 //! change and drops the result beside the theme's other generated configs.
-//! Ours lands at `<theme>/omacut.css` as a `:root` block, which is exactly
+//! Ours lands at `<theme>/omashot.css` as a `:root` block, which is exactly
 //! the shape of the token block the app's own stylesheet opens with, so
 //! appending it overrides every token at once.
 //!
@@ -24,7 +24,7 @@ pub const CHANGED: &str = "theme-changed";
 pub fn css_path() -> Option<PathBuf> {
     let home = std::env::var_os("HOME")?;
     let p = PathBuf::from(home)
-        .join(".local/state/omarchy/current/theme/omacut.css");
+        .join(".local/state/omarchy/current/theme/omashot.css");
     p.is_file().then_some(p)
 }
 
@@ -67,10 +67,10 @@ pub fn retint_tray(app: &AppHandle, css: &str) {
     match tint(super::TRAY_PNG, rgb) {
         Ok(icon) => {
             if let Err(e) = tray.set_icon(Some(icon)) {
-                eprintln!("omacut: could not re-tint the tray icon: {e}");
+                eprintln!("omashot: could not re-tint the tray icon: {e}");
             }
         }
-        Err(e) => eprintln!("omacut: could not re-tint the tray icon: {e}"),
+        Err(e) => eprintln!("omashot: could not re-tint the tray icon: {e}"),
     }
 }
 
@@ -81,7 +81,7 @@ fn stamp() -> Option<SystemTime> {
 /// Watches the rendered stylesheet and re-skins the app when it moves.
 ///
 /// The path is re-resolved every tick rather than held, because the file does
-/// not exist until a theme has been set at least once since Omacut was
+/// not exist until a theme has been set at least once since Omashot was
 /// installed, and it should start working at that moment rather than at the
 /// next launch.
 pub fn watch(app: AppHandle) {
@@ -99,7 +99,7 @@ pub fn watch(app: AppHandle) {
             let css = read_css();
             retint_tray(&app, &css);
             if let Err(e) = app.emit(CHANGED, &css) {
-                eprintln!("omacut: could not announce the new theme: {e}");
+                eprintln!("omashot: could not announce the new theme: {e}");
             }
         }
     });

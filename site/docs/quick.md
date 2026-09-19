@@ -1,10 +1,10 @@
 ---
-description: "Quick shots in Omacut Basic: one hotkey, one region, a note, then paste the path into an AI agent or copy the marked-up image for a person. Saved either way."
+description: "Quick shots in Omashot Basic: one hotkey, one region, a note, then paste the path into an AI agent or copy the marked-up image for a person. Saved either way."
 ---
 
 # Quick shots
 
-Omacut Basic is the quick lane. A quick shot is one screenshot and one note, saved on its own and pasted straight into whatever agent you are talking to. Or, marked up and copied as an image, sent straight to a person.
+Omashot Basic is the quick lane. A quick shot is one screenshot and one note, saved on its own and pasted straight into whatever agent you are talking to. Or, marked up and copied as an image, sent straight to a person.
 
 ## Taking one
 
@@ -16,11 +16,11 @@ Omacut Basic is the quick lane. A quick shot is one screenshot and one note, sav
 </figure>
 
 ```
-C:\Users\nick\Omacut\Quick\2026-09-19_101512\01.png
+C:\Users\nick\Omashot\Quick\2026-09-19_101512\01.png
 The save button is clipped at 125% scaling.
 ```
 
-The file lands in a batch folder under `~/Omacut/Quick/`, named for when the batch started, with the note beside it as a small markdown file and a `notes.md` listing every shot in the batch.
+The file lands in a batch folder under `~/Omashot/Quick/`, named for when the batch started, with the note beside it as a small markdown file and a `notes.md` listing every shot in the batch.
 
 ## Sending it to a person
 
@@ -45,4 +45,4 @@ You can also add prompts of your own and pick one before a hand-off. A quick-sho
 
 ## When to use a bundle instead
 
-Use quick shots for one-off fixes and short sessions. Use a [bundle](/docs/omacut) when there are enough shots across enough pages that an agent needs groups and master notes to keep them straight, when you want auto-capture to record a process, or when the hand-off should carry a purpose-specific prompt and your brand kit.
+Use quick shots for one-off fixes and short sessions. Use a [bundle](/docs/omashot) when there are enough shots across enough pages that an agent needs groups and master notes to keep them straight, when you want auto-capture to record a process, or when the hand-off should carry a purpose-specific prompt and your brand kit.

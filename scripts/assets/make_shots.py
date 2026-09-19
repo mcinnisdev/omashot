@@ -1,8 +1,8 @@
-"""Produce the site's and docs' screenshots with Omacut itself.
+"""Produce the site's and docs' screenshots with Omashot itself.
 
 Run the app in drive mode first:
 
-    set OMACUT_DRIVE_DIR=%TEMP%\\omacut-drive
+    set OMASHOT_DRIVE_DIR=%TEMP%\\omashot-drive
     npm run tauri dev
 
 Then:
@@ -13,11 +13,11 @@ The subject app is the fixture HTML under scripts/assets/fixtures, rendered
 with headless Chrome at 1440x900 and cropped to regions, so every capture
 looks like a real app and no real data appears. For the recording badge and
 the capture overlay the fixture is opened in a real Chrome app window and
-the screen region behind Omacut's overlay is captured. Positions are
+the screen region behind Omashot's overlay is captured. Positions are
 logical pixels; the primary screen here is 1536x960 at 125% scaling.
 
 Output lands under site/public/media/<section>/ with the names in
-notes/asset_list.csv. The user's own ~/Omacut/prompts.json is set aside
+notes/asset_list.csv. The user's own ~/Omashot/prompts.json is set aside
 for the run (two sample prompts are needed for the pictures) and put back.
 """
 import json, os, pathlib, shutil, subprocess, sys, time
@@ -26,11 +26,11 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 SITE = ROOT / "site"
 MEDIA = SITE / "public" / "media"
 FIX = ROOT / "scripts" / "assets" / "fixtures"
-TMP = pathlib.Path(os.environ.get("TEMP", "/tmp")) / "omacut-fixtures"
-DRIVE = pathlib.Path(os.environ.get("OMACUT_DRIVE_DIR", str(pathlib.Path(os.environ.get("TEMP", "/tmp")) / "omacut-drive")))
+TMP = pathlib.Path(os.environ.get("TEMP", "/tmp")) / "omashot-fixtures"
+DRIVE = pathlib.Path(os.environ.get("OMASHOT_DRIVE_DIR", str(pathlib.Path(os.environ.get("TEMP", "/tmp")) / "omashot-drive")))
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 HOME = pathlib.Path.home()
-PROMPTS = HOME / "Omacut" / "prompts.json"
+PROMPTS = HOME / "Omashot" / "prompts.json"
 DOCS, UC, HOMEDIR = MEDIA / "docs", MEDIA / "use-cases", MEDIA / "home"
 
 seq = int(time.time()) % 100000
@@ -48,7 +48,7 @@ def req(action, timeout=30, **kw):
     t0 = time.time()
     while not done.exists():
         if time.time() - t0 > timeout:
-            raise SystemExit(f"drive: no answer to {action} {kw} after {timeout}s; is the app running with OMACUT_DRIVE_DIR={DRIVE}?")
+            raise SystemExit(f"drive: no answer to {action} {kw} after {timeout}s; is the app running with OMASHOT_DRIVE_DIR={DRIVE}?")
         time.sleep(0.1)
     time.sleep(0.05)
     r = json.loads(done.read_text(encoding="utf-8"))
@@ -96,7 +96,7 @@ def render_url(path, out, w, h):
 
 
 def app_window(html, x, y, w, h):
-    """A real Chrome window on a fixture page, for Omacut to overlay."""
+    """A real Chrome window on a fixture page, for Omashot to overlay."""
     prof = TMP / "chrome-profile"
     p = subprocess.Popen(
         [CHROME, f"--app=file:///{(FIX / html).as_posix()}", f"--window-position={x},{y}", f"--window-size={w},{h}",
@@ -196,7 +196,7 @@ SAMPLE_PROMPTS = {
 
 
 class SamplePrompts:
-    """Two sample prompts in ~/Omacut/prompts.json for the run; the user's file is put back after."""
+    """Two sample prompts in ~/Omashot/prompts.json for the run; the user's file is put back after."""
 
     def __enter__(self):
         self.backup = PROMPTS.read_bytes() if PROMPTS.exists() else None
@@ -399,7 +399,7 @@ def overlays():
 
 def studio(dir_name):
     print("studio")
-    d = HOME / "Omacut" / "Studio" / dir_name
+    d = HOME / "Omashot" / "Studio" / dir_name
     req("studio", dir=str(d))
     time.sleep(2.5)
     req("resize", label="studio", w=1360, h=860)

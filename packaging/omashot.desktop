@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Omashot
+GenericName=Capture Hand-off
+Comment=Capture your screen and hand the work to an agent
+Exec=omashot
+Icon=omashot
+Terminal=false
+Categories=Utility;Graphics;Development;
+Keywords=screenshot;capture;screen;annotate;agent;handoff;bundle;
+StartupNotify=false
+StartupWMClass=omashot

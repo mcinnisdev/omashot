@@ -1,4 +1,4 @@
-//! User settings, persisted in `~/Omacut/settings.json`: the studio's
+//! User settings, persisted in `~/Omashot/settings.json`: the studio's
 //! recording toggles (all off by default, each a toggle in the tray) and
 //! the global shortcuts.
 
@@ -25,22 +25,25 @@ pub struct Hotkeys {
 
 impl Default for Hotkeys {
     /// On Linux these are labels rather than registrations: the compositor
-    /// owns the keys and runs `omacut <verb>`, so what is stored here is
+    /// owns the keys and runs `omashot <verb>`, so what is stored here is
     /// only what the windows print in their hints. They are kept in step
     /// with `omarchy/bindings.lua` by hand -- the app has no safe way to
     /// read a Lua config, and guessing would print a key that does nothing.
     #[cfg(target_os = "linux")]
     fn default() -> Self {
         Hotkeys {
+            // The field names are the old action ids; the keys are the new
+            // verbs. `record` is the trail (stills) and `studio` is the
+            // screen recording, which is why those two look swapped.
             quick: "Super+Alt+Q".into(),
             quick_finish: String::new(),
-            capture: "Super+Alt+C".into(),
-            record: "Super+Alt+A".into(),
-            studio: "Super+Alt+V".into(),
+            capture: "Super+Alt+A".into(),
+            record: "Super+Alt+T".into(),
+            studio: "Super+Alt+R".into(),
             zoom: "Super+Alt+Z".into(),
             group: "Super+Alt+N".into(),
             peek: "Super+Alt+B".into(),
-            finish: "Super+Alt+E".into(),
+            finish: "Super+Alt+D".into(),
         }
     }
 
@@ -134,7 +137,7 @@ mod tests {
 
     #[test]
     fn a_settings_file_on_the_old_defaults_moves_to_the_new_ones() {
-        let dir = std::env::temp_dir().join(format!("omacut-settings-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("omashot-settings-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let old = Settings { hotkeys: Hotkeys::legacy(), ..Default::default() };
         old.save(&dir).unwrap();

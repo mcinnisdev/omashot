@@ -1,9 +1,9 @@
 ---
-title: Omacut Bundles use cases
-description: "Omacut Bundles use cases: organize screenshots into a document, auto-capture a process click by click, and hand a folder of notes and images to an agent."
+title: Omashot Bundles use cases
+description: "Omashot Bundles use cases: organize screenshots into a document, auto-capture a process click by click, and hand a folder of notes and images to an agent."
 ---
 
-# Omacut Bundles: bigger jobs
+# Omashot Bundles: bigger jobs
 
 A bundle is a folder: screenshots in groups, a note on each, and a markdown file that reads top to bottom. That structure is what turns a pile of captures into a document, or a task list an AI agent can work through without guessing.
 
@@ -16,6 +16,6 @@ A bundle is a folder: screenshots in groups, a note on each, and a markdown file
 </div>
 </div>
 
-For a single fix while an agent is already working with you, a [quick shot](/use-cases/quick-shots) is faster. For a video rather than a document, see [Omacut Studio](/use-cases/studio).
+For a single fix while an agent is already working with you, a [quick shot](/use-cases/quick-shots) is faster. For a video rather than a document, see [Omashot Studio](/use-cases/studio).
 
-Learn more: [How bundles work in detail](/docs/omacut) · [Brand kit](/docs/brand-kit)
+Learn more: [How bundles work in detail](/docs/omashot) · [Brand kit](/docs/brand-kit)

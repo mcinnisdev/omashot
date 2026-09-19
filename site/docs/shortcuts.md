@@ -1,5 +1,5 @@
 ---
-description: "Every Omacut keyboard shortcut: global hotkeys for quick shots, bundles and recording, plus the keys in the note box, capture overlay, studio and image editor."
+description: "Every Omashot keyboard shortcut: global hotkeys for quick shots, bundles and recording, plus the keys in the note box, capture overlay, studio and image editor."
 ---
 
 # Keyboard shortcuts

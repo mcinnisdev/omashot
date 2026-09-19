@@ -51,7 +51,7 @@ export function buildTrack(project: Project, events: Events, edits: Edits): Trac
   };
 }
 
-/// Omacut's own chords never belong in a walkthrough. Set from settings by
+/// Omashot's own chords never belong in a walkthrough. Set from settings by
 /// the studio at start-up; the defaults cover a recording made before the
 /// user changed anything.
 let OWN_HOTKEYS = new Set([

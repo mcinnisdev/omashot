@@ -1,10 +1,10 @@
 ---
-description: "Omacut Studio records the cursor, clicks and keys as data, then renders zooms, click ripples, keystroke badges, a camera bubble and narration to an MP4."
+description: "Omashot Studio records the cursor, clicks and keys as data, then renders zooms, click ripples, keystroke badges, a camera bubble and narration to an MP4."
 ---
 
 # Polished screen recordings
 
-Omacut Studio records a source, then renders a finished video from it. The cursor is captured as data, not pixels, so it can be smoothed and enlarged. Every click and key press is on the same clock as the frames. The camera zooms to where the work is. What you see in the preview is what the export produces.
+Omashot Studio records a source, then renders a finished video from it. The cursor is captured as data, not pixels, so it can be smoothed and enlarged. Every click and key press is on the same clock as the frames. The camera zooms to where the work is. What you see in the preview is what the export produces.
 
 ## Recording
 

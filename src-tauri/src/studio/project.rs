@@ -96,7 +96,7 @@ impl Project {
     }
 }
 
-/// Studio projects live beside the bundles, under `~/Omacut/Studio/`.
+/// Studio projects live beside the bundles, under `~/Omashot/Studio/`.
 pub fn studio_dir(base: &Path) -> PathBuf {
     base.join("Studio")
 }
@@ -137,7 +137,7 @@ pub fn list(base: &Path) -> Vec<StudioInfo> {
     out
 }
 
-/// Creates `~/Omacut/Studio/<timestamp>/`.
+/// Creates `~/Omashot/Studio/<timestamp>/`.
 pub fn new_project_dir(base: &Path) -> Result<PathBuf> {
     let id = chrono::Local::now().format("%Y-%m-%d_%H%M%S").to_string();
     let dir = studio_dir(base).join(id);

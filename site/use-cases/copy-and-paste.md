@@ -26,10 +26,10 @@ No note is needed for a person. The note box is there for the times you hand a s
 
 ## What you get
 
-An image on the clipboard, pasted straight into whatever you were writing. The same shot is also saved on disk, in a batch folder under `~/Omacut/Quick/` named for when the batch started:
+An image on the clipboard, pasted straight into whatever you were writing. The same shot is also saved on disk, in a batch folder under `~/Omashot/Quick/` named for when the batch started:
 
 ```
-C:\Users\nick\Omacut\Quick\2026-09-19_101512\01.png
+C:\Users\nick\Omashot\Quick\2026-09-19_101512\01.png
 ```
 
 A `notes.md` in the folder lists every shot in the batch, and any note you did type sits beside its shot as a small markdown file. So the screenshot you pasted into a chat this morning is still there this afternoon when someone asks for it again.
@@ -37,7 +37,7 @@ A `notes.md` in the folder lists every shot in the batch, and any note you did t
 ## Tips
 
 - Each new quick shot joins the open batch, and the note box header counts them, so a morning's screenshots end up in one folder rather than scattered across the desktop.
-- Every default hotkey can be changed under **Keyboard shortcuts…** in the tray. If another app already owns `Ctrl+Shift+1`, Omacut reports it and the rest still apply.
+- Every default hotkey can be changed under **Keyboard shortcuts…** in the tray. If another app already owns `Ctrl+Shift+1`, Omashot reports it and the rest still apply.
 - **Copy image** writes any marks you drew into the file first, so the saved `01.png` matches what you pasted.
 - `Enter` in the note box saves the shot with a note; `Ctrl+Enter` hands the path and note off to an agent. Neither is needed for a plain paste.
 
@@ -48,4 +48,4 @@ A `notes.md` in the folder lists every shot in the batch, and any note you did t
 - [Organize screenshots into a document and export it](/use-cases/organize-and-export), when one shot becomes twenty.
 - [Quick shots](/docs/quick) in the docs.
 
-[How it works in detail](/docs/quick) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)
+[How it works in detail](/docs/quick) · [Download Omashot](https://github.com/mcinnisdev/omashot/releases/latest)

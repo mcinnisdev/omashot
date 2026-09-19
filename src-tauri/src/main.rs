@@ -9,6 +9,7 @@ mod model;
 mod overlay;
 #[cfg(target_os = "linux")]
 mod picker;
+mod status;
 mod studio;
 mod theme;
 
@@ -99,18 +100,18 @@ type Shared = Mutex<Inner>;
 /// A registered shortcut: its canonical spelling and what it triggers.
 type Binding = (String, fn(&AppHandle));
 
-/// Where bundles, quick batches and recordings live. `$OMACUT_DIR` wins, so
+/// Where bundles, quick batches and recordings live. `$OMASHOT_DIR` wins, so
 /// the folder can be moved somewhere XDG-shaped without touching the code;
-/// the default is a plainly visible `~/Omacut`, because the whole point of a
+/// the default is a plainly visible `~/Omashot`, because the whole point of a
 /// bundle is to hand its path to someone.
 fn base_dir(app: &AppHandle) -> std::path::PathBuf {
-    if let Some(dir) = std::env::var_os("OMACUT_DIR").filter(|v| !v.is_empty()) {
+    if let Some(dir) = std::env::var_os("OMASHOT_DIR").filter(|v| !v.is_empty()) {
         return std::path::PathBuf::from(dir);
     }
     app.path()
         .home_dir()
         .unwrap_or_else(|_| std::env::temp_dir())
-        .join("Omacut")
+        .join("Omashot")
 }
 
 /// Returns the live session, starting one if there is none. A session only
@@ -170,14 +171,14 @@ fn fill_custom_prompt(template: &str, root: &str, name: &str, target: Target) ->
             out.push_str("\n\n");
         }
         out.push_str(&match target {
-            Target::Cli => format!("The bundle is at {root}. Start with bundle.md."),
-            Target::Chat => "The bundle is the attached ZIP. Unzip it and start with bundle.md.".to_string(),
+            Target::Cli => format!("The brief is at {root}. Start with brief.md."),
+            Target::Chat => "The brief is the attached ZIP. Unzip it and start with brief.md.".to_string(),
         });
     }
     out
 }
 
-/// The texts Omacut puts on the clipboard, each overridable. An empty field
+/// The texts Omashot puts on the clipboard, each overridable. An empty field
 /// means the built-in default. Placeholders in braces are filled in.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
@@ -218,7 +219,7 @@ impl Prompts {
             quick_batch: "{count} quick shots in {dir}. Each PNG has its note in the .md beside it; notes.md lists them all.\n\n{entries}".into(),
             fix: concat!(
                 "Work through {location}. ",
-                "Start with bundle.md: each group is a page or area, its quoted master note ",
+                "Start with brief.md: each section is a page or area, its quoted section note ",
                 "applies to every screenshot under it, and each screenshot's note says what is ",
                 "wrong. Open each screenshot before changing anything. Screenshots marked ",
                 "auto-captured were taken in sequence while the reviewer did something; ",
@@ -227,7 +228,7 @@ impl Prompts {
             .into(),
             document: concat!(
                 "Using {location}. write a step-by-step process document ",
-                "for the workflow it shows. Read bundle.md first: each group is a stage, the ",
+                "for the workflow it shows. Read brief.md first: each section is a stage, the ",
                 "quoted note under it describes that stage, and each screenshot is one step ",
                 "with the reviewer's note saying what is happening. Auto-captured screenshots ",
                 "were taken in sequence at each click, with where the click landed marked, ",
@@ -369,7 +370,7 @@ fn trigger_capture(app: &AppHandle) {
     open_overlay(app, "shot");
 }
 
-/// A quick shot: one screenshot and one note, saved under ~/Omacut/Quick
+/// A quick shot: one screenshot and one note, saved under ~/Omashot/Quick
 /// by day with no bundle around it, and its path and note put on the
 /// clipboard ready to paste into an agent.
 fn trigger_quick(app: &AppHandle) {
@@ -475,7 +476,7 @@ fn finish_studio(app: &AppHandle) {
         }
         Err(e) => {
             overlay::close_rec_badge(app);
-            eprintln!("omacut: studio recording failed: {e}");
+            eprintln!("omashot: studio recording failed: {e}");
         }
     }
 }
@@ -488,14 +489,14 @@ fn finalize_studio(app: &AppHandle) {
     overlay::close_rec_badge(app);
     match finishing.finalize() {
         Ok(()) => {
-            eprintln!("omacut: studio recording saved to {}", finishing.dir.display());
+            eprintln!("omashot: studio recording saved to {}", finishing.dir.display());
             let dir = finishing.dir.to_string_lossy().to_string();
             if let Err(e) = overlay::open_studio(app, Some(&dir)) {
-                eprintln!("omacut: could not open the studio: {e}");
+                eprintln!("omashot: could not open the studio: {e}");
                 let _ = app.opener().reveal_item_in_dir(finishing.dir.join("source.mp4"));
             }
         }
-        Err(e) => eprintln!("omacut: studio recording could not be finalised: {e}"),
+        Err(e) => eprintln!("omashot: studio recording could not be finalised: {e}"),
     }
 }
 
@@ -513,7 +514,7 @@ fn trigger_zoom_mark(app: &AppHandle) {
 
 fn trigger_open_studio(app: &AppHandle) {
     if let Err(e) = overlay::open_studio(app, None) {
-        eprintln!("omacut: could not open the studio: {e}");
+        eprintln!("omashot: could not open the studio: {e}");
     }
 }
 
@@ -534,7 +535,7 @@ fn open_overlay(app: &AppHandle, mode: &str) {
         }
         inner.capturing = true;
     }
-    // Get out of the way: the user's screenshots should not have Omacut in
+    // Get out of the way: the user's screenshots should not have Omashot in
     // them. Anything open comes back when they ask for it.
     overlay::close_note(app);
     overlay::close_peek(app);
@@ -542,7 +543,7 @@ fn open_overlay(app: &AppHandle, mode: &str) {
     let frames = match capture::freeze_all(&capture::scratch_dir()) {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("omacut: capture failed: {e}");
+            eprintln!("omashot: capture failed: {e}");
             state.lock().unwrap().capturing = false;
             return;
         }
@@ -555,12 +556,12 @@ fn open_overlay(app: &AppHandle, mode: &str) {
         if mode == "shot" || mode == "record" {
             if inner.finished {
                 if let Err(e) = stash_session(app, &mut inner) {
-                    eprintln!("omacut: could not put the finished bundle away: {e}");
+                    eprintln!("omashot: could not put the finished bundle away: {e}");
                     return;
                 }
             }
             if let Err(e) = ensure_session(app, &mut inner) {
-                eprintln!("omacut: could not start session: {e}");
+                eprintln!("omashot: could not start session: {e}");
                 return;
             }
         }
@@ -577,7 +578,7 @@ fn open_overlay(app: &AppHandle, mode: &str) {
 
     #[cfg(not(target_os = "linux"))]
     if let Err(e) = overlay::open_capture(app, &meta, mode) {
-        eprintln!("omacut: could not open overlay: {e}");
+        eprintln!("omashot: could not open overlay: {e}");
         let mut inner = state.lock().unwrap();
         inner.frames.clear();
     }
@@ -618,7 +619,7 @@ fn select_with_picker(app: &AppHandle, frames: &[Frame], mode: &str) {
         }
     });
     if let Err(e) = result {
-        eprintln!("omacut: selection failed: {e}");
+        eprintln!("omashot: selection failed: {e}");
         cancel_capture_now(app);
     }
 }
@@ -636,7 +637,7 @@ fn finish_recording(app: &AppHandle) {
     let done = match rec.stop() {
         Ok(d) => d,
         Err(e) => {
-            eprintln!("omacut: auto-capture failed: {e}");
+            eprintln!("omashot: auto-capture failed: {e}");
             let _ = std::fs::remove_dir_all(&frames_dir);
             return;
         }
@@ -687,20 +688,20 @@ fn finish_recording(app: &AppHandle) {
 
     let _ = app.emit("session-changed", ());
     if let Err(e) = overlay::open_peek(app, None) {
-        eprintln!("omacut: could not open bundle window: {e}");
+        eprintln!("omashot: could not open bundle window: {e}");
     }
 }
 
 fn trigger_group(app: &AppHandle) {
     overlay::close_peek(app);
     if let Err(e) = overlay::open_note(app, "group", None) {
-        eprintln!("omacut: could not open group prompt: {e}");
+        eprintln!("omashot: could not open group prompt: {e}");
     }
 }
 
 fn trigger_peek(app: &AppHandle) {
     if let Err(e) = overlay::toggle_peek(app) {
-        eprintln!("omacut: could not open bundle view: {e}");
+        eprintln!("omashot: could not open bundle view: {e}");
     }
 }
 
@@ -710,7 +711,7 @@ fn trigger_finish(app: &AppHandle) {
             overlay::close_peek(app);
             let _ = overlay::toggle_peek(app);
         }
-        Err(e) => eprintln!("omacut: finish failed: {e}"),
+        Err(e) => eprintln!("omashot: finish failed: {e}"),
     }
 }
 
@@ -735,7 +736,19 @@ fn action_for(id: &str) -> Option<fn(&AppHandle)> {
 /// the hotkeys all come through here, so a verb and a key always mean the
 /// same thing. Returns false when the id is not an action.
 #[cfg(unix)]
-fn dispatch_action(app: &AppHandle, id: &str) -> bool {
+fn dispatch_action(app: &AppHandle, id: &str, arg: Option<&str>) -> bool {
+    // `adopt` is the only action that carries one, so it is handled here
+    // rather than widening every trigger to take an argument it ignores.
+    if id == "adopt" {
+        let Some(path) = arg else { return false };
+        let (app, path) = (app.clone(), path.to_string());
+        tauri::async_runtime::spawn_blocking(move || {
+            if let Err(e) = adopt_shot(&app, &path) {
+                eprintln!("omashot: could not open {path}: {e}");
+            }
+        });
+        return true;
+    }
     match action_for(id) {
         Some(f) => {
             off_main(app, f);
@@ -745,6 +758,28 @@ fn dispatch_action(app: &AppHandle, id: &str) -> bool {
     }
 }
 
+/// Takes a PNG that already exists, files it as a loose shot and opens it for
+/// markup with its note box.
+///
+/// This is the way in for anything that made an image without us: Omarchy's
+/// own screenshot key through `omashot-edit`, or a file manager. The shot is
+/// copied rather than moved, so whatever made it keeps its copy.
+#[cfg(unix)]
+fn adopt_shot(app: &AppHandle, png: &str) -> Result<(), String> {
+    let (w, h) = image::image_dimensions(png).map_err(|e| e.to_string())?;
+    let abs = {
+        let state: State<Shared> = app.state();
+        let mut inner = state.lock().unwrap();
+        let dir = quick_batch_dir(app, &mut inner);
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        let abs = dir.join(format!("{:02}.png", quick_next(&dir)));
+        std::fs::copy(png, &abs).map_err(|e| format!("copy {png}: {e}"))?;
+        inner.quick_pending = Some(abs.clone());
+        abs
+    };
+    overlay::open_quick_editor(app, &abs.to_string_lossy(), w, h).map_err(|e| e.to_string())
+}
+
 /// Registers the shortcuts from settings, replacing whatever was
 /// registered before. Returns a line per key that could not be used.
 ///
@@ -752,7 +787,7 @@ fn dispatch_action(app: &AppHandle, id: &str) -> bool {
 /// and the X11 grab the plugin falls back to succeeds without ever firing
 /// for a Wayland client -- which is worse than not trying, because it looks
 /// like it worked. The compositor holds these keys instead and reaches the
-/// app through `omacut <verb>`; the settings are kept only as the labels the
+/// app through `omashot <verb>`; the settings are kept only as the labels the
 /// windows print. See `ipc` and `omarchy/bindings.lua`.
 #[cfg(target_os = "linux")]
 fn apply_hotkeys(app: &AppHandle, hk: &studio::settings::Hotkeys) -> Vec<String> {
@@ -780,12 +815,12 @@ fn apply_hotkeys(app: &AppHandle, hk: &studio::settings::Hotkeys) -> Vec<String>
             Ok(sc) => match app.global_shortcut().register(sc) {
                 Ok(()) => registered.push((sc.to_string(), action)),
                 Err(e) => {
-                    eprintln!("omacut: hotkey {spec} is taken by something else ({e})");
+                    eprintln!("omashot: hotkey {spec} is taken by something else ({e})");
                     problems.push(format!("{spec} is already taken by another app"));
                 }
             },
             Err(e) => {
-                eprintln!("omacut: hotkey {spec} is not valid ({e})");
+                eprintln!("omashot: hotkey {spec} is not valid ({e})");
                 problems.push(format!("{spec} is not a valid shortcut"));
             }
         }
@@ -818,12 +853,12 @@ fn arm_zoom_key(app: &AppHandle) {
     let sc = match Shortcut::from_str(&spec) {
         Ok(sc) => sc,
         Err(e) => {
-            eprintln!("omacut: zoom hotkey {spec} is not valid ({e})");
+            eprintln!("omashot: zoom hotkey {spec} is not valid ({e})");
             return;
         }
     };
     if let Err(e) = app.global_shortcut().register(sc) {
-        eprintln!("omacut: zoom hotkey {spec} is taken by something else ({e})");
+        eprintln!("omashot: zoom hotkey {spec} is taken by something else ({e})");
         return;
     }
     let mut inner = state.lock().unwrap();
@@ -842,15 +877,15 @@ fn disarm_zoom_key(app: &AppHandle) {
 }
 
 /// The tray menu, built from settings so accelerator labels and toggles
-/// are always current. Three tools in one tray: Omacut Basic (quick shots), Omacut
-/// Docs (bundles) and Omacut Studio; disabled items serve as headers.
+/// are always current. Three tools in one tray: Omashot Basic (quick shots), Omashot
+/// Docs (bundles) and Omashot Studio; disabled items serve as headers.
 fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let st = studio::settings::Settings::load(&base_dir(app));
     let hk = &st.hotkeys;
     let acc = |s: &str| if s.trim().is_empty() { None } else { Some(s.trim().to_string()) };
 
-    let head_omacut = MenuItem::with_id(app, "h1", "Omacut Basic", false, None::<&str>)?;
-    let head_docs = MenuItem::with_id(app, "h4", "Omacut Bundles", false, None::<&str>)?;
+    let head_omashot = MenuItem::with_id(app, "h1", "Omashot Basic", false, None::<&str>)?;
+    let head_docs = MenuItem::with_id(app, "h4", "Omashot Bundles", false, None::<&str>)?;
     let quick_i = MenuItem::with_id(app, "quick", "Quick shot", true, acc(&hk.quick))?;
     let quick_finish_i =
         MenuItem::with_id(app, "quick_finish", "Finish quick batch and copy paths", true, acc(&hk.quick_finish))?;
@@ -859,9 +894,9 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let group_i = MenuItem::with_id(app, "group", "New group", true, acc(&hk.group))?;
     let peek_i = MenuItem::with_id(app, "peek", "View / edit bundle", true, acc(&hk.peek))?;
     let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, acc(&hk.finish))?;
-    let folder_i = MenuItem::with_id(app, "folder", "Open Omacut folder", true, None::<&str>)?;
+    let folder_i = MenuItem::with_id(app, "folder", "Open Omashot folder", true, None::<&str>)?;
 
-    let head_studio = MenuItem::with_id(app, "h2", "Omacut Studio", false, None::<&str>)?;
+    let head_studio = MenuItem::with_id(app, "h2", "Omashot Studio", false, None::<&str>)?;
     let open_studio_i = MenuItem::with_id(app, "open_studio", "Open Studio", true, None::<&str>)?;
     let studio_i = MenuItem::with_id(app, "studio", "Record start / stop", true, acc(&hk.studio))?;
     let zoom_i = MenuItem::with_id(app, "zoom", "Zoom start / end (while recording)", true, acc(&hk.zoom))?;
@@ -873,7 +908,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
 
     let shortcuts_i = MenuItem::with_id(app, "shortcuts", "Keyboard shortcuts...", true, None::<&str>)?;
     let prompts_i = MenuItem::with_id(app, "prompts", "Prompt library...", true, None::<&str>)?;
-    let quit_i = MenuItem::with_id(app, "quit", "Quit Omacut", true, None::<&str>)?;
+    let quit_i = MenuItem::with_id(app, "quit", "Quit Omashot", true, None::<&str>)?;
     let sep_quick = PredefinedMenuItem::separator(app)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
     let sep_inputs = PredefinedMenuItem::separator(app)?;
@@ -881,7 +916,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     Menu::with_items(
         app,
         &[
-            &head_omacut, &quick_i, &quick_finish_i,
+            &head_omashot, &quick_i, &quick_finish_i,
             &sep_quick,
             &head_docs, &capture_i, &record_i, &group_i, &peek_i, &finish_i, &folder_i,
             &sep1,
@@ -899,17 +934,17 @@ fn refresh_tray_menu(app: &AppHandle) {
         match build_tray_menu(app) {
             Ok(menu) => {
                 if let Err(e) = tray.set_menu(Some(menu)) {
-                    eprintln!("omacut: could not update the tray menu: {e}");
+                    eprintln!("omashot: could not update the tray menu: {e}");
                 }
             }
-            Err(e) => eprintln!("omacut: could not build the tray menu: {e}"),
+            Err(e) => eprintln!("omashot: could not build the tray menu: {e}"),
         }
     }
 }
 
 fn trigger_prompts(app: &AppHandle) {
     if let Err(e) = overlay::open_prompts(app, None) {
-        eprintln!("omacut: could not open the prompt library: {e}");
+        eprintln!("omashot: could not open the prompt library: {e}");
     }
 }
 
@@ -920,7 +955,7 @@ async fn open_prompt_library(app: AppHandle) -> Result<(), String> {
 
 fn trigger_shortcuts(app: &AppHandle) {
     if let Err(e) = overlay::open_peek(app, Some("shortcuts")) {
-        eprintln!("omacut: could not open bundle window: {e}");
+        eprintln!("omashot: could not open bundle window: {e}");
     }
 }
 
@@ -1173,7 +1208,7 @@ async fn start_recording(
     if let Err(e) =
         overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS, false)
     {
-        eprintln!("omacut: could not show recording overlay: {e}");
+        eprintln!("omashot: could not show recording overlay: {e}");
     }
 
     let started = std::time::Instant::now();
@@ -1246,7 +1281,7 @@ async fn start_studio(
     if let Err(e) =
         overlay::open_rec_badge(&app, &frame, x, y, width, height, RECORD_COUNTDOWN_MS, true)
     {
-        eprintln!("omacut: could not show recording overlay: {e}");
+        eprintln!("omashot: could not show recording overlay: {e}");
     }
 
     let started = std::time::Instant::now();
@@ -1268,7 +1303,7 @@ async fn start_studio(
             Ok(a) => inner.studio = Some(a),
             Err(e) => {
                 overlay::close_rec_badge(&app);
-                eprintln!("omacut: studio recording could not start: {e}");
+                eprintln!("omashot: studio recording could not start: {e}");
                 return Err(e.to_string());
             }
         }
@@ -1374,7 +1409,7 @@ fn save_studio_edits(dir: String, edits: serde_json::Value, name: String) -> Res
             // A file in use (an export being written, a player open) keeps
             // the old name; the name itself is still saved.
             Err(e) => {
-                eprintln!("omacut: could not rename recording folder: {e}");
+                eprintln!("omashot: could not rename recording folder: {e}");
                 d
             }
         }
@@ -1506,7 +1541,7 @@ fn set_hotkeys(app: AppHandle, hotkeys: studio::settings::Hotkeys) -> Result<Vec
 /// Lets a window that is about to close report why something failed.
 #[tauri::command]
 fn log_error(message: String) {
-    eprintln!("omacut: {message}");
+    eprintln!("omashot: {message}");
 }
 
 #[tauri::command]
@@ -1612,7 +1647,7 @@ fn get_state(app: AppHandle, state: State<Shared>) -> AppState {
     }
 }
 
-/// Saves the voice notes that get inlined into bundle.md.
+/// Saves the voice notes that get inlined into brief.md.
 #[tauri::command]
 fn set_brand_notes(app: AppHandle, text: String) -> Result<(), String> {
     let dir = brand_dir(&app);
@@ -1890,7 +1925,7 @@ async fn save_markup(
     std::fs::write(&marks_path, &marks).map_err(|e| e.to_string())?;
 
     // If this is a recording's still and its click mark was moved (or
-    // removed), the "click at x,y" in bundle.md follows.
+    // removed), the "click at x,y" in brief.md follows.
     let click = serde_json::from_str::<serde_json::Value>(&marks)
         .ok()
         .and_then(|v| v.as_array().cloned())
@@ -2128,11 +2163,11 @@ fn trigger_quick_finish(app: &AppHandle) {
         inner.quick_batch.take()
     };
     let Some(dir) = dir else {
-        eprintln!("omacut: no quick batch to finish");
+        eprintln!("omashot: no quick batch to finish");
         return;
     };
     if let Err(e) = app.clipboard().write_text(quick_batch_text(&dir, &Prompts::load(app))) {
-        eprintln!("omacut: could not copy the quick batch: {e}");
+        eprintln!("omashot: could not copy the quick batch: {e}");
     }
 }
 
@@ -2321,7 +2356,7 @@ async fn quit(app: AppHandle) {
 // ------------------------------------------------------------------- boot
 
 fn main() {
-    // `omacut <verb>` is a client for an already-running app, not a second
+    // `omashot <verb>` is a client for an already-running app, not a second
     // copy of it: it talks over the socket and exits without starting a UI.
     #[cfg(unix)]
     {
@@ -2330,7 +2365,7 @@ fn main() {
         }
         // A tray app should have exactly one tray icon.
         if ipc::already_running() {
-            eprintln!("omacut: already running");
+            eprintln!("omashot: already running");
             std::process::exit(0);
         }
     }
@@ -2440,17 +2475,17 @@ fn main() {
             let handle = app.handle().clone();
 
             // The static scope in tauri.conf.json only covers the default
-            // ~/Omacut. When $OMACUT_DIR moves the folder, the webviews still
+            // ~/Omashot. When $OMASHOT_DIR moves the folder, the webviews still
             // have to be able to load the shots out of it.
             let base = base_dir(&handle);
             if let Err(e) = app.asset_protocol_scope().allow_directory(&base, true) {
-                eprintln!("omacut: could not open {} to the webviews: {e}", base.display());
+                eprintln!("omashot: could not open {} to the webviews: {e}", base.display());
             }
 
             let settings = studio::settings::Settings::load(&base);
             apply_hotkeys(&handle, &settings.hotkeys);
             // Dev only: drive the app from request files to make screenshots.
-            if let Ok(dir) = std::env::var("OMACUT_DRIVE_DIR") {
+            if let Ok(dir) = std::env::var("OMASHOT_DRIVE_DIR") {
                 drive::start(handle.clone(), std::path::PathBuf::from(dir));
             }
             let menu = build_tray_menu(&handle)?;
@@ -2461,7 +2496,7 @@ fn main() {
 
             TrayIconBuilder::with_id("main")
                 .icon(tray_icon)
-                .tooltip("Omacut")
+                .tooltip("Omashot")
                 .menu(&menu)
                 .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id().as_ref() {
@@ -2481,7 +2516,7 @@ fn main() {
                             _ => s.camera = !s.camera,
                         }
                         if let Err(e) = s.save(&base_dir(app)) {
-                            eprintln!("omacut: could not save settings: {e}");
+                            eprintln!("omashot: could not save settings: {e}");
                         }
                         refresh_tray_menu(app);
                     }
@@ -2516,6 +2551,7 @@ fn main() {
                             }
                         }
                         capture::clear_scratch();
+                        status::clear();
                         #[cfg(unix)]
                         ipc::cleanup();
                         app.exit(0);
@@ -2538,6 +2574,9 @@ fn main() {
             #[cfg(unix)]
             ipc::serve(handle.clone(), dispatch_action);
 
+            // And this is how the bar widget sees what we are doing.
+            status::watch(handle.clone());
+
             // No visible window on launch. The tray is the app.
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
@@ -2545,7 +2584,7 @@ fn main() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("failed to start Omacut")
+        .expect("failed to start Omashot")
         .run(|_app, event| {
             // `code` is None when the last window closed and Some when Quit
             // (or a restart) asked for it. Only the former should be swallowed;
@@ -2569,18 +2608,18 @@ mod tests {
 
         let appended = fill_custom_prompt("Fix everything you see.", "C:/b", "x", Target::Cli);
         assert!(appended.starts_with("Fix everything you see."));
-        assert!(appended.ends_with("The bundle is at C:/b. Start with bundle.md."));
+        assert!(appended.ends_with("The brief is at C:/b. Start with brief.md."));
 
         assert_eq!(
             fill_custom_prompt("", "C:/b", "x", Target::Cli),
-            "The bundle is at C:/b. Start with bundle.md."
+            "The brief is at C:/b. Start with brief.md."
         );
 
         // For chat the path is never mentioned; the upload is.
         let chat = fill_custom_prompt("Look at {root}.", "C:/b", "x", Target::Chat);
         assert_eq!(chat, "Look at the attached ZIP.");
         let chat = fill_custom_prompt("Go.", "C:/b", "x", Target::Chat);
-        assert!(chat.ends_with("The bundle is the attached ZIP. Unzip it and start with bundle.md."));
+        assert!(chat.ends_with("The brief is the attached ZIP. Unzip it and start with brief.md."));
     }
 
     #[test]

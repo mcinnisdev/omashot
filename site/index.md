@@ -2,7 +2,7 @@
 layout: page
 sidebar: false
 aside: false
-title: Omacut
+title: Omashot
 titleTemplate: Screen capture that hands off
 ---
 
@@ -13,7 +13,7 @@ titleTemplate: Screen capture that hands off
 <h1>Capture your screen.<br /><em>Hand off the work.</em></h1>
 <p class="lead">Screenshots and notes become a bundle an AI agent can work from. Screen recordings become walkthroughs people will actually watch. One tray icon, no account, and nothing leaves your machine unless you send it.</p>
 <div class="qc-actions">
-<a class="qc-btn primary" href="https://github.com/mcinnisdev/omacut/releases/latest">Download for Windows</a>
+<a class="qc-btn primary" href="https://github.com/mcinnisdev/omashot/releases/latest">Download for Windows</a>
 <a class="qc-btn outline" href="/docs/getting-started">Getting started</a>
 </div>
 <ul class="qc-trust">
@@ -24,7 +24,7 @@ titleTemplate: Screen capture that hands off
 <li>No telemetry</li>
 </ul>
 </div>
-<div class="qc-stage" role="img" aria-label="A Omacut Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
+<div class="qc-stage" role="img" aria-label="A Omashot Studio frame: a window on a gradient background with a cursor, a click ripple, a keystroke badge, a camera bubble and a title">
 <img class="logo" src="/logo.png" alt="" width="256" height="256" />
 <div class="title">Unlink OneDrive from this computer</div>
 <div class="win" aria-hidden="true">
@@ -45,10 +45,10 @@ titleTemplate: Screen capture that hands off
 </div>
 <div class="qc-bento" style="margin-top: 32px">
 <div class="qc-card">
-<span class="eyebrow">Omacut Basic</span>
+<span class="eyebrow">Omashot Basic</span>
 <h3>Quick shots</h3>
 <p>One hotkey, one region, and the shot opens with the markup tools and a note beside it. Copy the image for a person, or the path and note for an agent.</p>
-<pre class="visual qc-bundle"><span class="l">~\Omacut\Quick\2026-09-19_1015\01.png</span>
+<pre class="visual qc-bundle"><span class="l">~\Omashot\Quick\2026-09-19_1015\01.png</span>
 The save button is clipped at
 125% scaling.</pre>
 <ul class="qc-uses">
@@ -60,7 +60,7 @@ The save button is clipped at
 </div>
 <div class="qc-card wide span2">
 <div>
-<span class="eyebrow">Omacut Bundles</span>
+<span class="eyebrow">Omashot Bundles</span>
 <h3>Bundles for bigger jobs</h3>
 <p>Structured groups of screenshots and notes. Export a finished document straight from them, or hand the folder to an agent to work from.</p>
 <ul class="qc-uses">
@@ -87,7 +87,7 @@ Toggle animates but the state never saves.
 </div>
 <div class="qc-card wide span3">
 <div>
-<span class="eyebrow">Omacut Studio</span>
+<span class="eyebrow">Omashot Studio</span>
 <h3>Polished screen recordings</h3>
 <p>The cursor is recorded as data, then drawn back smoothed and enlarged with a ripple on every click. Zooms follow the work. Your camera sits in a bubble, your voice stays in sync. Trim, cut, export to MP4.</p>
 <ul class="qc-uses">
@@ -129,7 +129,7 @@ Toggle animates but the state never saves.
 <div class="qc-cta-row">
 <p>Ready when you are.</p>
 <div class="qc-actions">
-<a class="qc-btn primary" href="https://github.com/mcinnisdev/omacut/releases/latest">Download for Windows</a>
+<a class="qc-btn primary" href="https://github.com/mcinnisdev/omashot/releases/latest">Download for Windows</a>
 <a class="qc-btn outline" href="/docs/getting-started">See the docs</a>
 </div>
 </div>
@@ -159,7 +159,7 @@ Toggle animates but the state never saves.
 </section>
 <section class="qc-spot">
 <div class="qc-spot-copy">
-<span class="eyebrow">Omacut Basic</span>
+<span class="eyebrow">Omashot Basic</span>
 <h2>Mark it up. Copy it. Paste it.</h2>
 <p class="lead">The quick shot opens in the editor with arrow, highlight, blur and step tools, and a note beside it. Copy image puts the marked-up PNG on the clipboard for a chat, an email or a ticket; Ctrl+Enter copies the path and note for an agent.</p>
 <div class="qc-spot-links">
@@ -192,12 +192,12 @@ Toggle animates but the state never saves.
 </section>
 <section class="qc-spot flip">
 <div class="qc-spot-copy">
-<span class="eyebrow">Omacut Bundles</span>
+<span class="eyebrow">Omashot Bundles</span>
 <h2>Auto-capture a process. Clean it up in one window.</h2>
 <p class="lead">Ctrl+Shift+3 takes a still at the start, at every click and at the end, each ringed where the click landed. The review window then walks them with markup, a note, prev and next, and delete for the ones that are noise.</p>
 <div class="qc-spot-links">
-<a class="qc-more" href="/docs/omacut">Auto-capture in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-<a class="qc-btn outline" href="https://github.com/mcinnisdev/omacut/releases/latest">Download for Windows</a>
+<a class="qc-more" href="/docs/omashot">Auto-capture in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-btn outline" href="https://github.com/mcinnisdev/omashot/releases/latest">Download for Windows</a>
 </div>
 </div>
 <div class="qc-spot-visual">
@@ -232,11 +232,11 @@ Toggle animates but the state never saves.
 </section>
 <section class="qc-spot">
 <div class="qc-spot-copy">
-<span class="eyebrow">Omacut Bundles</span>
+<span class="eyebrow">Omashot Bundles</span>
 <h2>The document writes itself.</h2>
 <p class="lead">Export doc turns groups into sections and notes into numbered steps, with the image under each. One self-contained web page you can send, or Markdown for a docs platform; hand it to an agent only to polish the prose.</p>
 <div class="qc-spot-links">
-<a class="qc-more" href="/docs/omacut#handing-off">Export doc in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="qc-more" href="/docs/omashot#handing-off">Export doc in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 </div>
 <div class="qc-spot-visual">
@@ -245,12 +245,12 @@ Toggle animates but the state never saves.
 </section>
 <section class="qc-spot flip">
 <div class="qc-spot-copy">
-<span class="eyebrow">Omacut Studio</span>
+<span class="eyebrow">Omashot Studio</span>
 <h2>Everything about the video is still editable after you stop.</h2>
 <p class="lead">The cursor, clicks and keys are recorded as data and drawn back in, so zooms, trims, cuts, key badges, the camera bubble, the title and the logo are all controls in the studio. Export writes exactly what you previewed.</p>
 <div class="qc-spot-links">
 <a class="qc-more" href="/docs/studio">The Studio in the docs<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-<a class="qc-btn outline" href="https://github.com/mcinnisdev/omacut/releases/latest">Download for Windows</a>
+<a class="qc-btn outline" href="https://github.com/mcinnisdev/omashot/releases/latest">Download for Windows</a>
 </div>
 </div>
 <div class="qc-spot-visual">
@@ -313,7 +313,7 @@ Toggle animates but the state never saves.
 <h3>To a CLI agent</h3>
 <p>Finish copies the folder path. <strong>Copy agent prompt</strong> fills it into the instruction.</p>
 <pre class="visual qc-bundle">claude "Work through the QA bundle at
-  C:\Users\nick\Omacut\2026-09-17_143022-settings-review.
+  C:\Users\nick\Omashot\2026-09-17_143022-settings-review.
 Start with bundle.md: each group is a page or area,
 its quoted master note applies to every screenshot
 under it, and each screenshot's note says what is
@@ -338,19 +338,19 @@ any recording, before changing anything."</pre>
 </div>
 <div class="qc-scroll">
 <table class="qc-compare">
-<thead><tr><th>Feature</th><th>Omacut</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
+<thead><tr><th>Feature</th><th>Omashot</th><th>Loom</th><th>Scribe</th><th>Screen Studio</th></tr></thead>
 <tbody>
-<tr><td>Runs on your machine, no upload</td><td class="yes" data-col="Omacut">Yes</td><td class="no" data-col="Loom">Cloud</td><td class="no" data-col="Scribe">Cloud</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
-<tr><td>No account required</td><td class="yes" data-col="Omacut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="some" data-col="Screen Studio">License</td></tr>
-<tr><td>Camera bubble and narration</td><td class="yes" data-col="Omacut">Yes</td><td class="yes" data-col="Loom">Yes</td><td class="no" data-col="Scribe">No</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
-<tr><td>Cursor smoothing and follow zoom</td><td class="yes" data-col="Omacut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
-<tr><td>Zooms you mark while recording</td><td class="yes" data-col="Omacut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
-<tr><td>Step documents from clicks</td><td class="yes" data-col="Omacut">Yes</td><td class="no" data-col="Loom">No</td><td class="yes" data-col="Scribe">Yes</td><td class="no" data-col="Screen Studio">No</td></tr>
-<tr><td>Marked-up screenshot to the clipboard</td><td class="yes" data-col="Omacut">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
-<tr><td>Bundles an AI agent can act on</td><td class="yes" data-col="Omacut">Yes</td><td class="no" data-col="Loom">No</td><td class="some" data-col="Scribe">Docs only</td><td class="no" data-col="Screen Studio">No</td></tr>
-<tr><td>Your brand on the output</td><td class="yes" data-col="Omacut">Yes</td><td class="some" data-col="Loom">Paid</td><td class="some" data-col="Scribe">Paid</td><td class="some" data-col="Screen Studio">Partial</td></tr>
-<tr><td>Open source</td><td class="yes" data-col="Omacut">MIT</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
-<tr class="total"><td>Price</td><td class="yes" data-col="Omacut">Free</td><td class="some" data-col="Loom">Per seat</td><td class="some" data-col="Scribe">Per seat</td><td class="some" data-col="Screen Studio">One-time</td></tr>
+<tr><td>Runs on your machine, no upload</td><td class="yes" data-col="Omashot">Yes</td><td class="no" data-col="Loom">Cloud</td><td class="no" data-col="Scribe">Cloud</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
+<tr><td>No account required</td><td class="yes" data-col="Omashot">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="some" data-col="Screen Studio">License</td></tr>
+<tr><td>Camera bubble and narration</td><td class="yes" data-col="Omashot">Yes</td><td class="yes" data-col="Loom">Yes</td><td class="no" data-col="Scribe">No</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
+<tr><td>Cursor smoothing and follow zoom</td><td class="yes" data-col="Omashot">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="yes" data-col="Screen Studio">Yes</td></tr>
+<tr><td>Zooms you mark while recording</td><td class="yes" data-col="Omashot">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr><td>Step documents from clicks</td><td class="yes" data-col="Omashot">Yes</td><td class="no" data-col="Loom">No</td><td class="yes" data-col="Scribe">Yes</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr><td>Marked-up screenshot to the clipboard</td><td class="yes" data-col="Omashot">Yes</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr><td>Bundles an AI agent can act on</td><td class="yes" data-col="Omashot">Yes</td><td class="no" data-col="Loom">No</td><td class="some" data-col="Scribe">Docs only</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr><td>Your brand on the output</td><td class="yes" data-col="Omashot">Yes</td><td class="some" data-col="Loom">Paid</td><td class="some" data-col="Scribe">Paid</td><td class="some" data-col="Screen Studio">Partial</td></tr>
+<tr><td>Open source</td><td class="yes" data-col="Omashot">MIT</td><td class="no" data-col="Loom">No</td><td class="no" data-col="Scribe">No</td><td class="no" data-col="Screen Studio">No</td></tr>
+<tr class="total"><td>Price</td><td class="yes" data-col="Omashot">Free</td><td class="some" data-col="Loom">Per seat</td><td class="some" data-col="Scribe">Per seat</td><td class="some" data-col="Screen Studio">One-time</td></tr>
 </tbody>
 </table>
 </div>
@@ -363,20 +363,20 @@ any recording, before changing anything."</pre>
 <p class="lead">Bugs, ideas and hellos all land with the person who writes the code. A quick shot of the problem is the best bug report there is.</p>
 </div>
 <div class="qc-bento qc-open" style="margin-top: var(--qc-section-gap)">
-<a class="qc-card qc-open-card" href="https://github.com/mcinnisdev/omacut/issues/new?template=bug_report.yml">
+<a class="qc-card qc-open-card" href="https://github.com/mcinnisdev/omashot/issues/new?template=bug_report.yml">
 <span class="eyebrow">Something broke</span>
 <h3>Report a bug</h3>
 <p>What happened, what you expected, and a marked-up screenshot. The form asks for exactly that.</p>
 </a>
-<a class="qc-card qc-open-card" href="https://github.com/mcinnisdev/omacut/issues/new?template=feature_request.yml">
+<a class="qc-card qc-open-card" href="https://github.com/mcinnisdev/omashot/issues/new?template=feature_request.yml">
 <span class="eyebrow">Something missing</span>
 <h3>Request a feature</h3>
 <p>The problem you have, what would solve it, and which mode it belongs to.</p>
 </a>
-<a class="qc-card qc-open-card" href="mailto:hello@omacut.com">
+<a class="qc-card qc-open-card" href="mailto:hello@omashot.com">
 <span class="eyebrow">Anything else</span>
 <h3>Say hello</h3>
-<p>hello@omacut.com, or @qa_cut on X. Release notes live in the <span class="qc-inline-link">changelog</span>.</p>
+<p>hello@omashot.com, or @qa_cut on X. Release notes live in the <span class="qc-inline-link">changelog</span>.</p>
 </a>
 </div>
 </section>
@@ -388,8 +388,8 @@ any recording, before changing anything."</pre>
 <p class="lead">Rust and TypeScript on Tauri. A few thousand lines you can read in an afternoon. Fork it, package it, ship it inside your own tools.</p>
 </div>
 <div class="qc-actions">
-<a class="qc-btn primary" href="https://github.com/mcinnisdev/omacut">Star on GitHub</a>
-<a class="qc-btn outline" href="https://github.com/mcinnisdev/omacut/releases/latest">Download</a>
+<a class="qc-btn primary" href="https://github.com/mcinnisdev/omashot">Star on GitHub</a>
+<a class="qc-btn outline" href="https://github.com/mcinnisdev/omashot/releases/latest">Download</a>
 </div>
 </div>
 </section>

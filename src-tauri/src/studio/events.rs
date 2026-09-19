@@ -364,7 +364,7 @@ mod hook {
             let up = msg == WM_KEYUP || msg == WM_SYSKEYUP;
             if down || up {
                 let k = &*(lparam as *const KBDLLHOOKSTRUCT);
-                // Injected keys are Omacut's own or another tool's; skip.
+                // Injected keys are Omashot's own or another tool's; skip.
                 let repeat = {
                     let mut held = HELD.lock().unwrap();
                     let was = held.contains(&k.vkCode);
@@ -426,7 +426,7 @@ mod hook {
             let thread_id = ready_rx.recv().unwrap_or(0);
             if thread_id == 0 {
                 *TX.lock().unwrap() = None;
-                eprintln!("omacut: keyboard hook could not be installed; keystrokes not recorded");
+                eprintln!("omashot: keyboard hook could not be installed; keystrokes not recorded");
                 return Ok(None);
             }
             Ok(Some(HookThread { thread_id, handle, rx }))

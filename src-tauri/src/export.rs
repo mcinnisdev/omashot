@@ -4,10 +4,10 @@ use serde::Serialize;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
-/// Notes file inside the brand folder that is inlined into bundle.md.
+/// Notes file inside the brand folder that is inlined into brief.md.
 pub const BRAND_NOTES: &str = "brand.md";
 
-/// What the user keeps in `~/Omacut/brand/`: voice notes plus any files.
+/// What the user keeps in `~/Omashot/brand/`: voice notes plus any files.
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct BrandKit {
     pub notes: String,
@@ -67,7 +67,7 @@ pub struct Export {
 }
 
 /// Renames group directories to include their titles, copies the brand kit
-/// in (or out) as the session asks, then writes `bundle.md` and
+/// in (or out) as the session asks, then writes `brief.md` and
 /// `manifest.json`. Safe to call more than once: a group whose directory
 /// already carries its slug is left alone.
 pub fn write_bundle(session: &mut Session, brand_src: &Path) -> Result<Export> {
@@ -124,7 +124,7 @@ pub fn write_bundle(session: &mut Session, brand_src: &Path) -> Result<Export> {
     normalize_layout(session)?;
 
     let markdown = render_markdown(session, brand.as_ref());
-    std::fs::write(session.root.join("bundle.md"), &markdown)?;
+    std::fs::write(session.root.join("brief.md"), &markdown)?;
     std::fs::write(
         session.root.join("manifest.json"),
         serde_json::to_string_pretty(session)?,
@@ -569,7 +569,7 @@ pub fn render_document_html(session: &Session, logo: Option<&Path>) -> String {
 }
 
 /// Writes the bundle (so its layout is final), then the document beside
-/// `bundle.md` as `document.md` or `document.html`. Returns the file.
+/// `brief.md` as `document.md` or `document.html`. Returns the file.
 pub fn write_document(session: &mut Session, brand_src: &Path, format: DocFormat) -> Result<PathBuf> {
     write_bundle(session, brand_src)?;
     let path = match format {
@@ -633,7 +633,7 @@ mod document_tests {
 
     #[test]
     fn the_document_reads_as_numbered_steps_under_group_headings() {
-        let base = std::env::temp_dir().join(format!("omacut-test-doc-{}", chrono::Local::now().timestamp_micros()));
+        let base = std::env::temp_dir().join(format!("omashot-test-doc-{}", chrono::Local::now().timestamp_micros()));
         let mut s = Session::start(&base).unwrap();
         s.name = "Unlink OneDrive".into();
         s.current().shots.push(shot("01.png", "Open settings", "Click the cloud icon in the tray."));
@@ -668,7 +668,7 @@ mod tests {
     #[test]
     fn markdown_has_the_agent_facing_shape() {
         let base = std::env::temp_dir().join(format!(
-            "omacut-test-md-{}",
+            "omashot-test-md-{}",
             chrono::Local::now().timestamp_micros()
         ));
         let mut s = Session::start(&base).unwrap();
@@ -736,7 +736,7 @@ mod brand_tests {
     #[test]
     fn brand_kit_is_copied_in_and_described() {
         let base = std::env::temp_dir().join(format!(
-            "omacut-test-brand-{}",
+            "omashot-test-brand-{}",
             chrono::Local::now().timestamp_micros()
         ));
         let brand = base.join("brand");
@@ -810,7 +810,7 @@ mod layout_tests {
     #[test]
     fn export_lays_files_out_in_reading_order_after_moves() {
         let base = std::env::temp_dir().join(format!(
-            "omacut-test-layout-{}",
+            "omashot-test-layout-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();
@@ -869,7 +869,7 @@ mod zip_tests {
     #[test]
     fn zip_holds_the_whole_folder_under_one_directory() {
         let base = std::env::temp_dir().join(format!(
-            "omacut-test-zip-{}",
+            "omashot-test-zip-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();
@@ -901,7 +901,7 @@ mod zip_tests {
             .map(|i| archive.by_index(i).unwrap().name().to_string())
             .collect();
         let folder = format!("{}-zipped", s.id);
-        assert!(names.contains(&format!("{folder}/bundle.md")));
+        assert!(names.contains(&format!("{folder}/brief.md")));
         assert!(names.contains(&format!("{folder}/manifest.json")));
         assert!(names.contains(&format!("{folder}/01/01.png")));
         assert!(names.iter().all(|n| n.starts_with(&folder)));

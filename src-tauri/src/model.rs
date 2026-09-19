@@ -50,7 +50,7 @@ pub struct KeyFrame {
 }
 
 impl KeyFrame {
-    /// How the frame is described in bundle.md: "3 s, click at 412,188".
+    /// How the frame is described in brief.md: "3 s, click at 412,188".
     pub fn label(&self) -> String {
         let secs = (self.at_ms as f64 / 1000.0).round() as u64;
         let mut s = format!("{secs} s");
@@ -65,7 +65,7 @@ impl KeyFrame {
     }
 }
 
-/// When an auto-captured shot was taken and what caused it, so bundle.md can
+/// When an auto-captured shot was taken and what caused it, so brief.md can
 /// say "auto-captured at 3 s, click at 412,188".
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Moment {
@@ -102,7 +102,7 @@ pub enum Purpose {
     Fix,
     /// Screenshots and recordings of a workflow; the agent writes it up.
     Document,
-    /// The user's own prompt template, kept in `~/Omacut/custom-prompt.txt`.
+    /// The user's own prompt template, kept in `~/Omashot/custom-prompt.txt`.
     Custom,
     /// One of the user's saved prompts, named by `Session::prompt_id`.
     Saved,
@@ -260,7 +260,7 @@ pub struct Session {
     pub prompt_id: Option<String>,
     #[serde(default)]
     pub doc_format: DocFormat,
-    /// Whether the brand kit in `~/Omacut/brand/` is copied into this bundle.
+    /// Whether the brand kit in `~/Omashot/brand/` is copied into this bundle.
     #[serde(default = "default_true")]
     pub include_brand: bool,
     pub groups: Vec<Group>,
@@ -556,7 +556,7 @@ mod tests {
 
     fn temp_base(tag: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!(
-            "omacut-test-{tag}-{}",
+            "omashot-test-{tag}-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&dir).unwrap();
@@ -653,7 +653,7 @@ mod recording_tests {
     #[test]
     fn removing_a_recording_takes_its_frames_too() {
         let base = std::env::temp_dir().join(format!(
-            "omacut-test-rec-{}",
+            "omashot-test-rec-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();
@@ -702,7 +702,7 @@ mod reopen_tests {
     #[test]
     fn a_bundle_reopens_from_its_manifest_even_after_a_move() {
         let base = std::env::temp_dir().join(format!(
-            "omacut-test-reopen-{}",
+            "omashot-test-reopen-{}",
             chrono::Local::now().timestamp_micros()
         ));
         std::fs::create_dir_all(&base).unwrap();

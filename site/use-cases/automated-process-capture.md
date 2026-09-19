@@ -12,7 +12,7 @@ Writing a process doc by hand means doing the task twice, once to remember it an
 ## The flow
 
 1. Press `Ctrl+Shift+3`, drag the region, adjust its edges and press **Record**. A three-second countdown lets you get in place.
-2. Do the process. Omacut takes a full-resolution still at the start, at every click or Enter with a ring where the click landed, and at the end.
+2. Do the process. Omashot takes a full-resolution still at the start, at every click or Enter with a ring where the click landed, and at the end.
 3. Press `Ctrl+Shift+3` to stop. The bundle window opens on the sequence.
 4. Click the first still to open the review view, then walk the run with the arrow keys: delete the noise, type a note for each keeper, move the click ring if the pointer was somewhere unhelpful, blur what needs it. Drag any still that landed out of order.
 5. Press **Export doc**.
@@ -61,6 +61,6 @@ No video is made. Agents cannot do anything with one, and recordings for people 
 - [Organize screenshots into a document and export it](/use-cases/organize-and-export), the same export from screenshots you took by hand.
 - [Hand a bundle to an AI agent with your brand kit](/use-cases/agent-with-brand-kit), when the captured steps should become a document in your voice.
 - [Record polished screen recordings](/use-cases/polished-screen-recordings): document or video? The same region and countdown, but the studio makes an MP4 for people.
-- [Bundles for agents](/docs/omacut) in the docs.
+- [Bundles for agents](/docs/omashot) in the docs.
 
-[How it works in detail](/docs/omacut) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)
+[How it works in detail](/docs/omashot) · [Download Omashot](https://github.com/mcinnisdev/omashot/releases/latest)

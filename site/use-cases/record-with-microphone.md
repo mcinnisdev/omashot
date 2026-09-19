@@ -1,6 +1,6 @@
 ---
 title: Record a screen walkthrough with narration
-description: "Turn on Record microphone once and Omacut Studio records your narration on the same clock as the frames, so it stays in sync through every trim and cut you make."
+description: "Turn on Record microphone once and Omashot Studio records your narration on the same clock as the frames, so it stays in sync through every trim and cut you make."
 ---
 
 # Record a screen walkthrough with narration
@@ -38,4 +38,4 @@ The narration is recorded on the same clock as the frames. When you set **Start 
 - [Organize screenshots into a document and export it](/use-cases/organize-and-export), when the steps should be read rather than watched.
 - [Polished screen recordings](/docs/studio) in the docs.
 
-[How it works in detail](/docs/studio) · [Download Omacut](https://github.com/mcinnisdev/omacut/releases/latest)
+[How it works in detail](/docs/studio) · [Download Omashot](https://github.com/mcinnisdev/omashot/releases/latest)

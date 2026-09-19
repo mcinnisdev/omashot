@@ -1,14 +1,14 @@
 import { defineConfig } from "vitepress";
 
-const SITE_URL = "https://omacut.com";
+const SITE_URL = "https://omashot.com";
 const SITE_DESCRIPTION =
   "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows.";
 
-// The docs are written with Omacut itself: process docs exported from the
+// The docs are written with Omashot itself: process docs exported from the
 // studio land under docs/ as markdown with their images and clips beside
 // them. VitePress turns the folder into the site; nothing else to do.
 export default defineConfig({
-  title: "Omacut",
+  title: "Omashot",
   description: SITE_DESCRIPTION,
   cleanUrls: true,
   lastUpdated: true,
@@ -16,18 +16,18 @@ export default defineConfig({
   head: [
     ["link", { rel: "icon", href: "/favicon.png" }],
     ["meta", { property: "og:type", content: "website" }],
-    ["meta", { property: "og:site_name", content: "Omacut" }],
-    ["meta", { property: "og:title", content: "Omacut: screen capture that hands off" }],
+    ["meta", { property: "og:site_name", content: "Omashot" }],
+    ["meta", { property: "og:title", content: "Omashot: screen capture that hands off" }],
     ["meta", { property: "og:description", content: SITE_DESCRIPTION }],
-    ["meta", { property: "og:url", content: "https://omacut.com/" }],
-    ["meta", { property: "og:image", content: "https://omacut.com/og.png" }],
+    ["meta", { property: "og:url", content: "https://omashot.com/" }],
+    ["meta", { property: "og:image", content: "https://omashot.com/og.png" }],
     ["meta", { property: "og:image:width", content: "1200" }],
     ["meta", { property: "og:image:height", content: "630" }],
-    ["meta", { property: "og:image:alt", content: "Omacut: screen capture that hands off" }],
+    ["meta", { property: "og:image:alt", content: "Omashot: screen capture that hands off" }],
     ["meta", { name: "twitter:card", content: "summary_large_image" }],
-    ["meta", { name: "twitter:title", content: "Omacut: screen capture that hands off" }],
+    ["meta", { name: "twitter:title", content: "Omashot: screen capture that hands off" }],
     ["meta", { name: "twitter:description", content: SITE_DESCRIPTION }],
-    ["meta", { name: "twitter:image", content: "https://omacut.com/og.png" }],
+    ["meta", { name: "twitter:image", content: "https://omashot.com/og.png" }],
   ],
   // Per-page Open Graph and Twitter tags. The home page keeps the
   // site-wide values above; every other page describes itself. VitePress
@@ -36,7 +36,7 @@ export default defineConfig({
     if (pageData.relativePath === "index.md") return;
     const path = pageData.relativePath.replace(/\.md$/, "").replace(/(^|\/)index$/, "$1");
     const url = `${SITE_URL}/${path}`;
-    const title = pageData.frontmatter.title || pageData.title || "Omacut";
+    const title = pageData.frontmatter.title || pageData.title || "Omashot";
     const description = pageData.frontmatter.description || pageData.description || SITE_DESCRIPTION;
     pageData.frontmatter.head ??= [];
     pageData.frontmatter.head.push(
@@ -56,7 +56,7 @@ export default defineConfig({
         text: "Use cases",
         items: [
           {
-            text: "Omacut Basic",
+            text: "Omashot Basic",
             items: [
               { text: "Copy and paste a screenshot", link: "/use-cases/copy-and-paste" },
               { text: "Mark up a screenshot and paste it", link: "/use-cases/mark-up-and-paste" },
@@ -64,7 +64,7 @@ export default defineConfig({
             ],
           },
           {
-            text: "Omacut Bundles",
+            text: "Omashot Bundles",
             items: [
               { text: "Organize screenshots into a document", link: "/use-cases/organize-and-export" },
               { text: "Auto-capture a process", link: "/use-cases/automated-process-capture" },
@@ -73,7 +73,7 @@ export default defineConfig({
             ],
           },
           {
-            text: "Omacut Studio",
+            text: "Omashot Studio",
             items: [
               { text: "Polished screen recordings", link: "/use-cases/polished-screen-recordings" },
               { text: "Record with narration", link: "/use-cases/record-with-microphone" },
@@ -86,14 +86,14 @@ export default defineConfig({
       },
       { text: "Changelog", link: "/changelog" },
       { text: "Feedback", link: "/feedback" },
-      { text: "Download", link: "https://github.com/mcinnisdev/omacut/releases/latest" },
-      { text: "GitHub", link: "https://github.com/mcinnisdev/omacut" },
+      { text: "Download", link: "https://github.com/mcinnisdev/omashot/releases/latest" },
+      { text: "GitHub", link: "https://github.com/mcinnisdev/omashot" },
     ],
     sidebar: {
       "/use-cases/": [
         { text: "All use cases", link: "/use-cases/" },
         {
-          text: "Omacut Basic",
+          text: "Omashot Basic",
           items: [
             { text: "Overview", link: "/use-cases/quick-shots" },
             { text: "Copy and paste a screenshot", link: "/use-cases/copy-and-paste" },
@@ -102,7 +102,7 @@ export default defineConfig({
           ],
         },
         {
-          text: "Omacut Bundles",
+          text: "Omashot Bundles",
           items: [
             { text: "Overview", link: "/use-cases/bundles" },
             { text: "Organize and export a document", link: "/use-cases/organize-and-export" },
@@ -112,7 +112,7 @@ export default defineConfig({
           ],
         },
         {
-          text: "Omacut Studio",
+          text: "Omashot Studio",
           items: [
             { text: "Overview", link: "/use-cases/studio" },
             { text: "Polished screen recordings", link: "/use-cases/polished-screen-recordings" },
@@ -132,24 +132,24 @@ export default defineConfig({
           ],
         },
         {
-          text: "Omacut Basic",
+          text: "Omashot Basic",
           items: [{ text: "Quick shots", link: "/docs/quick" }],
         },
         {
-          text: "Omacut Bundles",
+          text: "Omashot Bundles",
           items: [
-            { text: "Bundles for agents", link: "/docs/omacut" },
+            { text: "Bundles for agents", link: "/docs/omashot" },
             { text: "Brand kit", link: "/docs/brand-kit" },
           ],
         },
         {
-          text: "Omacut Studio",
+          text: "Omashot Studio",
           items: [{ text: "Polished screen recordings", link: "/docs/studio" }],
         },
       ],
     },
     socialLinks: [
-      { icon: "github", link: "https://github.com/mcinnisdev/omacut" },
+      { icon: "github", link: "https://github.com/mcinnisdev/omashot" },
       { icon: "x", link: "https://x.com/qa_cut" },
     ],
     // The footer is Footer.vue, mounted in theme/index.ts.

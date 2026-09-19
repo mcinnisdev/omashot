@@ -9,8 +9,8 @@ export default defineConfig({
     // Cargo writes into src-tauri/target while Vite is running; watching it
     // trips EBUSY on Windows and floods the watcher everywhere else.
     watch: { ignored: ["**/src-tauri/**"] },
-    // Dev only: lets a harness page load recordings from the Omacut folder.
-    fs: { allow: [".", `${process.env.USERPROFILE ?? process.env.HOME ?? ""}/Omacut`] },
+    // Dev only: lets a harness page load recordings from the Omashot folder.
+    fs: { allow: [".", `${process.env.USERPROFILE ?? process.env.HOME ?? ""}/Omashot`] },
   },
   build: {
     target: "es2021",

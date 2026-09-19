@@ -1,0 +1,66 @@
+# Maintainer: Nick McInnis <nico@webdens.com>
+pkgname=omashot
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Capture your screen and hand the work to an agent, built for Omarchy"
+arch=('x86_64')
+url="https://github.com/mcinnisdev/omashot"
+license=('MIT')
+# webkit2gtk-4.1 and libsoup3 are what Tauri 2 links against on Linux.
+depends=('webkit2gtk-4.1' 'gtk3' 'libsoup3' 'libayatana-appindicator')
+# grim is not used directly -- stills come through wlroots screencopy in
+# process -- but slurp is the fallback picker when omarchy-capture-region
+# is not present, which is any non-Omarchy Wayland session.
+optdepends=(
+  'omarchy: region picking, theming and menu integration'
+  'slurp: region picking without Omarchy'
+  'gpu-screen-recorder: screen recording'
+  'omasnap: markup, with OMASHOT_MARKUP=omasnap'
+)
+makedepends=('rust' 'cargo' 'nodejs>=22' 'npm' 'python')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname-$pkgver"
+  npm ci
+  npm run tauri build -- --no-bundle
+}
+
+check() {
+  cd "$pkgname-$pkgver/src-tauri"
+  cargo test --release
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+
+  install -Dm755 "src-tauri/target/release/omashot" "$pkgdir/usr/bin/omashot"
+  install -Dm755 "packaging/omashot-edit" "$pkgdir/usr/bin/omashot-edit"
+  install -Dm644 "packaging/omashot.desktop" \
+    "$pkgdir/usr/share/applications/omashot.desktop"
+  install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+  local size src
+  for size in 32 64 128 256 512; do
+    case $size in
+    256) src="src-tauri/icons/128x128@2x.png" ;;
+    512) src="src-tauri/icons/icon.png" ;;
+    *) src="src-tauri/icons/${size}x${size}.png" ;;
+    esac
+    install -Dm644 "$src" \
+      "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/omashot.png"
+  done
+
+  # The Omarchy wiring ships as data rather than being applied here: a
+  # package must not edit a user's Hyprland config. `omashot setup` does it
+  # when the user asks, from these files.
+  install -Dm644 omarchy/themed/omashot.css.tpl \
+    "$pkgdir/usr/share/omashot/themed/omashot.css.tpl"
+  install -Dm644 omarchy/bindings.lua "$pkgdir/usr/share/omashot/bindings.lua"
+  install -Dm644 omarchy/looknfeel.lua "$pkgdir/usr/share/omashot/looknfeel.lua"
+  install -Dm644 omarchy/omarchy-menu.jsonc \
+    "$pkgdir/usr/share/omashot/omarchy-menu.jsonc"
+  install -Dm755 omarchy/install.sh "$pkgdir/usr/share/omashot/install.sh"
+  cp -r omarchy/plugin "$pkgdir/usr/share/omashot/plugin"
+}

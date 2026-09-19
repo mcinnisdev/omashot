@@ -1,11 +1,11 @@
-/* Omacut's palette, rendered from the current Omarchy theme.
+/* Omashot's palette, rendered from the current Omarchy theme.
  *
  * Omarchy fills the {{ ... }} placeholders whenever the theme changes and
  * writes the result next to the theme's other generated configs, at
- * ~/.local/state/omarchy/current/theme/omacut.css. The app watches that file
+ * ~/.local/state/omarchy/current/theme/omashot.css. The app watches that file
  * and re-skins every open window without restarting, so there is no hook.
  *
- * Omacut has no colours of its own. Every value here comes from the theme,
+ * Omashot has no colours of its own. Every value here comes from the theme,
  * and the two that a theme does not name are mixed from the ones it does, so
  * this keeps working on a theme nobody has written yet — including a light
  * one, where mixing toward the foreground darkens rather than lightens.

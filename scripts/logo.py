@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Omacut mark, drawn as pixel art.
+"""The Omashot mark, drawn as pixel art.
 
 Everything lives on a 16x16 grid and is scaled by whole numbers, so every
 edge lands on a pixel boundary and nothing is ever blurred. 16 divides into
@@ -8,18 +8,24 @@ whole reason the grid is that size.
 
 Two marks:
 
-  letters   "OC" side by side, in a chunky pixel face. The default, and the
-            one that still says the app's name at 16px in a tray.
-  reticle   the O with a C nested inside it, which doubles as a capture
-            reticle. Better as a large mark than a small one.
+  handoff   corner brackets with an arrow leaving through them: pick a
+            region, hand it off. The default, and the whole product in one
+            glyph.
+  frame     the brackets alone, for places where the name is already beside
+            the mark and the arrow is just noise.
 
-Colour is an argument rather than a constant: the theme-set hook re-renders
-the tray icon in the current Omarchy accent, so the mark belongs to whatever
-theme you are running. See `omacut-theme-apply`.
+Colour is an argument rather than a constant: the app re-tints the bar and
+tray mark to the current Omarchy accent at runtime, so it belongs to
+whatever theme you are running. See `theme.rs`.
+
+The brackets run to the edge of the grid, which is why the icons ship as the
+bare mark rather than knocked out of a tile -- inverted, the corners read as
+notches instead of brackets. `--style tile` is kept for the favicon and the
+social card, where a solid block earns its place.
 
     ./logo.py --out mark.png --size 512
     ./logo.py --out tray.png --size 32 --color '#ff9e64'
-    ./logo.py --ascii --mark reticle
+    ./logo.py --ascii --mark frame
 """
 
 import argparse
@@ -32,44 +38,46 @@ GRID = 16
 # Drawn by hand: at these sizes a rasterised circle looks worse than a
 # letterform someone placed pixel by pixel.
 MARKS = {
-    # O and C, six wide each, ten tall, with a two-column gutter and a
-    # column of air either side so the mark can sit on a tile.
-    "letters": """
-    ................
-    ................
-    ................
-    ..####....####..
-    .##..##..##..##.
-    .##..##..##..##.
-    .##..##..##.....
-    .##..##..##.....
-    .##..##..##.....
-    .##..##..##.....
-    .##..##..##..##.
-    .##..##..##..##.
-    ..####....####..
-    ................
-    ................
-    ................
+    # Corner brackets with an arrow leaving through them: select a region,
+    # hand it off. The brackets are the one glyph everybody already reads as
+    # "pick part of the screen", and they survive being 16 pixels wide.
+    "handoff": """
+    ######....######
+    ######....######
+    ##............##
+    ##............##
+    ##............##
+    .........##.....
+    ..........##....
+    ....#########...
+    ....#########...
+    ..........##....
+    .........##.....
+    ##............##
+    ##............##
+    ##............##
+    ######....######
+    ######....######
     """,
-    # A ring with a smaller, open ring inside it.
-    "reticle": """
-    .....######.....
-    ...##########...
-    ..####....####..
-    .###........###.
-    .##...####...##.
-    ##...######...##
-    ##..###..##...##
-    ##..##........##
-    ##..##........##
-    ##..###..##...##
-    ##...######...##
-    .##...####...##.
-    .###........###.
-    ..####....####..
-    ...##########...
-    .....######.....
+    # The same brackets with nothing inside, for places where the mark sits
+    # next to the name anyway and the arrow is just noise.
+    "frame": """
+    ######....######
+    ######....######
+    ##............##
+    ##............##
+    ##............##
+    ................
+    ................
+    ................
+    ................
+    ................
+    ................
+    ##............##
+    ##............##
+    ##............##
+    ######....######
+    ######....######
     """,
 }
 
@@ -159,7 +167,7 @@ def render(
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", help="PNG to write")
-    ap.add_argument("--mark", default="letters", choices=sorted(MARKS))
+    ap.add_argument("--mark", default="handoff", choices=sorted(MARKS))
     ap.add_argument("--size", type=int, default=512, help="target edge in pixels")
     ap.add_argument("--color", default="#ff9e64", help="mark colour")
     ap.add_argument("--bg", default=None, help="background (default transparent)")

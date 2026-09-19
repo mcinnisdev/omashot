@@ -1,14 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
-/// Omacut's stylesheet opens with a `:root` block of tokens and nothing else
+/// Omashot's stylesheet opens with a `:root` block of tokens and nothing else
 /// names a colour. Omarchy renders the same block from the current theme, so
 /// appending it re-skins the window: same properties, later in the cascade.
 ///
 /// Every window calls this once on load. Until a theme has been set at least
 /// once since install there is nothing to append, and the built-in tokens in
 /// styles.css stand in.
-const ELEMENT_ID = "omacut-theme";
+const ELEMENT_ID = "omashot-theme";
 
 function apply(css: string): void {
   let style = document.getElementById(ELEMENT_ID);
@@ -34,6 +34,6 @@ export async function applyTheme(): Promise<void> {
   } catch (err) {
     // A window with no palette is still a usable window: styles.css already
     // carries a full set of tokens.
-    console.warn("omacut: could not load the theme", err);
+    console.warn("omashot: could not load the theme", err);
   }
 }

@@ -10,33 +10,33 @@ What each release lets you do that the one before did not. Newest first; every h
 
 ## 2.2.0 (2026-09-19)
 
-[Release notes and installer](https://github.com/mcinnisdev/omacut/releases/tag/v2.2.0)
+[Release notes and installer](https://github.com/mcinnisdev/omashot/releases/tag/v2.2.0)
 
 - Quick shots open in the editor: draw an arrow, highlight, blur, write the note, then **Copy image** for a person or `Ctrl+Enter` for an agent.
 - **Export doc** writes a finished process document straight from a bundle, no agent needed.
-- **Prompt library**: every text Omacut puts on your clipboard is a template you can edit, and you can add your own and pick one before a hand-off. It has its own window from the tray.
-- The quick-shot lane is now called Omacut Basic everywhere, in the app and on the site.
+- **Prompt library**: every text Omashot puts on your clipboard is a template you can edit, and you can add your own and pick one before a hand-off. It has its own window from the tray.
+- The quick-shot lane is now called Omashot Basic everywhere, in the app and on the site.
 - The keyboard shortcuts screen lists the window keys too, and hints show the live chord as you change one.
 - The quick-shot window is one panel with a smaller note box and a close button that closes.
 - The site has a Use cases menu, a page per mode, and a comparison table that stacks on a phone.
 
 ## 2.1.0 (2026-09-19)
 
-[Release notes and installer](https://github.com/mcinnisdev/omacut/releases/tag/v2.1.0)
+[Release notes and installer](https://github.com/mcinnisdev/omashot/releases/tag/v2.1.0)
 
-- Three tools, one tray: Omacut Basic, Omacut Bundles and Omacut Studio, each with its own section of the menu.
+- Three tools, one tray: Omashot Basic, Omashot Bundles and Omashot Studio, each with its own section of the menu.
 - Quick shots: `Ctrl+Shift+1` takes one screenshot with one note and puts the path on your clipboard. `Enter` saves and keeps the batch open, `Ctrl+Enter` finishes and hands the batch off. Shots are filed in batches, not days.
 - Review mode walks a bundle shot by shot, with markup, note and delete in one window.
 - Auto-capture is a timeline of stills, filed as ordinary shots you can drop, reorder and mark up.
 - Finish closes the bundle; the next capture starts a fresh one.
 - The recording badge shows the shortcuts you actually have set.
-- Omacut is open source under the MIT License, with docs at omacut.com.
+- Omashot is open source under the MIT License, with docs at omashot.com.
 
 ## 2.0.0 (2026-09-18)
 
-[Release notes and installer](https://github.com/mcinnisdev/omacut/releases/tag/v2.0.0)
+[Release notes and installer](https://github.com/mcinnisdev/omashot/releases/tag/v2.0.0)
 
-- **Omacut Studio**: `Ctrl+Shift+R` records a region. The cursor is captured as data and drawn back smoothed and enlarged, with a ripple on every click.
+- **Omashot Studio**: `Ctrl+Shift+R` records a region. The cursor is captured as data and drawn back smoothed and enlarged, with a ripple on every click.
 - Microphone and camera: narration stays in sync, and your camera sits in a bubble on the frame.
 - Zooms: mark one while recording with `Ctrl+Space`, or let them follow the cursor, with a tightness control.
 - A timeline with a filmstrip, trim in and out, cuts from the middle, and zoom blocks you can drag.
@@ -47,7 +47,7 @@ What each release lets you do that the one before did not. Newest first; every h
 
 ## 1.0.0 (2026-09-18)
 
-[Release notes and installer](https://github.com/mcinnisdev/omacut/releases/tag/v1.0.0)
+[Release notes and installer](https://github.com/mcinnisdev/omashot/releases/tag/v1.0.0)
 
 First release: quick capture bundles for agents.
 

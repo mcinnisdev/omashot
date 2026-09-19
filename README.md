@@ -248,7 +248,7 @@ npm install
 npm run tauri dev
 ```
 
-Release build: `npm run tauri build`.
+Local release build, if you want the installers without publishing: `npm run tauri build`.
 
 Icons are committed under `src-tauri/icons/`. If the mark changes, replace
 `assets/logo.png` (square, at least 1024px, transparent) and regenerate:
@@ -302,10 +302,16 @@ remove button fills solid on hover.
   `Site` workflow on every push to `main`. Process docs exported from QACut
   go under `site/docs/` with their images beside them. `cd site && npm
   install && npm run dev` to preview.
-- Releasing: bump the version in `src-tauri/Cargo.toml`,
-  `src-tauri/tauri.conf.json` and `package.json`; `npm run tauri build`;
-  `gh release create vX.Y.Z` with the two installers from
-  `src-tauri/target/release/bundle/`.
+- Releasing: `npm run release 2.1.0` (or `patch`, `minor`, `major`) bumps
+  the version in `package.json`, `src-tauri/tauri.conf.json` and
+  `src-tauri/Cargo.toml`, commits, tags `vX.Y.Z` and pushes. The `Release`
+  workflow then builds the MSI and NSIS installers on a Windows runner and
+  publishes the GitHub release with notes generated from the commits. The
+  site's Download links point at `releases/latest`, so nothing else moves.
+  `CI` runs the same build and the Rust tests on every push and pull
+  request; `main` only takes pull requests with a green CI, or a direct
+  push from a repository admin.
+- Internal notes and plans go in `notes/`, which is gitignored.
 - Checking the studio compositor against a real recording without opening
   the app: `harness.html` (see the comment at its top) renders click
   moments through the export's frame reader in a headed browser and logs

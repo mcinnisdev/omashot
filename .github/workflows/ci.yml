@@ -1,0 +1,43 @@
+name: CI
+
+# Every push to main and every pull request builds the app the way the
+# release does: type-check and bundle the frontend, then compile and test
+# the Rust side on Windows, which is the only platform the Studio's
+# capture supports.
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["site/**", "**/*.md"]
+  pull_request:
+    paths-ignore: ["site/**", "**/*.md"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Rust
+        working-directory: src-tauri
+        run: cargo test --locked

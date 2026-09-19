@@ -14,22 +14,13 @@ After install, look for the coral scissors in the tray. Left-click it for the me
 
 The menu has three sections.
 
-**QACut Studio** is the main event: a screen recording edited into something polished, with zooms, a camera bubble and narration, exported as a video. Read [Polished screen recordings](/docs/studio).
-
-**QACut Bundles** is the structured half: screenshots, auto-captured clips, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
-
 **QACut** on its own is the quick lane: one screenshot, one note, pasted straight into an agent. Read [Quick shots](/docs/quick).
 
+**QACut Bundles** is the structured lane: screenshots, auto-captured clips, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
+
+**QACut Studio** is for people: a screen recording edited into something polished, with zooms, a camera bubble and narration, exported as a video. Read [Polished screen recordings](/docs/studio).
+
 Both put their files under `~/QACut/`. Everything is plain files you can open, move or delete.
-
-## Your first Studio recording
-
-1. Press `Ctrl+Shift+R`, drag the region to record, adjust its edges, and press **Record**. A three-second countdown lets you get in place.
-2. Do the thing. Press `Ctrl+Space` to zoom in where the cursor is, and again to zoom out.
-3. Press `Ctrl+Shift+R` to stop. The studio opens on the recording.
-4. Trim, adjust the zooms, add a title, and press **Export…**.
-
-Turn on the microphone and camera toggles in the tray's Studio section first if you want narration and a camera bubble.
 
 ## Your first bundle
 
@@ -41,6 +32,15 @@ Turn on the microphone and camera toggles in the tray's Studio section first if 
 Point an agent at the folder, or use **Copy agent prompt** in the bundle window for a ready-made instruction. The bundle is finished; your next capture starts a new one.
 
 For a one-off, skip the bundle: `Ctrl+Shift+1` takes a quick shot, and `Ctrl+Enter` on its note copies the screenshot's path and the note, ready to paste. Plain `Enter` saves and lets you take more before you send them together.
+
+## Your first Studio recording
+
+1. Press `Ctrl+Shift+R`, drag the region to record, adjust its edges, and press **Record**. A three-second countdown lets you get in place.
+2. Do the thing. Press `Ctrl+Space` to zoom in where the cursor is, and again to zoom out.
+3. Press `Ctrl+Shift+R` to stop. The studio opens on the recording.
+4. Trim, adjust the zooms, add a title, and press **Export…**.
+
+Turn on the microphone and camera toggles in the tray's Studio section first if you want narration and a camera bubble.
 
 ## Where things go
 

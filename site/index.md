@@ -11,7 +11,7 @@ titleTemplate: Screen capture that hands off
 <div>
 <span class="eyebrow">Free and open source · Windows</span>
 <h1>Capture your screen.<br /><em>Hand off the work.</em></h1>
-<p class="lead">Screen recordings become walkthroughs people will actually watch. Screenshots and notes become a bundle an AI agent can work from. One tray icon, no account, and nothing leaves your machine unless you send it.</p>
+<p class="lead">Screenshots and notes become a bundle an AI agent can work from. Screen recordings become walkthroughs people will actually watch. One tray icon, no account, and nothing leaves your machine unless you send it.</p>
 <div class="qc-actions">
 <a class="qc-btn primary" href="https://github.com/mcinnisdev/qacut/releases/latest">Download for Windows</a>
 <a class="qc-btn outline" href="/docs/getting-started">Getting started</a>
@@ -36,9 +36,38 @@ titleTemplate: Screen capture that hands off
 <div class="center">
 <span class="eyebrow">Three tools, one tray</span>
 <h2>Pick the depth. The hotkeys are the same.</h2>
-<p class="lead">A polished video for a person. A structured bundle for an agent with real work to do. A quick shot when it's one fix and you want it gone.</p>
+<p class="lead">A quick shot when it's one fix and you want it gone. A structured bundle for an agent with real work to do. A polished video for a person.</p>
 </div>
 <div class="qc-split three" style="margin-top: 32px">
+<div class="qc-card">
+<span class="eyebrow">QACut</span>
+<h3>Quick shots</h3>
+<p>For one tweak, or three. Drag, note, Enter. Ctrl+Enter puts the path and note on your clipboard, ready to paste into whatever agent you're talking to.</p>
+<pre class="visual qc-bundle"><span class="l">C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png</span>
+The save button is clipped at 125% scaling.
+<span></span>
+<span class="l">C:\Users\nick\QACut\Quick\2026-09-19_101512\02.png</span>
+Toggle animates but the state never saves.</pre>
+<ul class="qc-chips">
+<li>No bundle</li><li>Batch a few, paste once</li><li>Note saved beside each PNG</li>
+</ul>
+</div>
+<div class="qc-card">
+<span class="eyebrow">QACut Bundles</span>
+<h3>Bundles for bigger jobs</h3>
+<p>Group shots by page, note each one, and hand an agent a folder it can work from: a fix list across an app, or a process doc. Auto-capture records you doing it, with a still at every click.</p>
+<pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
+<span></span>
+<span class="h">## 1. Settings page</span>
+<span class="q">&gt; Everything on this page is a bit off</span>
+<span></span>
+<span class="h">### 1.1 Save button</span>
+<span class="l">![1.1](01-settings-page/01.png)</span>
+Clipped at 125% scaling; label wraps.</pre>
+<ul class="qc-chips">
+<li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Brand kit</li><li>ZIP for chat</li>
+</ul>
+</div>
 <div class="qc-card">
 <span class="eyebrow">QACut Studio</span>
 <h3>Polished screen recordings</h3>
@@ -71,35 +100,6 @@ titleTemplate: Screen capture that hands off
 <li>Follow zoom</li><li>Click ripples</li><li>Key badges</li><li>Camera bubble</li><li>Narration</li><li>Title and logo</li><li>Trim and cut</li><li>MP4 export</li>
 </ul>
 </div>
-<div class="qc-card">
-<span class="eyebrow">QACut Bundles</span>
-<h3>Bundles for bigger jobs</h3>
-<p>Group shots by page, note each one, and hand an agent a folder it can work from: a fix list across an app, or a process doc. Auto-capture records you doing it, with a still at every click.</p>
-<pre class="visual qc-bundle"><span class="h"># QA bundle: Settings review</span>
-<span></span>
-<span class="h">## 1. Settings page</span>
-<span class="q">&gt; Everything on this page is a bit off</span>
-<span></span>
-<span class="h">### 1.1 Save button</span>
-<span class="l">![1.1](01-settings-page/01.png)</span>
-Clipped at 125% scaling; label wraps.</pre>
-<ul class="qc-chips">
-<li>Groups and master notes</li><li>Auto-capture</li><li>Markup and blur</li><li>Brand kit</li><li>ZIP for chat</li>
-</ul>
-</div>
-<div class="qc-card">
-<span class="eyebrow">QACut</span>
-<h3>Quick shots</h3>
-<p>For one tweak, or three. Drag, note, Enter. Ctrl+Enter puts the path and note on your clipboard, ready to paste into whatever agent you're talking to.</p>
-<pre class="visual qc-bundle"><span class="l">C:\Users\nick\QACut\Quick\2026-09-19_101512\01.png</span>
-The save button is clipped at 125% scaling.
-<span></span>
-<span class="l">C:\Users\nick\QACut\Quick\2026-09-19_101512\02.png</span>
-Toggle animates but the state never saves.</pre>
-<ul class="qc-chips">
-<li>No bundle</li><li>Batch a few, paste once</li><li>Note saved beside each PNG</li>
-</ul>
-</div>
 </div>
 </section>
 <section>
@@ -109,9 +109,9 @@ Toggle animates but the state never saves.</pre>
 </div>
 <div class="qc-flow">
 <div class="qc-flow-step">
-<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>R</kbd></div>
-<h3>Record</h3>
-<p>Studio. Drag a region, do the thing, press it again.</p>
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>1</kbd></div>
+<h3>Quick shot</h3>
+<p>One shot, one note, Ctrl+Enter, paste.</p>
 </div>
 <svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div class="qc-flow-step">
@@ -121,9 +121,9 @@ Toggle animates but the state never saves.</pre>
 </div>
 <svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div class="qc-flow-step">
-<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>1</kbd></div>
-<h3>Quick shot</h3>
-<p>One shot, one note, Ctrl+Enter, paste.</p>
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>R</kbd></div>
+<h3>Record</h3>
+<p>Studio. Drag a region, do the thing, press it again.</p>
 </div>
 </div>
 </section>

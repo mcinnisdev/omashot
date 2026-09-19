@@ -6,7 +6,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "QACut",
   description:
-    "Screen recordings people will actually watch. Screenshots an AI agent can act on. Free and open source for Windows.",
+    "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows.",
   cleanUrls: true,
   lastUpdated: true,
   head: [
@@ -14,7 +14,7 @@ export default defineConfig({
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:site_name", content: "QACut" }],
     ["meta", { property: "og:title", content: "QACut: screen capture that hands off" }],
-    ["meta", { property: "og:description", content: "Screen recordings people will actually watch. Screenshots an AI agent can act on. Free and open source for Windows." }],
+    ["meta", { property: "og:description", content: "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows." }],
     ["meta", { property: "og:url", content: "https://qacut.com/" }],
     ["meta", { property: "og:image", content: "https://qacut.com/og.png" }],
     ["meta", { property: "og:image:width", content: "1200" }],
@@ -22,7 +22,7 @@ export default defineConfig({
     ["meta", { property: "og:image:alt", content: "QACut: screen capture that hands off" }],
     ["meta", { name: "twitter:card", content: "summary_large_image" }],
     ["meta", { name: "twitter:title", content: "QACut: screen capture that hands off" }],
-    ["meta", { name: "twitter:description", content: "Screen recordings people will actually watch. Screenshots an AI agent can act on. Free and open source for Windows." }],
+    ["meta", { name: "twitter:description", content: "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows." }],
     ["meta", { name: "twitter:image", content: "https://qacut.com/og.png" }],
   ],
   themeConfig: {
@@ -32,9 +32,9 @@ export default defineConfig({
       {
         text: "Use cases",
         items: [
-          { text: "QACut Studio: recordings for people", link: "/use-cases/studio" },
-          { text: "QACut Bundles: bigger jobs for your agent", link: "/use-cases/bundles" },
           { text: "QACut: quick shots for your agent", link: "/use-cases/quick-shots" },
+          { text: "QACut Bundles: bigger jobs for your agent", link: "/use-cases/bundles" },
+          { text: "QACut Studio: recordings for people", link: "/use-cases/studio" },
         ],
       },
       { text: "Docs", link: "/docs/getting-started" },
@@ -46,9 +46,9 @@ export default defineConfig({
         {
           text: "Use cases",
           items: [
-            { text: "QACut Studio", link: "/use-cases/studio" },
-            { text: "QACut Bundles", link: "/use-cases/bundles" },
             { text: "QACut", link: "/use-cases/quick-shots" },
+            { text: "QACut Bundles", link: "/use-cases/bundles" },
+            { text: "QACut Studio", link: "/use-cases/studio" },
           ],
         },
       ],
@@ -61,8 +61,8 @@ export default defineConfig({
           ],
         },
         {
-          text: "QACut Studio",
-          items: [{ text: "Polished screen recordings", link: "/docs/studio" }],
+          text: "QACut",
+          items: [{ text: "Quick shots", link: "/docs/quick" }],
         },
         {
           text: "QACut Bundles",
@@ -72,8 +72,8 @@ export default defineConfig({
           ],
         },
         {
-          text: "QACut",
-          items: [{ text: "Quick shots", link: "/docs/quick" }],
+          text: "QACut Studio",
+          items: [{ text: "Polished screen recordings", link: "/docs/studio" }],
         },
       ],
     },

@@ -4,9 +4,9 @@ A bundle is a folder: screenshots and clips in groups, a note on each, and a mar
 
 ## Quick shots
 
-Not everything needs a bundle. `Ctrl+Shift+1` freezes the screen, you drag a region and type a note, and `Enter` puts the screenshot's path and your note on the clipboard, ready to paste into an agent with whatever else you want to say. The file lands in `~/QACut/Quick/<today>/` with the note beside it as a small markdown file, and the day's `notes.md` lists every shot.
+Not everything needs a bundle. `Ctrl+Shift+1` freezes the screen, you drag a region and type a note, and `Enter` puts the screenshot's path and your note on the clipboard, ready to paste into an agent with whatever else you want to say. The file lands in a batch folder under `~/QACut/Quick/`, named for when the batch started, with the note beside it as a small markdown file and a `notes.md` listing every shot in the batch.
 
-Take a few in a row: from the second shot on, the note box offers **Copy all of today** (or `Ctrl+Enter`), which copies every shot from today with its note, plus the folder path, in one paste. Use quick shots for one-off fixes and short sessions; use a bundle when there are enough shots across enough pages that an agent needs the structure to keep them straight.
+Take a few in a row: from the second shot on, the note box offers **Copy batch** (or `Ctrl+Enter`), which copies every shot in the batch with its note, plus the folder path, in one paste. Copying the batch closes it, so the next quick shot starts a fresh folder and an agent is never pointed at shots you have already dealt with. **New batch** moves the shot you are noting into a fresh folder without copying the old one. Use quick shots for one-off fixes and short sessions; use a bundle when there are enough shots across enough pages that an agent needs the structure to keep them straight.
 
 ## Capturing
 

@@ -22,7 +22,7 @@ All of these can be changed: **Keyboard shortcutsâ€¦** in the tray, or **Help â†
 | --- | --- |
 | `Enter` | Save |
 | `Shift+Enter` | New line |
-| `Ctrl+Enter` | Quick shot: copy every shot from today, not just this one |
+| `Ctrl+Enter` | Quick shot: copy the whole batch, not just this shot, and close the batch |
 | `Esc` | Keep the screenshot with no note; cancel a group wrap-up |
 
 ## In the capture overlay

@@ -16,6 +16,7 @@ const note = document.getElementById("note") as HTMLTextAreaElement;
 const secondary = document.getElementById("secondary") as HTMLButtonElement;
 const keysHint = document.getElementById("keys") as HTMLSpanElement;
 const copyAll = document.getElementById("copy-all") as HTMLButtonElement;
+const newBatch = document.getElementById("new-batch") as HTMLButtonElement;
 
 let done = false;
 
@@ -34,9 +35,10 @@ async function boot() {
     note.placeholder = "What is happening in this clip?";
     secondary.textContent = "Discard clip";
   } else if (isQuick) {
-    // No bundle, no group: the shot is already saved under Quick/<today>.
-    // Enter copies its path and note; Ctrl+Enter copies every shot from
-    // today so a handful can be pasted in one go.
+    // No bundle, no group: the shot is already saved in the current batch
+    // folder under Quick/. Enter copies its path and note; Copy batch (or
+    // Ctrl+Enter) copies every shot in the batch and closes it, so the next
+    // quick shot starts a fresh folder.
     label.textContent = "Quick shot";
     sep.hidden = true;
     groupTitle.hidden = true;
@@ -45,14 +47,7 @@ async function boot() {
     secondary.textContent = "Discard shot";
     keysHint.innerHTML = "<kbd>Enter</kbd> copy path + note <kbd>Shift</kbd>+<kbd>Enter</kbd> new line";
     note.focus();
-    // A second and later shot today gets a way to paste the whole batch.
-    const n = await invoke<number>("quick_count");
-    label.textContent = `Quick shot ${String(n).padStart(2, "0")}`;
-    if (n > 1) {
-      copyAll.hidden = false;
-      copyAll.textContent = `Copy all of today (${n})`;
-      keysHint.innerHTML += " <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copy all";
-    }
+    showBatch(await invoke<number>("quick_count"));
     return;
   } else {
     label.textContent = "Note";
@@ -97,6 +92,25 @@ async function saveGroup() {
     title: groupTitle.value,
     masterNote: note.value,
   });
+}
+
+function showBatch(n: number) {
+  label.textContent = n > 1 ? `Quick shot ${String(n).padStart(2, "0")} in this batch` : "Quick shot";
+  copyAll.hidden = n < 2;
+  newBatch.hidden = n < 2;
+  copyAll.textContent = `Copy batch (${n})`;
+  keysHint.innerHTML =
+    "<kbd>Enter</kbd> copy this shot <kbd>Shift</kbd>+<kbd>Enter</kbd> new line" +
+    (n > 1 ? " <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copy batch" : "");
+}
+
+async function startNewBatch() {
+  try {
+    showBatch(await invoke<number>("quick_new_batch"));
+    note.focus();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 async function saveQuick(all: boolean) {
@@ -145,5 +159,6 @@ shotTitle.addEventListener("keydown", keys);
 note.addEventListener("keydown", keys);
 secondary.addEventListener("click", () => void bail());
 copyAll.addEventListener("click", () => void commit(true));
+newBatch.addEventListener("click", () => void startNewBatch());
 
 boot();

@@ -42,6 +42,10 @@ struct Inner {
     pending: Option<(usize, String)>,
     /// A quick shot (outside any bundle) awaiting its note.
     quick_pending: Option<std::path::PathBuf>,
+    /// The folder the current batch of quick shots is going into. A batch
+    /// closes when it is copied as a whole, so the next shot starts a new
+    /// folder and an agent is never pointed at shots already dealt with.
+    quick_batch: Option<std::path::PathBuf>,
     /// A recording in progress and the shot it will fill in.
     recording: Option<(capture::Recording, usize, String)>,
     /// Set while the pre-recording countdown runs; storing true cancels it.
@@ -236,10 +240,45 @@ fn trigger_quick(app: &AppHandle) {
     open_overlay(app, "quick");
 }
 
-fn quick_dir(app: &AppHandle) -> std::path::PathBuf {
-    base_dir(app)
+/// The current batch folder, starting one (named for the moment it began)
+/// if there is none.
+fn quick_batch_dir(app: &AppHandle, inner: &mut Inner) -> std::path::PathBuf {
+    if let Some(d) = &inner.quick_batch {
+        if d.is_dir() {
+            return d.clone();
+        }
+    }
+    let dir = base_dir(app)
         .join("Quick")
-        .join(chrono::Local::now().format("%Y-%m-%d").to_string())
+        .join(chrono::Local::now().format("%Y-%m-%d_%H%M%S").to_string());
+    inner.quick_batch = Some(dir.clone());
+    dir
+}
+
+/// Next free NN in a batch folder.
+fn quick_next(dir: &std::path::Path) -> usize {
+    std::fs::read_dir(dir)
+        .map(|rd| {
+            rd.filter_map(|e| e.ok())
+                .filter_map(|e| e.file_name().to_string_lossy().split('.').next()?.parse::<usize>().ok())
+                .max()
+                .unwrap_or(0)
+        })
+        .unwrap_or(0)
+        + 1
+}
+
+fn quick_pngs(dir: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut pngs: Vec<std::path::PathBuf> = std::fs::read_dir(dir)
+        .map(|rd| {
+            rd.filter_map(|e| e.ok())
+                .map(|e| e.path())
+                .filter(|p| p.extension().map(|x| x == "png").unwrap_or(false))
+                .collect()
+        })
+        .unwrap_or_default();
+    pngs.sort();
+    pngs
 }
 
 /// Toggles: starts a recording via the overlay, cancels a countdown, or
@@ -1636,17 +1675,9 @@ async fn commit_quick(
             .map(|(f, i)| (f.clone(), i.clone()))
             .ok_or_else(|| "that monitor is no longer frozen".to_string())?;
 
-        let dir = quick_dir(&app);
+        let dir = quick_batch_dir(&app, &mut inner);
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-        let highest = std::fs::read_dir(&dir)
-            .map(|rd| {
-                rd.filter_map(|e| e.ok())
-                    .filter_map(|e| e.file_name().to_string_lossy().split('.').next()?.parse::<usize>().ok())
-                    .max()
-                    .unwrap_or(0)
-            })
-            .unwrap_or(0);
-        let abs = dir.join(format!("{:02}.png", highest + 1));
+        let abs = dir.join(format!("{:02}.png", quick_next(&dir)));
         capture::crop_selection(&frame, &image, x, y, width, height, &abs).map_err(|e| e.to_string())?;
 
         inner.quick_pending = Some(abs);
@@ -1692,7 +1723,7 @@ async fn save_quick(
 
     let index = dir.join("notes.md");
     let mut body = std::fs::read_to_string(&index).unwrap_or_else(|_| {
-        format!("# Quick shots, {}\n", chrono::Local::now().format("%Y-%m-%d"))
+        format!("# Quick shots, {}\n", chrono::Local::now().format("%Y-%m-%d %H:%M"))
     });
     body.push_str(&format!(
         "\n## {file} ({})\n\n{}\n",
@@ -1702,15 +1733,10 @@ async fn save_quick(
     std::fs::write(&index, body).map_err(|e| e.to_string())?;
 
     let text = if all {
-        let mut pngs: Vec<std::path::PathBuf> = std::fs::read_dir(&dir)
-            .map(|rd| {
-                rd.filter_map(|e| e.ok())
-                    .map(|e| e.path())
-                    .filter(|p| p.extension().map(|x| x == "png").unwrap_or(false))
-                    .collect()
-            })
-            .unwrap_or_default();
-        pngs.sort();
+        // Handing the batch off closes it: the next quick shot starts a
+        // fresh folder.
+        state.lock().unwrap().quick_batch = None;
+        let pngs = quick_pngs(&dir);
         let entries = pngs
             .iter()
             .map(|p| {
@@ -1744,16 +1770,32 @@ async fn discard_quick(app: AppHandle, state: State<'_, Shared>) -> Result<(), S
     Ok(())
 }
 
-/// How many quick shots today's folder holds, the pending one included.
+/// How many quick shots the current batch holds, the pending one included.
 #[tauri::command]
-fn quick_count(app: AppHandle) -> usize {
-    std::fs::read_dir(quick_dir(&app))
-        .map(|rd| {
-            rd.filter_map(|e| e.ok())
-                .filter(|e| e.path().extension().map(|x| x == "png").unwrap_or(false))
-                .count()
-        })
+fn quick_count(state: State<Shared>) -> usize {
+    let inner = state.lock().unwrap();
+    inner
+        .quick_batch
+        .as_ref()
+        .map(|d| quick_pngs(d).len())
         .unwrap_or(0)
+}
+
+/// Moves the pending quick shot out of the current batch into a fresh one,
+/// so it becomes shot 01 of a new folder. The old batch is left as it is.
+#[tauri::command]
+fn quick_new_batch(app: AppHandle, state: State<Shared>) -> Result<usize, String> {
+    let mut inner = state.lock().unwrap();
+    let Some(old) = inner.quick_pending.clone() else {
+        return Err("no quick shot is waiting".into());
+    };
+    inner.quick_batch = None;
+    let dir = quick_batch_dir(&app, &mut inner);
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let new = dir.join("01.png");
+    std::fs::rename(&old, &new).map_err(|e| e.to_string())?;
+    inner.quick_pending = Some(new);
+    Ok(1)
 }
 
 #[tauri::command]
@@ -1841,6 +1883,7 @@ fn main() {
             discard_quick,
             start_quick,
             quick_count,
+            quick_new_batch,
             start_recording,
             stop_recording,
             start_studio,

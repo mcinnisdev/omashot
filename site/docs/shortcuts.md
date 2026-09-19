@@ -6,15 +6,16 @@ All of these can be changed: **Keyboard shortcutsâ€¦** in the tray, or **Help â†
 
 | Default | Does |
 | --- | --- |
-| `Ctrl+Shift+1` | Quick shot: capture a region, note it, `Enter` copies the batch's paths and notes |
+| `Ctrl+Shift+1` | Quick shot: capture a region and note it; `Enter` keeps the batch open |
+| none | Finish the quick batch and copy its paths and notes (tray item; bind a key if you want one) |
 | `Ctrl+Shift+2` | Capture a region and note it |
-| `Ctrl+Shift+R` | Auto-capture a region; again to stop |
+| `Ctrl+Shift+3` | Auto-capture a region; again to stop |
 | `Ctrl+Shift+G` | Wrap up the current group with a master note |
 | `Ctrl+Shift+Q` | Show or hide the bundle window |
 | `Ctrl+Shift+Enter` | Write the bundle and copy the folder path |
 | `Ctrl+Shift+N` | Start a new bundle |
-| `Ctrl+Shift+3` | Studio recording; again to stop |
-| `Ctrl+Shift+Z` | During a Studio recording: zoom in here, again to zoom out |
+| `Ctrl+Shift+R` | Studio recording; again to stop |
+| `Ctrl+Space` | During a Studio recording: zoom in here, again to zoom out. Only registered while a recording runs, so editors keep it the rest of the time |
 
 ## In the note box
 
@@ -22,6 +23,7 @@ All of these can be changed: **Keyboard shortcutsâ€¦** in the tray, or **Help â†
 | --- | --- |
 | `Enter` | Save |
 | `Shift+Enter` | New line |
+| `Ctrl+Enter` | Quick shot: finish the batch, copying every shot's path and note |
 | `Esc` | Keep the screenshot with no note; cancel a group wrap-up |
 
 ## In the capture overlay

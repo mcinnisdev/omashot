@@ -6,11 +6,11 @@ QACut Studio records a source, then renders a finished video from it. The cursor
 
 Turn on what you want in the tray's Studio section: **Capture keystrokes**, **Record microphone**, **Record camera**. They stay on until you turn them off.
 
-`Ctrl+Shift+3` opens the overlay. Drag the region, pull its edges to adjust, press **Record** or `Enter`. The badge counts down from three, then shows REC and the time. Everything outside the region stays tinted so you can tell when something has drifted out of shot. Your camera preview sits in a corner.
+`Ctrl+Shift+R` opens the overlay. Drag the region, pull its edges to adjust, press **Record** or `Enter`. The badge counts down from three, then shows REC and the time. Everything outside the region stays tinted so you can tell when something has drifted out of shot. Your camera preview sits in a corner.
 
-`Ctrl+Shift+Z` marks a zoom: the view will push in on wherever the cursor is at that moment. Press it again to zoom out. Marks become editable blocks in the studio.
+`Ctrl+Space` marks a zoom: the view will push in on wherever the cursor is at that moment. Press it again to zoom out. Marks become editable blocks in the studio. The key is only taken over while a recording runs, so your editor keeps it otherwise.
 
-`Ctrl+Shift+3` stops. The studio opens on the recording.
+`Ctrl+Shift+R` stops. The studio opens on the recording.
 
 ## The studio
 

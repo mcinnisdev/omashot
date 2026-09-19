@@ -22,9 +22,9 @@ Both put their files under `~/QACut/`. Everything is plain files you can open, m
 
 ## Your first Studio recording
 
-1. Press `Ctrl+Shift+3`, drag the region to record, adjust its edges, and press **Record**. A three-second countdown lets you get in place.
-2. Do the thing. Press `Ctrl+Shift+Z` to zoom in where the cursor is, and again to zoom out.
-3. Press `Ctrl+Shift+3` to stop. The studio opens on the recording.
+1. Press `Ctrl+Shift+R`, drag the region to record, adjust its edges, and press **Record**. A three-second countdown lets you get in place.
+2. Do the thing. Press `Ctrl+Space` to zoom in where the cursor is, and again to zoom out.
+3. Press `Ctrl+Shift+R` to stop. The studio opens on the recording.
 4. Trim, adjust the zooms, add a title, and press **Export…**.
 
 Turn on the microphone and camera toggles in the tray's Studio section first if you want narration and a camera bubble.
@@ -38,7 +38,7 @@ Turn on the microphone and camera toggles in the tray's Studio section first if 
 
 Point an agent at the folder, or use **Copy agent prompt** in the bundle window for a ready-made instruction.
 
-For a one-off, skip the bundle: `Ctrl+Shift+1` takes a quick shot, and `Enter` on its note copies the screenshot's path and the note, ready to paste.
+For a one-off, skip the bundle: `Ctrl+Shift+1` takes a quick shot, and `Ctrl+Enter` on its note copies the screenshot's path and the note, ready to paste. Plain `Enter` saves and lets you take more before you send them together.
 
 ## Where things go
 

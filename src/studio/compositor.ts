@@ -54,6 +54,8 @@ export function buildTrack(project: Project, events: Events, edits: Edits): Trac
 /// the studio at start-up; the defaults cover a recording made before the
 /// user changed anything.
 let OWN_HOTKEYS = new Set([
+  "Ctrl+Shift+1",
+  "Ctrl+Space",
   "Ctrl+Shift+2",
   "Ctrl+Shift+3",
   "Ctrl+Shift+R",

@@ -28,7 +28,7 @@ titleTemplate: Screen capture that hands off
 </div>
 <div class="ripple"></div>
 <svg class="cursor" viewBox="0 0 20 20" aria-hidden="true"><path d="M0 0v16l4.2-3.4L7.2 19l3-1.3-2.9-6.3h5.1z" fill="#fff" stroke="rgba(0,0,0,.9)" stroke-width="1.3" stroke-linejoin="round"/></svg>
-<div class="keys">Ctrl+Shift+3</div>
+<div class="keys">Ctrl+Shift+R</div>
 <div class="cam"></div>
 </div>
 </section>
@@ -53,7 +53,7 @@ titleTemplate: Screen capture that hands off
 </div>
 <div class="ripple"></div>
 <svg class="cursor" viewBox="0 0 20 20"><path d="M0 0v16l4.2-3.4L7.2 19l3-1.3-2.9-6.3h5.1z" fill="#fff" stroke="rgba(0,0,0,.9)" stroke-width="1.3" stroke-linejoin="round"/></svg>
-<div class="keys">Ctrl+Shift+Z</div>
+<div class="keys">Ctrl+Space</div>
 <div class="cam"></div>
 </div>
 <div class="visual qc-timeline" aria-label="A studio timeline with zoom blocks, a cut, click and key markers">
@@ -96,13 +96,13 @@ Clipped at 125% scaling; label wraps.</pre>
 </div>
 <div class="qc-flow">
 <div class="qc-flow-step">
-<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>3</kbd></div>
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>R</kbd></div>
 <h3>Record</h3>
 <p>Drag a region. Do the thing. Press it again to stop.</p>
 </div>
 <svg class="qc-flow-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 <div class="qc-flow-step">
-<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Shift</kbd><i>+</i><kbd>Z</kbd></div>
+<div class="caps"><kbd>Ctrl</kbd><i>+</i><kbd>Space</kbd></div>
 <h3>Zoom</h3>
 <p>Push in where the work is, while you record.</p>
 </div>

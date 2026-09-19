@@ -15,7 +15,7 @@ const groupHint = document.getElementById("group-hint") as HTMLParagraphElement;
 const note = document.getElementById("note") as HTMLTextAreaElement;
 const secondary = document.getElementById("secondary") as HTMLButtonElement;
 const keysHint = document.getElementById("keys") as HTMLSpanElement;
-const addBatch = document.getElementById("add-batch") as HTMLButtonElement;
+const finishBatch = document.getElementById("finish-batch") as HTMLButtonElement;
 const newBatch = document.getElementById("new-batch") as HTMLButtonElement;
 
 let done = false;
@@ -36,10 +36,10 @@ async function boot() {
     secondary.textContent = "Discard clip";
   } else if (isQuick) {
     // No bundle, no group: the shot is already saved in the current batch
-    // folder under Quick/. Enter hands off: it copies every shot in the
-    // batch (this one included) and closes the batch, so the next quick
-    // shot starts a fresh folder. "Add to batch" saves this one, copies
-    // just it, and keeps the batch open for more.
+    // folder under Quick/. Enter saves the note and keeps the batch open,
+    // so the flow is shoot, note, Enter, repeat. Ctrl+Enter (or Finish
+    // batch) copies every shot's path and note and closes the batch, so
+    // the next quick shot starts a fresh folder.
     label.textContent = "Quick shot";
     sep.hidden = true;
     groupTitle.hidden = true;
@@ -113,15 +113,15 @@ let quickKey = "Ctrl+Shift+1";
 
 function showBatch(n: number) {
   label.textContent = n > 1 ? `Quick shot ${String(n).padStart(2, "0")} in this batch` : "Quick shot";
-  addBatch.hidden = false;
+  finishBatch.hidden = false;
+  finishBatch.textContent = n > 1 ? `Finish batch (${n})` : "Finish batch";
   newBatch.hidden = n < 2;
-  keysHint.innerHTML =
-    n > 1 ? `<kbd>Enter</kbd> copy all ${n} shots` : "<kbd>Enter</kbd> copy path + note";
+  keysHint.innerHTML = "<kbd>Enter</kbd> save <kbd>Ctrl</kbd>+<kbd>Enter</kbd> finish batch";
   groupHint.hidden = false;
   groupHint.textContent =
     n > 1
-      ? `Enter pastes all ${n} shots with their notes and closes the batch. Add to batch keeps it open for more.`
-      : `Enter copies this shot's path and note, ready to paste. To send a few together, use Add to batch, take more with ${quickKey}, and press Enter on the last one.`;
+      ? `Enter saves this note and keeps the batch open. Ctrl+Enter copies all ${n} shots with their notes, ready to paste, and closes the batch.`
+      : `Enter saves the note; take more with ${quickKey}. Ctrl+Enter copies every shot's path and note, ready to paste, and closes the batch.`;
 }
 
 async function startNewBatch() {
@@ -161,7 +161,8 @@ async function bail() {
 function keys(e: KeyboardEvent) {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
-    void commit();
+    // Quick shots: plain Enter keeps the batch open; Ctrl+Enter finishes it.
+    void commit(isQuick && !(e.ctrlKey || e.metaKey));
     return;
   }
   if (e.key === "Escape") {
@@ -170,7 +171,7 @@ function keys(e: KeyboardEvent) {
     // the fast path when the picture already says it. Esc on a group prompt
     // abandons the group, since nothing has been created yet.
     if (isGroup) void bail();
-    else void commit();
+    else void commit(isQuick);
   }
 }
 
@@ -178,7 +179,7 @@ groupTitle.addEventListener("keydown", keys);
 shotTitle.addEventListener("keydown", keys);
 note.addEventListener("keydown", keys);
 secondary.addEventListener("click", () => void bail());
-addBatch.addEventListener("click", () => void commit(true));
+finishBatch.addEventListener("click", () => void commit(false));
 newBatch.addEventListener("click", () => void startNewBatch());
 
 boot();

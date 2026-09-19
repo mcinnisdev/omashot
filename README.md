@@ -23,15 +23,15 @@ Windows, macOS and Linux; the Studio's capture is Windows only for now.
 
 | Key | Does |
 | --- | --- |
-| `Ctrl/Cmd + Shift + 1` | Quick shot: drag a region, type a note, and the path plus note land on the clipboard; no bundle |
+| `Ctrl/Cmd + Shift + 1` | Quick shot: drag a region, type a note, `Enter`; no bundle. `Ctrl + Enter` on a note copies every shot's path and note in the batch |
 | `Ctrl/Cmd + Shift + 2` | Freeze the screen, drag a region, then type a note |
-| `Ctrl/Cmd + Shift + R` | Auto-capture: drag a region, adjust it, Record; press again to stop, then type a note |
+| `Ctrl/Cmd + Shift + 3` | Auto-capture: drag a region, adjust it, Record; press again to stop, then type a note |
 | `Ctrl/Cmd + Shift + G` | Wrap up the current group with a master note and start the next |
 | `Ctrl/Cmd + Shift + Q` | Show or hide the current bundle |
 | `Ctrl/Cmd + Shift + Enter` | Write the bundle, copy the folder path, show the result |
 | `Ctrl/Cmd + Shift + N` | Start a new bundle and open the window to name it and its first group |
-| `Ctrl/Cmd + Shift + 3` | QACut Studio: record a source for the studio; press again to stop |
-| `Ctrl/Cmd + Shift + Z` | During a Studio recording: zoom in here / zoom out (a mark the studio turns into an editable zoom) |
+| `Ctrl/Cmd + Shift + R` | QACut Studio: record a source for the studio; press again to stop |
+| `Ctrl/Cmd + Space` | During a Studio recording only: zoom in here / zoom out (a mark the studio turns into an editable zoom) |
 
 Inside the note box: `Enter` saves, `Shift + Enter` adds a line, `Esc` keeps
 the screenshot with no note. The header reads "Group 1 / Shot 1"; click either
@@ -83,7 +83,7 @@ appended so the agent can always find the folder.
 
 QACut Studio is the second half of the app: recordings meant to be watched
 by a person, polished afterwards. It has its own section in the tray menu.
-`Ctrl+Shift+3` records a *source* for the studio instead of a GIF: the whole
+`Ctrl+Shift+R` records a *source* for the studio instead of a GIF: the whole
 monitor under the region at up to 60 fps into a high-bitrate H.264 MP4 with
 the cursor hidden, plus `events.json` with the cursor path at 120 Hz, cursor
 shapes, clicks, keystrokes (opt-in) and foreground window titles, all on the

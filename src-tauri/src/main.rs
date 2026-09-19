@@ -59,6 +59,11 @@ struct Inner {
     export: Option<(std::path::PathBuf, std::fs::File)>,
     /// Registered shortcuts, canonical spelling to action.
     hotkeys: Vec<Binding>,
+    /// The zoom chord from settings. It is only registered while a Studio
+    /// recording runs (see `arm_zoom_key`), so a default like Ctrl+Space
+    /// does not take the key away from editors the rest of the time.
+    zoom_spec: Option<String>,
+    zoom_armed: Option<Shortcut>,
     /// True when the session has changed since it was last written out, so
     /// "New bundle" knows whether there is anything to save first.
     dirty: bool,
@@ -323,6 +328,7 @@ fn finish_studio(app: &AppHandle) {
     let Some(active) = state.lock().unwrap().studio.take() else {
         return;
     };
+    disarm_zoom_key(app);
     match active.stop() {
         Ok(finishing) => {
             state.lock().unwrap().studio_finishing = Some(finishing);
@@ -501,6 +507,7 @@ fn trigger_finish(app: &AppHandle) {
 fn action_for(id: &str) -> Option<fn(&AppHandle)> {
     Some(match id {
         "quick" => trigger_quick,
+        "quick_finish" => trigger_quick_finish,
         "capture" => trigger_capture,
         "record" => trigger_record,
         "studio" => trigger_studio,
@@ -519,9 +526,14 @@ fn apply_hotkeys(app: &AppHandle, hk: &studio::settings::Hotkeys) -> Vec<String>
     let mut problems = Vec::new();
     let mut registered = Vec::new();
     let _ = app.global_shortcut().unregister_all();
+    let mut zoom_spec = None;
     for (id, spec) in hk.entries() {
         let spec = spec.trim();
         if spec.is_empty() {
+            continue;
+        }
+        if id == "zoom" {
+            zoom_spec = Some(spec.to_string());
             continue;
         }
         let Some(action) = action_for(id) else { continue };
@@ -540,8 +552,54 @@ fn apply_hotkeys(app: &AppHandle, hk: &studio::settings::Hotkeys) -> Vec<String>
         }
     }
     let state: State<Shared> = app.state();
-    state.lock().unwrap().hotkeys = registered;
+    let recording = {
+        let mut inner = state.lock().unwrap();
+        inner.hotkeys = registered;
+        inner.zoom_spec = zoom_spec;
+        inner.zoom_armed = None;
+        inner.studio.is_some()
+    };
+    if recording {
+        arm_zoom_key(app);
+    }
     problems
+}
+
+/// Registers the zoom chord for the duration of a Studio recording.
+fn arm_zoom_key(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let spec = {
+        let inner = state.lock().unwrap();
+        if inner.zoom_armed.is_some() {
+            return;
+        }
+        inner.zoom_spec.clone()
+    };
+    let Some(spec) = spec else { return };
+    let sc = match Shortcut::from_str(&spec) {
+        Ok(sc) => sc,
+        Err(e) => {
+            eprintln!("qacut: zoom hotkey {spec} is not valid ({e})");
+            return;
+        }
+    };
+    if let Err(e) = app.global_shortcut().register(sc) {
+        eprintln!("qacut: zoom hotkey {spec} is taken by something else ({e})");
+        return;
+    }
+    let mut inner = state.lock().unwrap();
+    inner.hotkeys.push((sc.to_string(), trigger_zoom_mark));
+    inner.zoom_armed = Some(sc);
+}
+
+/// Releases the zoom chord when the recording ends.
+fn disarm_zoom_key(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let sc = state.lock().unwrap().zoom_armed.take();
+    let Some(sc) = sc else { return };
+    let _ = app.global_shortcut().unregister(sc);
+    let key = sc.to_string();
+    state.lock().unwrap().hotkeys.retain(|(s, _)| *s != key);
 }
 
 /// The tray menu, built from settings so accelerator labels and toggles
@@ -554,35 +612,42 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
 
     let head_qacut = MenuItem::with_id(app, "h1", "QACut", false, None::<&str>)?;
     let quick_i = MenuItem::with_id(app, "quick", "Quick shot", true, acc(&hk.quick))?;
-    let capture_i = MenuItem::with_id(app, "capture", "Capture region", true, acc(&hk.capture))?;
-    let record_i = MenuItem::with_id(app, "record", "Auto-capture region / stop", true, acc(&hk.record))?;
-    let group_i = MenuItem::with_id(app, "group", "Wrap up group", true, acc(&hk.group))?;
-    let peek_i = MenuItem::with_id(app, "peek", "Show bundle", true, acc(&hk.peek))?;
-    let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, acc(&hk.finish))?;
+    let quick_finish_i =
+        MenuItem::with_id(app, "quick_finish", "Finish quick batch and copy paths", true, acc(&hk.quick_finish))?;
+    let capture_i = MenuItem::with_id(app, "capture", "Capture", true, acc(&hk.capture))?;
+    let record_i = MenuItem::with_id(app, "record", "Auto-capture start / stop", true, acc(&hk.record))?;
+    let group_i = MenuItem::with_id(app, "group", "New group", true, acc(&hk.group))?;
+    let peek_i = MenuItem::with_id(app, "peek", "View / edit bundle", true, acc(&hk.peek))?;
     let new_i = MenuItem::with_id(app, "new", "New bundle", true, acc(&hk.new))?;
+    let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, acc(&hk.finish))?;
     let folder_i = MenuItem::with_id(app, "folder", "Open QACut folder", true, None::<&str>)?;
 
     let head_studio = MenuItem::with_id(app, "h2", "QACut Studio", false, None::<&str>)?;
-    let studio_i = MenuItem::with_id(app, "studio", "Studio recording / stop", true, acc(&hk.studio))?;
-    let zoom_i = MenuItem::with_id(app, "zoom", "Zoom in here / zoom out (while recording)", true, acc(&hk.zoom))?;
-    let keys_i = CheckMenuItem::with_id(app, "st_keys", "Capture keystrokes", true, st.keystrokes, None::<&str>)?;
-    let mic_i = CheckMenuItem::with_id(app, "st_mic", "Record microphone", true, st.mic, None::<&str>)?;
-    let cam_i = CheckMenuItem::with_id(app, "st_cam", "Record camera", true, st.camera, None::<&str>)?;
     let open_studio_i = MenuItem::with_id(app, "open_studio", "Open Studio", true, None::<&str>)?;
+    let studio_i = MenuItem::with_id(app, "studio", "Record start / stop", true, acc(&hk.studio))?;
+    let zoom_i = MenuItem::with_id(app, "zoom", "Zoom start / end (while recording)", true, acc(&hk.zoom))?;
+    let head_inputs = MenuItem::with_id(app, "h3", "Enable inputs", false, None::<&str>)?;
+    let keys_i = CheckMenuItem::with_id(app, "st_keys", "Capture keystrokes", true, st.keystrokes, None::<&str>)?;
+    let mic_i = CheckMenuItem::with_id(app, "st_mic", "Microphone", true, st.mic, None::<&str>)?;
+    let cam_i = CheckMenuItem::with_id(app, "st_cam", "Camera", true, st.camera, None::<&str>)?;
     let studio_folder_i = MenuItem::with_id(app, "studio_folder", "Open Studio folder", true, None::<&str>)?;
 
     let shortcuts_i = MenuItem::with_id(app, "shortcuts", "Keyboard shortcuts...", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
+    let sep_quick = PredefinedMenuItem::separator(app)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
+    let sep_inputs = PredefinedMenuItem::separator(app)?;
     let sep2 = PredefinedMenuItem::separator(app)?;
     Menu::with_items(
         app,
         &[
-            &head_qacut, &quick_i, &peek_i, &new_i, &capture_i, &record_i, &group_i, &finish_i,
-            &folder_i,
+            &head_qacut, &quick_i, &quick_finish_i,
+            &sep_quick,
+            &capture_i, &record_i, &group_i, &peek_i, &new_i, &finish_i, &folder_i,
             &sep1,
-            &head_studio, &open_studio_i, &studio_i, &zoom_i, &keys_i, &mic_i, &cam_i,
-            &studio_folder_i,
+            &head_studio, &open_studio_i, &studio_i, &zoom_i,
+            &sep_inputs,
+            &head_inputs, &keys_i, &mic_i, &cam_i, &studio_folder_i,
             &sep2,
             &shortcuts_i, &quit_i,
         ],
@@ -982,6 +1047,7 @@ async fn start_studio(
             }
         }
     }
+    arm_zoom_key(&app);
     let _ = app.emit("recording-started", ());
     Ok(())
 }
@@ -1689,6 +1755,51 @@ async fn commit_quick(
     overlay::open_note(&app, "quick", Some(anchor)).map_err(|e| e.to_string())
 }
 
+/// The whole batch as one paste: a line naming the folder, then an entry
+/// per shot. Closing the batch is the caller's job.
+fn quick_batch_text(dir: &std::path::Path) -> String {
+    let pngs = quick_pngs(dir);
+    let entries = pngs
+        .iter()
+        .map(|p| {
+            let n = std::fs::read_to_string(p.with_extension("md")).unwrap_or_default();
+            quick_entry(p, &n)
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n");
+    format!(
+        "{} quick shots in {}. Each PNG has its note in the .md beside it; notes.md lists them all.\n\n{}",
+        pngs.len(),
+        dir.display(),
+        entries
+    )
+}
+
+/// Hotkey and tray: copy the open quick batch and close it. Does nothing
+/// when there is no batch, or while a shot is still waiting for its note.
+fn trigger_quick_finish(app: &AppHandle) {
+    let state: State<Shared> = app.state();
+    let dir = {
+        let mut inner = state.lock().unwrap();
+        if inner.quick_pending.is_some() {
+            return;
+        }
+        inner.quick_batch.take()
+    };
+    let Some(dir) = dir else {
+        eprintln!("qacut: no quick batch to finish");
+        return;
+    };
+    if let Err(e) = app.clipboard().write_text(quick_batch_text(&dir)) {
+        eprintln!("qacut: could not copy the quick batch: {e}");
+    }
+}
+
+#[tauri::command]
+async fn quick_finish(app: AppHandle) {
+    trigger_quick_finish(&app);
+}
+
 /// One clipboard entry for a quick shot: the path, then the note if any.
 fn quick_entry(png: &std::path::Path, note: &str) -> String {
     let note = note.trim();
@@ -1736,21 +1847,7 @@ async fn save_quick(
         // Handing the batch off closes it: the next quick shot starts a
         // fresh folder.
         state.lock().unwrap().quick_batch = None;
-        let pngs = quick_pngs(&dir);
-        let entries = pngs
-            .iter()
-            .map(|p| {
-                let n = std::fs::read_to_string(p.with_extension("md")).unwrap_or_default();
-                quick_entry(p, &n)
-            })
-            .collect::<Vec<_>>()
-            .join("\n\n");
-        format!(
-            "{} quick shots in {}. Each PNG has its note in the .md beside it; notes.md lists them all.\n\n{}",
-            pngs.len(),
-            dir.display(),
-            entries
-        )
+        quick_batch_text(&dir)
     } else {
         quick_entry(&path, &note)
     };
@@ -1884,6 +1981,7 @@ fn main() {
             start_quick,
             quick_count,
             quick_new_batch,
+            quick_finish,
             start_recording,
             stop_recording,
             start_studio,
@@ -1957,6 +2055,7 @@ fn main() {
                 .show_menu_on_left_click(true)
                 .on_menu_event(|app, event| match event.id().as_ref() {
                     "quick" => off_main(app, trigger_quick),
+                    "quick_finish" => off_main(app, trigger_quick_finish),
                     "capture" => off_main(app, trigger_capture),
                     "record" => off_main(app, trigger_record),
                     "studio" => off_main(app, trigger_studio),

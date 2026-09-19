@@ -4,15 +4,15 @@ A bundle is a folder: screenshots and clips in groups, a note on each, and a mar
 
 ## Quick shots
 
-Not everything needs a bundle. `Ctrl+Shift+1` freezes the screen, you drag a region and type a note, and `Enter` puts the screenshot's path and your note on the clipboard, ready to paste into an agent with whatever else you want to say. The file lands in a batch folder under `~/QACut/Quick/`, named for when the batch started, with the note beside it as a small markdown file and a `notes.md` listing every shot in the batch.
+Not everything needs a bundle. `Ctrl+Shift+1` freezes the screen, you drag a region and type a note, and `Enter` saves it. `Ctrl+Enter` instead puts the screenshot's path and your note on the clipboard, ready to paste into an agent with whatever else you want to say. The file lands in a batch folder under `~/QACut/Quick/`, named for when the batch started, with the note beside it as a small markdown file and a `notes.md` listing every shot in the batch.
 
-To send a few together, press **Add to batch** instead of `Enter`: the shot and note are saved, the batch stays open, and you take the next one. `Enter` on the last shot copies every shot in the batch with its note, plus the folder path, in one paste, and closes the batch. The next quick shot starts a fresh folder, so an agent is never pointed at shots you have already dealt with. **New batch** moves the shot you are noting into a fresh folder without closing the old one. Use quick shots for one-off fixes and short sessions; use a bundle when there are enough shots across enough pages that an agent needs the structure to keep them straight.
+To send a few together, just keep going: `Ctrl+Shift+1`, note, `Enter`, again. `Ctrl+Enter` on the last shot (or **Finish batch**, or the tray's **Finish quick batch and copy paths**) copies every shot in the batch with its note, plus the folder path, in one paste, and closes the batch. The next quick shot starts a fresh folder, so an agent is never pointed at shots you have already dealt with. **New batch** moves the shot you are noting into a fresh folder without closing the old one. Use quick shots for one-off fixes and short sessions; use a bundle when there are enough shots across enough pages that an agent needs the structure to keep them straight.
 
 ## Capturing
 
 `Ctrl+Shift+2` freezes the screen. Drag a region and a note box appears under it. The header reads **Group 1 / Shot 1**; click either name and type to rename it. `Enter` saves, `Shift+Enter` adds a line, `Esc` keeps the screenshot with no note.
 
-`Ctrl+Shift+R` auto-captures a region instead: a GIF and an MP4 of the region, plus a still at every click labelled with where the click landed. Press it again to stop. Use this for a process; use screenshots for faults.
+`Ctrl+Shift+3` auto-captures a region instead: a GIF and an MP4 of the region, plus a still at every click labelled with where the click landed. Press it again to stop. Use this for a process; use screenshots for faults.
 
 `Ctrl+Shift+G` wraps up the group you just captured with a master note and opens the next group. Master notes describe the page or area; shot notes describe what is wrong or what is happening.
 

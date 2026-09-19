@@ -28,6 +28,7 @@ const shortcutRows = document.getElementById("shortcut-rows") as HTMLDivElement;
 interface Hotkeys {
   capture: string;
   quick: string;
+  quick_finish: string;
   record: string;
   studio: string;
   zoom: string;
@@ -39,22 +40,24 @@ interface Hotkeys {
 
 const HOTKEY_LABELS: [keyof Hotkeys, string][] = [
   ["quick", "Quick shot"],
-  ["capture", "Capture region"],
-  ["record", "Auto-capture region / stop"],
-  ["group", "Wrap up group"],
-  ["peek", "Show bundle"],
+  ["quick_finish", "Finish quick batch and copy paths"],
+  ["capture", "Capture"],
+  ["record", "Auto-capture start / stop"],
+  ["group", "New group"],
+  ["peek", "View / edit bundle"],
   ["finish", "Finish and copy path"],
   ["new", "New bundle"],
-  ["studio", "Studio recording / stop"],
-  ["zoom", "Zoom in here / zoom out (while recording)"],
+  ["studio", "Studio: record start / stop"],
+  ["zoom", "Studio: zoom start / end (only active while recording)"],
 ];
 
 let hk: Hotkeys = {
   quick: "CommandOrControl+Shift+1",
+  quick_finish: "",
   capture: "CommandOrControl+Shift+2",
-  record: "CommandOrControl+Shift+R",
-  studio: "CommandOrControl+Shift+3",
-  zoom: "CommandOrControl+Shift+Z",
+  record: "CommandOrControl+Shift+3",
+  studio: "CommandOrControl+Shift+R",
+  zoom: "CommandOrControl+Space",
   group: "CommandOrControl+Shift+G",
   peek: "CommandOrControl+Shift+Q",
   finish: "CommandOrControl+Shift+Enter",
@@ -648,9 +651,11 @@ const menus: Menu[] = [
     title: "Capture",
     items: () => [
       { label: "Quick shot", keys: keyLabel(hk.quick), run: () => call("start_quick") },
-      { label: "Capture region", keys: keyLabel(hk.capture), run: () => call("start_capture") },
-      { label: "Auto-capture region", keys: keyLabel(hk.record), run: () => call("start_record") },
-      { label: "Wrap up group", keys: keyLabel(hk.group), run: () => call("start_group") },
+      { label: "Finish quick batch and copy paths", keys: keyLabel(hk.quick_finish), run: () => call("quick_finish", undefined, "Quick batch copied") },
+      "-",
+      { label: "Capture", keys: keyLabel(hk.capture), run: () => call("start_capture") },
+      { label: "Auto-capture start / stop", keys: keyLabel(hk.record), run: () => call("start_record") },
+      { label: "New group", keys: keyLabel(hk.group), run: () => call("start_group") },
       "-",
       { label: "Studio recording", keys: keyLabel(hk.studio), run: () => call("start_studio_from_menu") },
     ],
@@ -759,10 +764,11 @@ brandClose.addEventListener("click", hidePanels);
 (document.getElementById("shortcuts-reset") as HTMLButtonElement).addEventListener("click", () => {
   draft = {
     quick: "CommandOrControl+Shift+1",
+    quick_finish: "",
     capture: "CommandOrControl+Shift+2",
-    record: "CommandOrControl+Shift+R",
-    studio: "CommandOrControl+Shift+3",
-    zoom: "CommandOrControl+Shift+Z",
+    record: "CommandOrControl+Shift+3",
+    studio: "CommandOrControl+Shift+R",
+    zoom: "CommandOrControl+Space",
     group: "CommandOrControl+Shift+G",
     peek: "CommandOrControl+Shift+Q",
     finish: "CommandOrControl+Shift+Enter",

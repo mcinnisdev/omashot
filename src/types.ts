@@ -35,6 +35,8 @@ export interface Shot {
   duration_ms: number;
   frames: KeyFrame[];
   video: string | null;
+  /** Set on a still that auto-capture took: when, and on what action. */
+  moment: { at_ms: number; event: string; x: number | null; y: number | null } | null;
 }
 
 export interface Group {

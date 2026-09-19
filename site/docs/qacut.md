@@ -1,12 +1,12 @@
 # Bundles for agents
 
-A bundle is a folder: screenshots and clips in groups, a note on each, and a markdown file that reads in order. It is built for handing to an AI agent, whether that is a bug list to fix or a set of steps to turn into documentation. This is the QACut Bundles half of the tray. For one-off fixes, see [quick shots](/docs/quick).
+A bundle is a folder: screenshots in groups, a note on each, and a markdown file that reads in order. It is built for handing to an AI agent, whether that is a bug list to fix or a set of steps to turn into documentation. This is the QACut Bundles half of the tray. For one-off fixes, see [quick shots](/docs/quick).
 
 ## Capturing
 
 `Ctrl+Shift+2` freezes the screen. Drag a region and a note box appears under it. The header reads **Group 1 / Shot 1**; click either name and type to rename it. `Enter` saves, `Shift+Enter` adds a line, `Esc` keeps the screenshot with no note.
 
-`Ctrl+Shift+3` auto-captures a region instead: a GIF and an MP4 of the region, plus a still at every click labelled with where the click landed. Press it again to stop. Use this for a process; use screenshots for faults.
+`Ctrl+Shift+3` auto-captures a region instead: while you do something, QACut takes a still at the start, at every click or Enter (with a ring where the click landed), and at the end. Press it again to stop, and the bundle window opens on the sequence. Each still is an ordinary shot: drop the noise, note the keepers, drag any that landed out of order, and mark up or blur what needs it. Use this for a process; use single screenshots for faults.
 
 `Ctrl+Shift+G` wraps up the group you just captured with a master note and opens the next group. Master notes describe the page or area; shot notes describe what is wrong or what is happening.
 
@@ -34,5 +34,5 @@ The markdown file explains itself at the top: each group is a page or area, the 
 ## Purposes
 
 - **Fix issues** asks the agent to work through the screenshots and fix what the notes describe.
-- **Write process doc** asks for a step-by-step document, as Markdown or as one self-contained web page with the clips playing inline.
+- **Write process doc** asks for a step-by-step document, as Markdown or as one self-contained web page, one step per screenshot.
 - **Custom prompt** is yours. `{root}` becomes the folder path and `{name}` the bundle name.

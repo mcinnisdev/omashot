@@ -86,9 +86,11 @@ pub fn open_note(app: &AppHandle, mode: &str, centre: Option<(f64, f64)>) -> Res
         let _ = w.close();
     }
 
+    // Shot and quick boxes carry a thumbnail of the capture on the left.
     let (w, h) = match mode {
         "group" => (480.0, 236.0),
-        "quick" => (480.0, 232.0),
+        "quick" => (600.0, 240.0),
+        "shot" => (600.0, 208.0),
         _ => (480.0, 190.0),
     };
     let url = format!("note.html?mode={mode}");
@@ -251,6 +253,27 @@ pub fn open_editor(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: 
         .build()?;
     let _ = win.center();
     let _ = win.set_focus();
+    Ok(())
+}
+
+/// The editor for the shot a note box is open on. The note box hides while
+/// the editor is up and comes back, focused, when it closes.
+pub fn open_editor_over_note(app: &AppHandle, path: &str, label: &str, img_w: u32, img_h: u32) -> Result<()> {
+    if let Some(n) = app.get_webview_window(NOTE) {
+        let _ = n.hide();
+    }
+    open_editor(app, path, label, img_w, img_h)?;
+    if let Some(w) = app.get_webview_window(EDIT) {
+        let app = app.clone();
+        w.on_window_event(move |e| {
+            if matches!(e, tauri::WindowEvent::Destroyed) {
+                if let Some(n) = app.get_webview_window(NOTE) {
+                    let _ = n.show();
+                    let _ = n.set_focus();
+                }
+            }
+        });
+    }
     Ok(())
 }
 

@@ -5,7 +5,7 @@ Capture it, note it, hand it off. Three tools in one tray:
 - **QACut** takes a quick shot: one screenshot, one note, and the path plus
   note on your clipboard, ready to paste into whatever agent you are talking
   to. Batch a few and paste them at once.
-- **QACut Bundles** grabs screenshots and clips, groups them with notes, and
+- **QACut Bundles** grabs screenshots and auto-captured sequences, groups them with notes, and
   bundles them into a folder an AI agent can work from, as a bug list across
   an app or as the raw material for a process document or tutorial.
 - **QACut Studio** records the screen with the cursor as data, then renders a
@@ -47,27 +47,22 @@ The two workflows from the brief map to this:
   hotkey to wrap that group up with a master note, carry on in the next one,
   finish hotkey at the end.
 
-Auto-capture recordings are for showing a process rather than a fault, in
-the lightweight way: a GIF, an MP4, and a still at every click, with nothing
-more to edit afterwards. After the drag the
-box can be moved and its edges pulled; Record (or `Enter`) then starts a
-three-second countdown so windows and the mouse can be put in place. While
-it counts down and records, everything outside the region stays tinted and
-the region is outlined, so it is obvious when something has drifted out of
-shot. The hotkey cancels during the countdown. The region is
-grabbed at ten frames a second with the cursor drawn on as a ring, scaled to
-at most 720 px wide and streamed into a looping GIF, so stopping is instant.
-An H.264 MP4 of the same clip is written beside the GIF through the encoder
-that ships with Windows, full colour and roughly a tenth of the size, for
-embedding in a page; if the encoder is unavailable the recording still has
-its GIF. A still is saved beside it at the start, at every click or Enter (the mouse
-is polled every 15 ms, so the still is at most one frame after the click,
-and the ring fills solid in the GIF for a moment), and at the end. Each
-still records what happened and where the click landed. Agents cannot play
-a GIF, so `bundle.md` lists those stills as actions under the recording; a
-human reading the resulting document just sees the GIF. A recording with no
-clicks falls back to a still every two seconds. Click detection is Windows
-only for now; elsewhere you get the interval stills.
+Auto-capture is for showing a process rather than a fault. After the drag
+the box can be moved and its edges pulled; Record (or `Enter`) then starts
+a three-second countdown so windows and the mouse can be put in place.
+While it counts down and captures, everything outside the region stays
+tinted and the region is outlined, so it is obvious when something has
+drifted out of shot. The hotkey cancels during the countdown. Stills are
+taken at full resolution at the start, at every click or Enter (the mouse
+buttons and Enter are polled; a click still gets a ring where the click
+landed, saved as a mark so it can be moved in the editor), and at the end,
+with a fallback still every few seconds only when nothing is clicked. There
+is no video: agents cannot do anything with one, and recordings for people
+are the Studio's job. When the capture stops, every still is filed as an
+ordinary shot in the current group with its moment ("3 s, click at
+412,188") and the bundle window opens on the sequence, so the noise can be
+dropped, the keepers noted, and any still that landed out of order dragged
+back into place.
 
 A bundle has a purpose, chosen in the bundle window: **Fix issues** (the
 default), **Write process doc**, or **Custom prompt**. It only changes the

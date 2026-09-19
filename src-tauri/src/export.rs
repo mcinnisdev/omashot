@@ -268,12 +268,11 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
         "The quoted text under a group heading is the reviewer's note for the whole group. ",
         "Each numbered item is a screenshot of one region, followed by the reviewer's note ",
         "on what is wrong there. Open the image before acting on the note. ",
-        "A recording is an animated GIF; the key frames listed under it are stills taken ",
-        "at the start, at every click or Enter (with where the click landed), and at ",
-        "the end, so each one is an action. Read them in order if you cannot play it. ",
+        "A screenshot marked auto-captured is one of a sequence taken while the reviewer ",
+        "did something: at the start, at each click or Enter (with where the click landed, ",
+        "ringed in the image), and at the end. Read them in order; each is one action. ",
         "A file ending .orig.png is the unedited original behind an annotated image; ",
-        "use the annotated one. Where a recording lists a Video, that MP4 is the same ",
-        "clip in full colour for embedding in a page.\n"
+        "use the annotated one.\n"
     ));
 
     if let Some(kit) = brand {
@@ -353,6 +352,14 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
                         let _ = writeln!(md, "- [{}]({}/{})", f.label(), g.dir, f.file);
                     }
                 }
+            } else if let Some(m) = &shot.moment {
+                let _ = writeln!(
+                    md,
+                    "_{} × {} px, auto-captured at {}, captured {when}_",
+                    shot.width,
+                    shot.height,
+                    m.label()
+                );
             } else {
                 let _ = writeln!(
                     md,
@@ -393,6 +400,7 @@ mod tests {
             duration_ms: 0,
             frames: Vec::new(),
             video: None,
+            moment: None,
         });
         s.current().shots.push(Shot {
             id: "b".into(),
@@ -411,6 +419,7 @@ mod tests {
                 KeyFrame { file: "02-frames/03.png".into(), at_ms: 12400, event: "end".into(), x: None, y: None },
             ],
             video: Some("02.mp4".into()),
+            moment: None,
         });
 
         let md = render_markdown(&s, None);
@@ -496,6 +505,7 @@ mod layout_tests {
             duration_ms: 0,
             frames: Vec::new(),
             video: None,
+            moment: None,
         };
         if kind == ShotKind::Recording {
             let dir = sh.frames_dir().unwrap();
@@ -593,6 +603,7 @@ mod zip_tests {
             duration_ms: 0,
             frames: Vec::new(),
             video: None,
+            moment: None,
         });
         write_bundle(&mut s, &base.join("nobrand")).unwrap();
         let zip_path = write_zip(&s).unwrap();

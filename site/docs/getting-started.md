@@ -16,7 +16,7 @@ The menu has three sections.
 
 **QACut** on its own is the quick lane: one screenshot, one note, pasted straight into an agent. Read [Quick shots](/docs/quick).
 
-**QACut Bundles** is the structured lane: screenshots, auto-captured clips, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
+**QACut Bundles** is the structured lane: screenshots, auto-captured sequences, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/qacut).
 
 **QACut Studio** is for people: a screen recording edited into something polished, with zooms, a camera bubble and narration, exported as a video. Read [Polished screen recordings](/docs/studio).
 

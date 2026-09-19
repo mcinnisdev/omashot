@@ -2,13 +2,13 @@
 
 **For:** work that spans pages. A round of UI fixes across a whole app, a process to turn into documentation, a walkthrough someone else will follow.
 
-A bundle is a folder: screenshots and clips in groups, a note on each, and a markdown file that reads top to bottom. An agent reads the file, opens the images, and knows which page each note belongs to. That structure is what keeps a twenty-screenshot job from turning into a guessing game.
+A bundle is a folder: screenshots in groups, a note on each, and a markdown file that reads top to bottom. An agent reads the file, opens the images, and knows which page each note belongs to. That structure is what keeps a twenty-screenshot job from turning into a guessing game.
 
 ## Three things it is good at
 
 **A fix list across an app.** Capture as you go through each page. `Ctrl+Shift+G` wraps up a page as a group with a master note ("everything on the settings page is a bit off") and the shot notes carry the specifics. Finish, copy the agent prompt, paste. The agent works through it in order.
 
-**A process document.** Turn on auto-capture with `Ctrl+Shift+3` and do the process. QACut records a clip and takes a still at every click, labelled with where the click landed. Afterwards, drop the stills that do not help, add a note to the ones that do, and set the bundle's purpose to **Write process doc**. The agent gets a numbered sequence of actions and produces the document, as Markdown or as a single web page with the clips playing inline.
+**A process document.** Turn on auto-capture with `Ctrl+Shift+3` and do the process. QACut takes a still at every click, with a ring where the click landed, and the bundle window opens on the sequence when you stop. Drop the stills that do not help, note the ones that do, drag any that are out of order, and set the bundle's purpose to **Write process doc**. The agent gets a numbered sequence of actions and produces the document, as Markdown or as a single web page.
 
 **A guided tutorial.** Same capture, different prompt. Your brand kit rides along in the bundle, so the output sounds like you and carries your logo.
 

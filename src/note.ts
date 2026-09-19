@@ -1,4 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Session } from "./types";
 
@@ -16,6 +17,23 @@ const note = document.getElementById("note") as HTMLTextAreaElement;
 const secondary = document.getElementById("secondary") as HTMLButtonElement;
 const keysHint = document.getElementById("keys") as HTMLSpanElement;
 const newBatch = document.getElementById("new-batch") as HTMLButtonElement;
+const thumb = document.getElementById("thumb") as HTMLButtonElement;
+const thumbImg = document.getElementById("thumb-img") as HTMLImageElement;
+
+// Shot and quick boxes show the capture beside the note; clicking it opens
+// the markup editor while the shot is fresh. The path is the pending shot's,
+// and the image is refetched after every save so the blur shows at once.
+async function showThumb() {
+  const path = await invoke<string | null>("pending_shot_path");
+  if (!path) return;
+  const refresh = () => {
+    thumbImg.src = `${convertFileSrc(path)}?t=${Date.now()}`;
+  };
+  refresh();
+  thumb.hidden = false;
+  thumb.addEventListener("click", () => void invoke("edit_pending"));
+  void listen("markup-saved", refresh);
+}
 
 let done = false;
 
@@ -45,6 +63,7 @@ async function boot() {
     shotTitle.hidden = true;
     note.placeholder = "What should the agent do with this?";
     secondary.textContent = "Discard shot";
+    void showThumb();
     keysHint.innerHTML = "<kbd>Enter</kbd> copy path + note <kbd>Shift</kbd>+<kbd>Enter</kbd> new line";
     note.focus();
     try {
@@ -58,6 +77,7 @@ async function boot() {
   } else {
     label.textContent = "Note";
     secondary.textContent = "Discard shot";
+    void showThumb();
   }
   note.focus();
 
@@ -157,6 +177,11 @@ async function bail() {
 }
 
 function keys(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "e" && !thumb.hidden) {
+    e.preventDefault();
+    void invoke("edit_pending");
+    return;
+  }
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     // Quick shots: plain Enter keeps the batch open; Ctrl+Enter finishes it.

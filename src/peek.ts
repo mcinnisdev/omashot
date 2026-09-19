@@ -393,6 +393,14 @@ async function render() {
         ? `${label}  ${clock(s.duration_ms)}  ${s.width}x${s.height}${s.video ? "  GIF+MP4" : "  GIF"}`
         : `${label}  ${s.width}x${s.height}`;
       left.append(img, meta);
+      if (s.moment) {
+        // An auto-captured still says when it was taken and on what action,
+        // so the sequence can be read and cleaned up at a glance.
+        const when = document.createElement("div");
+        when.className = "meta moment";
+        when.textContent = `auto · ${frameLabel({ at_ms: s.moment.at_ms, event: s.moment.event, x: s.moment.x, y: s.moment.y })}`;
+        left.append(when);
+      }
 
       if (!isRec) {
         const edit = document.createElement("button");

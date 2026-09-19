@@ -3,14 +3,13 @@
 mod capture;
 mod export;
 mod model;
-mod mp4;
 mod overlay;
 mod studio;
 
 use capture::Frame;
 use export::{BrandKit, Export};
 use image::RgbaImage;
-use model::{BundleInfo, DocFormat, Purpose, Session, Shot, ShotKind};
+use model::{BundleInfo, DocFormat, Moment, Purpose, Session, Shot, ShotKind};
 use serde::Serialize;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -46,8 +45,9 @@ struct Inner {
     /// closes when it is copied as a whole, so the next shot starts a new
     /// folder and an agent is never pointed at shots already dealt with.
     quick_batch: Option<std::path::PathBuf>,
-    /// A recording in progress and the shot it will fill in.
-    recording: Option<(capture::Recording, usize, String)>,
+    /// An auto-capture in progress, the group its stills will land in, and
+    /// the scratch folder they are written to meanwhile.
+    recording: Option<(capture::Recording, usize, std::path::PathBuf)>,
     /// Set while the pre-recording countdown runs; storing true cancels it.
     countdown: Option<Arc<AtomicBool>>,
     /// A studio recording in progress.
@@ -180,27 +180,23 @@ fn agent_prompt(
             &opening("Work through"),
             "Start with bundle.md: each group is a page or area, its quoted master note ",
             "applies to every screenshot under it, and each screenshot's note says what is ",
-            "wrong. Open each screenshot, and the key frames of any recording, before ",
-            "changing anything.",
+            "wrong. Open each screenshot before changing anything. Screenshots marked ",
+            "auto-captured were taken in sequence while the reviewer did something; ",
+            "the moment on each says what happened.",
         ]
         .concat(),
         Purpose::Document => {
             let deliverable = match doc_format {
                 DocFormat::Markdown => [
-                    "Write the steps in second person and embed each image and GIF where it ",
-                    "belongs using its relative path. Save the result as process.md inside the ",
-                    "bundle folder and keep the file names, so the document works next to its ",
-                    "images.",
+                    "Write the steps in second person and embed each image where it belongs ",
+                    "using its relative path. Save the result as process.md inside the bundle ",
+                    "folder and keep the file names, so the document works next to its images.",
                 ]
                 .concat(),
                 DocFormat::Html => [
                     "Deliver one self-contained web page, process.html, saved inside the bundle ",
-                    "folder: inline CSS, images by relative path, and each recording embedded ",
-                    "with a <video> tag pointing at its MP4 (controls, muted, loop, playsinline; ",
-                    "fall back to the GIF as an <img> if there is no MP4). Let the clips carry ",
-                    "the steps they show; write only what a reader needs between them, so five ",
-                    "steps on one screen become one clip and a sentence, not five screenshots. ",
-                    "Write in second person and keep the file names.",
+                    "folder: inline CSS, images by relative path, one step per screenshot with ",
+                    "the image under its step. Write in second person and keep the file names.",
                 ]
                 .concat(),
             };
@@ -208,11 +204,10 @@ fn agent_prompt(
                 &opening("Using"),
                 "write a step-by-step process document ",
                 "for the workflow it shows. Read bundle.md first: each group is a stage, the ",
-                "quoted note under it describes that stage, and each screenshot or recording ",
-                "is one step with the reviewer's note saying what is happening. A recording's ",
-                "key frames are stills taken at each click, with where the click landed, so ",
-                "each click frame is one action to describe. Open every screenshot and every ",
-                "key frame before writing. ",
+                "quoted note under it describes that stage, and each screenshot is one step ",
+                "with the reviewer's note saying what is happening. Auto-captured screenshots ",
+                "were taken in sequence at each click, with where the click landed marked, ",
+                "so each is one action to describe. Open every screenshot before writing. ",
                 &deliverable,
             ]
             .concat()
@@ -445,49 +440,71 @@ fn open_overlay(app: &AppHandle, mode: &str) {
     }
 }
 
-/// Stops the running recording, files what it produced, and asks for a note.
+/// Stops the auto-capture and files each still as a shot in the group it
+/// was started in, then opens the bundle window so the noise can be cut,
+/// the keepers noted and the order fixed.
 fn finish_recording(app: &AppHandle) {
     let state: State<Shared> = app.state();
-    let Some((rec, group, id)) = state.lock().unwrap().recording.take() else {
+    let Some((rec, group, frames_dir)) = state.lock().unwrap().recording.take() else {
         return;
     };
     overlay::close_rec_badge(app);
 
-    match rec.stop() {
-        Ok(done) => {
-            let mut inner = state.lock().unwrap();
-            if let Some(session) = inner.session.as_mut() {
-                if let Some(shot) = session.shot_mut(group, &id) {
-                    shot.width = done.width;
-                    shot.height = done.height;
-                    shot.duration_ms = done.duration_ms;
-                    shot.frames = done.frames;
-                    shot.video = done.video.then(|| {
-                        std::path::Path::new(&shot.file)
-                            .with_extension("mp4")
-                            .to_string_lossy()
-                            .to_string()
-                    });
-                }
-            }
-            inner.pending = Some((group, id));
-            inner.dirty = true;
-            inner.finished = false;
-        }
+    let done = match rec.stop() {
+        Ok(d) => d,
         Err(e) => {
-            eprintln!("qacut: recording failed: {e}");
-            let mut inner = state.lock().unwrap();
-            if let Some(session) = inner.session.as_mut() {
-                session.remove_shot(group, &id);
-            }
-            let _ = app.emit("session-changed", ());
+            eprintln!("qacut: auto-capture failed: {e}");
+            let _ = std::fs::remove_dir_all(&frames_dir);
             return;
         }
+    };
+
+    {
+        let mut inner = state.lock().unwrap();
+        if let Some(session) = inner.session.as_mut() {
+            let restore = session.current().index;
+            session.set_current(group);
+            for f in &done.frames {
+                let (g, file, abs) = session.reserve_shot("png");
+                let src = frames_dir.join(&f.file);
+                if std::fs::rename(&src, &abs).is_err() && std::fs::copy(&src, &abs).is_err() {
+                    continue;
+                }
+                let [src_orig, src_marks, _] = model::sidecars(&src);
+                let [orig, marks, _] = model::sidecars(&abs);
+                if src_orig.exists() {
+                    let _ = std::fs::rename(&src_orig, &orig).or_else(|_| std::fs::copy(&src_orig, &orig).map(|_| ()));
+                }
+                if src_marks.exists() {
+                    let _ = std::fs::rename(&src_marks, &marks).or_else(|_| std::fs::copy(&src_marks, &marks).map(|_| ()));
+                }
+                let (w, h) = image::image_dimensions(&abs).unwrap_or((done.width, done.height));
+                session.current().shots.push(Shot {
+                    id: shot_id(g),
+                    file,
+                    abs_path: abs.to_string_lossy().to_string(),
+                    title: String::new(),
+                    note: String::new(),
+                    width: w,
+                    height: h,
+                    captured_at: chrono::Local::now().to_rfc3339(),
+                    kind: ShotKind::Image,
+                    duration_ms: 0,
+                    frames: Vec::new(),
+                    video: None,
+                    moment: Some(Moment { at_ms: f.at_ms, event: f.event.clone(), x: f.x, y: f.y }),
+                });
+            }
+            session.set_current(restore);
+        }
+        inner.dirty = true;
+        inner.finished = false;
     }
+    let _ = std::fs::remove_dir_all(&frames_dir);
 
     let _ = app.emit("session-changed", ());
-    if let Err(e) = overlay::open_note(app, "recording", None) {
-        eprintln!("qacut: could not open note box: {e}");
+    if let Err(e) = overlay::open_peek(app, None) {
+        eprintln!("qacut: could not open bundle window: {e}");
     }
 }
 
@@ -872,6 +889,7 @@ async fn commit_selection(
             duration_ms: 0,
             frames: Vec::new(),
             video: None,
+            moment: None,
         });
 
         inner.pending = Some((group, id));
@@ -939,41 +957,14 @@ async fn start_recording(
     {
         let mut inner = state.lock().unwrap();
         inner.countdown = None;
-        let session = ensure_session(&app, &mut inner)?;
-        let (group, file, abs) = session.reserve_shot("gif");
-        let frames_dir = abs.with_file_name(format!(
-            "{}-frames",
-            abs.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default()
+        let group = ensure_session(&app, &mut inner)?.current().index;
+        let frames_dir = capture::scratch_dir().join(format!(
+            "autocapture-{}",
+            chrono::Local::now().format("%Y%m%d-%H%M%S")
         ));
-
-        let rec = capture::start_recording(
-            app.clone(),
-            &frame,
-            x,
-            y,
-            width,
-            height,
-            abs.clone(),
-            frames_dir,
-        )
-        .map_err(|e| e.to_string())?;
-
-        let id = shot_id(group);
-        session.current().shots.push(Shot {
-            id: id.clone(),
-            file,
-            abs_path: abs.to_string_lossy().to_string(),
-            title: String::new(),
-            note: String::new(),
-            width: 0,
-            height: 0,
-            captured_at: chrono::Local::now().to_rfc3339(),
-            kind: ShotKind::Recording,
-            duration_ms: 0,
-            frames: Vec::new(),
-            video: None,
-        });
-        inner.recording = Some((rec, group, id));
+        let rec = capture::start_recording(app.clone(), &frame, x, y, width, height, frames_dir.clone())
+            .map_err(|e| e.to_string())?;
+        inner.recording = Some((rec, group, frames_dir));
         inner.dirty = true;
         inner.finished = false;
     }
@@ -1658,6 +1649,13 @@ async fn save_markup(
                         .parent()
                         .map(std::path::Path::to_path_buf)
                         .unwrap_or_default();
+                    if std::path::Path::new(&shot.abs_path) == png {
+                        if let Some(m) = shot.moment.as_mut() {
+                            m.x = click.map(|c| c.0);
+                            m.y = click.map(|c| c.1);
+                        }
+                        break 'find;
+                    }
                     for f in &mut shot.frames {
                         if dir.join(&f.file) == png {
                             f.x = click.map(|c| c.0);
@@ -1671,8 +1669,42 @@ async fn save_markup(
         inner.dirty = true;
         inner.finished = false;
     }
+    let _ = app.emit("markup-saved", path);
     let _ = app.emit("session-changed", ());
     Ok(())
+}
+
+/// The file behind the note box that is open right now: a quick shot, or
+/// the bundle shot waiting for its note.
+fn pending_path(inner: &Inner) -> Option<String> {
+    if let Some(p) = &inner.quick_pending {
+        return Some(p.to_string_lossy().to_string());
+    }
+    let (group, id) = inner.pending.as_ref()?;
+    let session = inner.session.as_ref()?;
+    session
+        .groups
+        .iter()
+        .find(|g| g.index == *group)?
+        .shots
+        .iter()
+        .find(|s| s.id == *id)
+        .map(|s| s.abs_path.clone())
+}
+
+#[tauri::command]
+fn pending_shot_path(state: State<Shared>) -> Option<String> {
+    pending_path(&state.lock().unwrap())
+}
+
+/// Opens the markup editor on the shot the note box is attached to, while
+/// it is fresh. The note box steps aside and comes back when the editor
+/// closes.
+#[tauri::command]
+async fn edit_pending(app: AppHandle, state: State<'_, Shared>) -> Result<(), String> {
+    let path = pending_path(&state.lock().unwrap()).ok_or("nothing is waiting for a note")?;
+    let (w, h) = image::image_dimensions(&path).map_err(|e| e.to_string())?;
+    overlay::open_editor_over_note(&app, &path, "Edit this shot", w, h).map_err(|e| e.to_string())
 }
 
 /// Drops one still from a recording so a bad frame never reaches the agent.
@@ -2030,6 +2062,8 @@ fn main() {
             cancel_capture,
             save_note,
             discard_pending,
+            pending_shot_path,
+            edit_pending,
             close_group,
             get_session,
             get_state,
@@ -2195,6 +2229,7 @@ mod tests {
         assert!(doc.contains("process.md"));
         let page = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Html, "", false, Target::Cli);
         assert!(page.contains("process.html"));
-        assert!(page.contains("<video>"));
+        assert!(page.contains("one step per screenshot"));
+        assert!(!page.contains("<video>"));
     }
 }

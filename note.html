@@ -15,7 +15,13 @@
       </div>
       <div class="note-body">
         <p class="hint" id="group-hint" hidden></p>
-        <textarea class="field" id="note" placeholder="What's wrong here?"></textarea>
+        <div class="note-row">
+          <button class="note-thumb" id="thumb" hidden title="Mark it up: arrows, highlights, blur, step counters (Ctrl+E)" aria-label="Edit this screenshot">
+            <img id="thumb-img" alt="" />
+            <span>Edit</span>
+          </button>
+          <textarea class="field" id="note" placeholder="What's wrong here?"></textarea>
+        </div>
       </div>
       <div class="note-foot" data-tauri-drag-region>
         <span class="keys" id="keys" data-tauri-drag-region>

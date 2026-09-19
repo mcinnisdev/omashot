@@ -65,6 +65,34 @@ impl KeyFrame {
     }
 }
 
+/// When an auto-captured shot was taken and what caused it, so bundle.md can
+/// say "auto-captured at 3 s, click at 412,188".
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Moment {
+    pub at_ms: u64,
+    /// "start", "click", "right-click", "middle-click", "enter", "end" or
+    /// "interval".
+    pub event: String,
+    /// Where the click landed, in the shot's own pixels.
+    #[serde(default)]
+    pub x: Option<u32>,
+    #[serde(default)]
+    pub y: Option<u32>,
+}
+
+impl Moment {
+    pub fn label(&self) -> String {
+        KeyFrame {
+            file: String::new(),
+            at_ms: self.at_ms,
+            event: self.event.clone(),
+            x: self.x,
+            y: self.y,
+        }
+        .label()
+    }
+}
+
 /// What the bundle is for. Changes the prompt handed to the agent.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -118,6 +146,9 @@ pub struct Shot {
     /// directory, when the encoder was available.
     #[serde(default)]
     pub video: Option<String>,
+    /// Set on a still that auto-capture took: when, and on what action.
+    #[serde(default)]
+    pub moment: Option<Moment>,
 }
 
 /// Files that travel with a shot's main file: the markup editor's untouched
@@ -512,6 +543,7 @@ mod tests {
             duration_ms: 0,
             frames: Vec::new(),
             video: None,
+            moment: None,
         }
     }
 
@@ -634,6 +666,7 @@ mod recording_tests {
             duration_ms: 1000,
             frames: Vec::new(),
             video: None,
+            moment: None,
         };
         let dir = sh.frames_dir().unwrap();
         assert!(dir.ends_with("01-frames"));
@@ -683,6 +716,7 @@ mod reopen_tests {
             duration_ms: 0,
             frames: Vec::new(),
             video: None,
+            moment: None,
         });
         std::fs::write(
             s.root.join("manifest.json"),

@@ -47,7 +47,7 @@ The save button is clipped at 125% scaling.
 
 The shot opens large with the markup tools (arrow, highlight, blur, step counters) and the note beside it. **Copy image** (`Ctrl+Shift+C`) puts the marked-up screenshot on the clipboard as an image, for pasting into Teams, Slack, an email or a ticket: the fastest answer to "which button do you mean?"
 
-Take a few in a row and `Ctrl+Enter` on the last one copies the whole batch, each shot tied to its note. The batch then closes, so the next quick shot starts a fresh folder and an agent is never pointed at shots you've already dealt with.
+Take a few in a row and `Ctrl+Enter` on the last one copies the whole batch, each shot tied to its note. The batch then closes, so the next quick shot starts a fresh folder and an agent is never pointed at shots you've already dealt with. **Customize prompts…** in the tray rewrites any of the clipboard texts, quick-shot lines and bundle prompts alike; words in braces are filled in.
 
 ## QACut Bundles
 

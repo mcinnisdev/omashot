@@ -21,6 +21,7 @@ const brandFiles = document.getElementById("brand-files") as HTMLSpanElement;
 const brandOpen = document.getElementById("brand-open") as HTMLButtonElement;
 const brandNotes = document.getElementById("brand-notes") as HTMLTextAreaElement;
 const shortcuts = document.getElementById("shortcuts") as HTMLDivElement;
+const prompts = document.getElementById("prompts") as HTMLDivElement;
 const shortcutRows = document.getElementById("shortcut-rows") as HTMLDivElement;
 
 // ------------------------------------------------------------ shortcuts
@@ -676,7 +677,74 @@ function showPanel(panel: HTMLElement, focus?: HTMLElement) {
 }
 
 function hidePanels() {
-  for (const p of [bundles, brand, custom, shortcuts]) p.hidden = true;
+  for (const p of [bundles, brand, custom, shortcuts, prompts]) p.hidden = true;
+}
+
+// ------------------------------------------------------------ prompts
+
+type PromptKey = "quick_entry" | "quick_batch" | "fix" | "document" | "deliverable_markdown" | "deliverable_html";
+type Prompts = Record<PromptKey, string>;
+
+const PROMPT_FIELDS: [PromptKey, string, string][] = [
+  ["quick_entry", "Quick shot: one shot", "{path} and {note}"],
+  ["quick_batch", "Quick shot: a batch", "{count}, {dir}, and {entries} (one shot per entry)"],
+  ["fix", "Bundle: Fix issues", "{location} is the folder or the ZIP; also {root}, {name}"],
+  ["document", "Bundle: Write process doc", "{location}, {root}, {name}, and {deliverable} (one of the two below)"],
+  ["deliverable_markdown", "Process doc as Markdown", "what to produce; no placeholders needed"],
+  ["deliverable_html", "Process doc as web page", "what to produce; no placeholders needed"],
+];
+
+let promptDefaults: Prompts | null = null;
+const promptFields = new Map<PromptKey, HTMLTextAreaElement>();
+
+async function showPrompts() {
+  const set = await invoke<{ defaults: Prompts; current: Prompts }>("get_prompts");
+  promptDefaults = set.defaults;
+  const rows = document.getElementById("prompt-rows") as HTMLDivElement;
+  rows.replaceChildren();
+  promptFields.clear();
+  for (const [key, label, hint] of PROMPT_FIELDS) {
+    const row = document.createElement("div");
+    row.className = "prompt-row";
+    const head = document.createElement("div");
+    head.className = "prompt-head";
+    const name = document.createElement("span");
+    name.textContent = label;
+    const h = document.createElement("span");
+    h.className = "prompt-hint";
+    h.textContent = hint;
+    const reset = document.createElement("button");
+    reset.className = "quiet small";
+    reset.textContent = "Reset";
+    const field = document.createElement("textarea");
+    field.value = set.current[key].trim() || set.defaults[key];
+    field.setAttribute("aria-label", label);
+    reset.addEventListener("click", () => {
+      field.value = set.defaults[key];
+    });
+    head.append(name, h, reset);
+    row.append(head, field);
+    rows.append(row);
+    promptFields.set(key, field);
+  }
+  showPanel(prompts);
+}
+
+async function savePrompts() {
+  if (!promptDefaults) return;
+  // A field left at its default is stored empty, so a future default
+  // change reaches it.
+  const out = {} as Prompts;
+  for (const [key] of PROMPT_FIELDS) {
+    const v = promptFields.get(key)?.value ?? "";
+    out[key] = v.trim() === promptDefaults[key].trim() ? "" : v;
+  }
+  try {
+    await invoke("set_prompts", { prompts: out });
+    toast("Prompts saved");
+  } catch (err) {
+    toast(String(err));
+  }
 }
 
 async function showBundles() {
@@ -780,6 +848,7 @@ const menus: Menu[] = [
       { label: "Copy chat prompt", run: () => run("chatprompt") },
       "-",
       { label: "Edit custom prompt…", run: () => showPanel(custom, customPrompt) },
+      { label: "Customize prompts…", run: showPrompts },
       { label: "Brand kit…", run: () => showPanel(brand, brandNotes) },
     ],
   },
@@ -869,6 +938,12 @@ close.addEventListener("click", () => void getCurrentWindow().close());
 bundlesClose.addEventListener("click", hidePanels);
 brandClose.addEventListener("click", hidePanels);
 (document.getElementById("shortcuts-close") as HTMLButtonElement).addEventListener("click", hidePanels);
+(document.getElementById("prompts-close") as HTMLButtonElement).addEventListener("click", hidePanels);
+(document.getElementById("prompts-save") as HTMLButtonElement).addEventListener("click", () => void savePrompts());
+(document.getElementById("prompts-reset") as HTMLButtonElement).addEventListener("click", () => {
+  if (!promptDefaults) return;
+  for (const [key, field] of promptFields) field.value = promptDefaults[key];
+});
 (document.getElementById("shortcuts-save") as HTMLButtonElement).addEventListener("click", () => void saveShortcuts());
 (document.getElementById("shortcuts-reset") as HTMLButtonElement).addEventListener("click", () => {
   draft = {
@@ -951,4 +1026,5 @@ void render().then(() => {
   if (focus === "name") bundleName.focus();
   if (focus === "open") void showBundles();
   if (focus === "shortcuts") void showShortcuts();
+  if (focus === "prompts") void showPrompts();
 });

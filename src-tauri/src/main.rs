@@ -10,7 +10,7 @@ use capture::Frame;
 use export::{BrandKit, Export};
 use image::RgbaImage;
 use model::{BundleInfo, DocFormat, Moment, Purpose, Session, Shot, ShotKind};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -160,6 +160,114 @@ fn fill_custom_prompt(template: &str, root: &str, name: &str, target: Target) ->
     out
 }
 
+/// The texts QACut puts on the clipboard, each overridable. An empty field
+/// means the built-in default. Placeholders in braces are filled in.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
+struct Prompts {
+    /// One quick shot: `{path}`, `{note}`.
+    quick_entry: String,
+    /// A batch of quick shots: `{count}`, `{dir}`, `{entries}`.
+    quick_batch: String,
+    /// The Fix issues prompt: `{location}`, `{root}`, `{name}`.
+    fix: String,
+    /// The process doc prompt: `{location}`, `{root}`, `{name}`, `{deliverable}`.
+    document: String,
+    /// What `{deliverable}` becomes for a Markdown document.
+    deliverable_markdown: String,
+    /// What `{deliverable}` becomes for a web page.
+    deliverable_html: String,
+}
+
+impl Prompts {
+    fn defaults() -> Prompts {
+        Prompts {
+            quick_entry: "{path}\n{note}".into(),
+            quick_batch: "{count} quick shots in {dir}. Each PNG has its note in the .md beside it; notes.md lists them all.\n\n{entries}".into(),
+            fix: concat!(
+                "Work through {location}. ",
+                "Start with bundle.md: each group is a page or area, its quoted master note ",
+                "applies to every screenshot under it, and each screenshot's note says what is ",
+                "wrong. Open each screenshot before changing anything. Screenshots marked ",
+                "auto-captured were taken in sequence while the reviewer did something; ",
+                "the moment on each says what happened."
+            )
+            .into(),
+            document: concat!(
+                "Using {location}. write a step-by-step process document ",
+                "for the workflow it shows. Read bundle.md first: each group is a stage, the ",
+                "quoted note under it describes that stage, and each screenshot is one step ",
+                "with the reviewer's note saying what is happening. Auto-captured screenshots ",
+                "were taken in sequence at each click, with where the click landed marked, ",
+                "so each is one action to describe. Open every screenshot before writing. ",
+                "{deliverable}"
+            )
+            .into(),
+            deliverable_markdown: concat!(
+                "Write the steps in second person and embed each image where it belongs ",
+                "using its relative path. Save the result as process.md inside the bundle ",
+                "folder and keep the file names, so the document works next to its images."
+            )
+            .into(),
+            deliverable_html: concat!(
+                "Deliver one self-contained web page, process.html, saved inside the bundle ",
+                "folder: inline CSS, images by relative path, one step per screenshot with ",
+                "the image under its step. Write in second person and keep the file names."
+            )
+            .into(),
+        }
+    }
+
+    fn path(app: &AppHandle) -> std::path::PathBuf {
+        base_dir(app).join("prompts.json")
+    }
+
+    fn load(app: &AppHandle) -> Prompts {
+        std::fs::read_to_string(Self::path(app))
+            .ok()
+            .and_then(|t| serde_json::from_str(&t).ok())
+            .unwrap_or_default()
+    }
+
+    fn save(&self, app: &AppHandle) -> Result<(), String> {
+        let p = Self::path(app);
+        if let Some(dir) = p.parent() {
+            std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+        }
+        std::fs::write(&p, serde_json::to_string_pretty(self).unwrap_or_default()).map_err(|e| e.to_string())
+    }
+
+    /// Every field filled: the override where there is one, else the default.
+    fn resolved(&self) -> Prompts {
+        let d = Prompts::defaults();
+        let pick = |v: &str, def: String| if v.trim().is_empty() { def } else { v.to_string() };
+        Prompts {
+            quick_entry: pick(&self.quick_entry, d.quick_entry),
+            quick_batch: pick(&self.quick_batch, d.quick_batch),
+            fix: pick(&self.fix, d.fix),
+            document: pick(&self.document, d.document),
+            deliverable_markdown: pick(&self.deliverable_markdown, d.deliverable_markdown),
+            deliverable_html: pick(&self.deliverable_html, d.deliverable_html),
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct PromptSet {
+    defaults: Prompts,
+    current: Prompts,
+}
+
+#[tauri::command]
+fn get_prompts(app: AppHandle) -> PromptSet {
+    PromptSet { defaults: Prompts::defaults(), current: Prompts::load(&app) }
+}
+
+#[tauri::command]
+fn set_prompts(app: AppHandle, prompts: Prompts) -> Result<(), String> {
+    prompts.save(&app)
+}
+
 /// The instruction handed to an agent alongside the folder path or ZIP.
 fn agent_prompt(
     root: &str,
@@ -169,50 +277,31 @@ fn agent_prompt(
     custom: &str,
     brand: bool,
     target: Target,
+    prompts: &Prompts,
 ) -> String {
-    let opening = |verb: &str| match target {
-        Target::Cli => format!("{verb} the QA bundle at {root}. "),
-        Target::Chat => format!("{verb} the QA bundle in the attached ZIP. Unzip it first. "),
+    if purpose == Purpose::Custom {
+        return fill_custom_prompt(custom, root, name, target);
+    }
+    let p = prompts.resolved();
+    let location = match target {
+        Target::Cli => format!("the QA bundle at {root}"),
+        Target::Chat => "the QA bundle in the attached ZIP. Unzip it first".to_string(),
     };
-    let base = match purpose {
-        Purpose::Custom => return fill_custom_prompt(custom, root, name, target),
-        Purpose::Fix => [
-            &opening("Work through"),
-            "Start with bundle.md: each group is a page or area, its quoted master note ",
-            "applies to every screenshot under it, and each screenshot's note says what is ",
-            "wrong. Open each screenshot before changing anything. Screenshots marked ",
-            "auto-captured were taken in sequence while the reviewer did something; ",
-            "the moment on each says what happened.",
-        ]
-        .concat(),
-        Purpose::Document => {
-            let deliverable = match doc_format {
-                DocFormat::Markdown => [
-                    "Write the steps in second person and embed each image where it belongs ",
-                    "using its relative path. Save the result as process.md inside the bundle ",
-                    "folder and keep the file names, so the document works next to its images.",
-                ]
-                .concat(),
-                DocFormat::Html => [
-                    "Deliver one self-contained web page, process.html, saved inside the bundle ",
-                    "folder: inline CSS, images by relative path, one step per screenshot with ",
-                    "the image under its step. Write in second person and keep the file names.",
-                ]
-                .concat(),
-            };
-            [
-                &opening("Using"),
-                "write a step-by-step process document ",
-                "for the workflow it shows. Read bundle.md first: each group is a stage, the ",
-                "quoted note under it describes that stage, and each screenshot is one step ",
-                "with the reviewer's note saying what is happening. Auto-captured screenshots ",
-                "were taken in sequence at each click, with where the click landed marked, ",
-                "so each is one action to describe. Open every screenshot before writing. ",
-                &deliverable,
-            ]
-            .concat()
-        }
+    let deliverable = match doc_format {
+        DocFormat::Markdown => p.deliverable_markdown,
+        DocFormat::Html => p.deliverable_html,
     };
+    let template = match purpose {
+        Purpose::Fix => p.fix,
+        _ => p.document,
+    };
+    let base = template
+        .replace("{location}", &location)
+        .replace("{deliverable}", &deliverable)
+        .replace("{root}", root)
+        .replace("{name}", name)
+        .trim()
+        .to_string();
     if brand {
         base + BRAND_LINE
     } else {
@@ -279,6 +368,9 @@ fn quick_pngs(dir: &std::path::Path) -> Vec<std::path::PathBuf> {
             rd.filter_map(|e| e.ok())
                 .map(|e| e.path())
                 .filter(|p| p.extension().map(|x| x == "png").unwrap_or(false))
+                // The markup editor's untouched original sits beside an
+                // annotated shot; it is not a shot.
+                .filter(|p| !p.file_stem().map(|s| s.to_string_lossy().ends_with(".orig")).unwrap_or(false))
                 .collect()
         })
         .unwrap_or_default();
@@ -661,6 +753,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let studio_folder_i = MenuItem::with_id(app, "studio_folder", "Open Studio folder", true, None::<&str>)?;
 
     let shortcuts_i = MenuItem::with_id(app, "shortcuts", "Keyboard shortcuts...", true, None::<&str>)?;
+    let prompts_i = MenuItem::with_id(app, "prompts", "Customize prompts...", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Quit QACut", true, None::<&str>)?;
     let sep_quick = PredefinedMenuItem::separator(app)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
@@ -677,7 +770,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
             &sep_inputs,
             &head_inputs, &keys_i, &mic_i, &cam_i, &studio_folder_i,
             &sep2,
-            &shortcuts_i, &quit_i,
+            &shortcuts_i, &prompts_i, &quit_i,
         ],
     )
 }
@@ -692,6 +785,12 @@ fn refresh_tray_menu(app: &AppHandle) {
             }
             Err(e) => eprintln!("qacut: could not build the tray menu: {e}"),
         }
+    }
+}
+
+fn trigger_prompts(app: &AppHandle) {
+    if let Err(e) = overlay::open_peek(app, Some("prompts")) {
+        eprintln!("qacut: could not open bundle window: {e}");
     }
 }
 
@@ -783,7 +882,7 @@ fn do_finish(app: &AppHandle, action: &str) -> Result<Export, String> {
             return Err("write a custom prompt first".into());
         }
         let brand = include_brand && !BrandKit::load(&brand_dir(app)).is_empty();
-        Ok(agent_prompt(&result.root, &name, purpose, doc_format, &custom, brand, target))
+        Ok(agent_prompt(&result.root, &name, purpose, doc_format, &custom, brand, target, &Prompts::load(app)))
     };
 
     match action {
@@ -1845,26 +1944,28 @@ async fn commit_quick(
 /// The whole batch as one paste: an entry per shot, with a line naming the
 /// folder first when there is more than one. Closing the batch is the
 /// caller's job.
-fn quick_batch_text(dir: &std::path::Path) -> String {
+fn quick_batch_text(dir: &std::path::Path, prompts: &Prompts) -> String {
     let pngs = quick_pngs(dir);
     if pngs.len() == 1 {
         let n = std::fs::read_to_string(pngs[0].with_extension("md")).unwrap_or_default();
-        return quick_entry(&pngs[0], &n);
+        return quick_entry(&pngs[0], &n, prompts);
     }
     let entries = pngs
         .iter()
         .map(|p| {
             let n = std::fs::read_to_string(p.with_extension("md")).unwrap_or_default();
-            quick_entry(p, &n)
+            quick_entry(p, &n, prompts)
         })
         .collect::<Vec<_>>()
         .join("\n\n");
-    format!(
-        "{} quick shots in {}. Each PNG has its note in the .md beside it; notes.md lists them all.\n\n{}",
-        pngs.len(),
-        dir.display(),
-        entries
-    )
+    prompts
+        .resolved()
+        .quick_batch
+        .replace("{count}", &pngs.len().to_string())
+        .replace("{dir}", &dir.display().to_string())
+        .replace("{entries}", &entries)
+        .trim()
+        .to_string()
 }
 
 /// Hotkey and tray: copy the open quick batch and close it. Does nothing
@@ -1882,7 +1983,7 @@ fn trigger_quick_finish(app: &AppHandle) {
         eprintln!("qacut: no quick batch to finish");
         return;
     };
-    if let Err(e) = app.clipboard().write_text(quick_batch_text(&dir)) {
+    if let Err(e) = app.clipboard().write_text(quick_batch_text(&dir, &Prompts::load(app))) {
         eprintln!("qacut: could not copy the quick batch: {e}");
     }
 }
@@ -1893,13 +1994,14 @@ async fn quick_finish(app: AppHandle) {
 }
 
 /// One clipboard entry for a quick shot: the path, then the note if any.
-fn quick_entry(png: &std::path::Path, note: &str) -> String {
-    let note = note.trim();
-    if note.is_empty() {
-        png.display().to_string()
-    } else {
-        format!("{}\n{}", png.display(), note)
-    }
+fn quick_entry(png: &std::path::Path, note: &str, prompts: &Prompts) -> String {
+    prompts
+        .resolved()
+        .quick_entry
+        .replace("{path}", &png.display().to_string())
+        .replace("{note}", note.trim())
+        .trim()
+        .to_string()
 }
 
 /// Saves the note beside the quick shot, adds it to the day's notes.md, and
@@ -1939,9 +2041,9 @@ async fn save_quick(
         // Handing the batch off closes it: the next quick shot starts a
         // fresh folder.
         state.lock().unwrap().quick_batch = None;
-        quick_batch_text(&dir)
+        quick_batch_text(&dir, &Prompts::load(&app))
     } else {
-        quick_entry(&path, &note)
+        quick_entry(&path, &note, &Prompts::load(&app))
     };
     app.clipboard().write_text(text.clone()).map_err(|e| e.to_string())?;
     overlay::close_note(&app);
@@ -2120,6 +2222,8 @@ fn main() {
             set_studio_settings,
             get_hotkeys,
             set_hotkeys,
+            get_prompts,
+            set_prompts,
             log_error,
             cancel_capture,
             save_note,
@@ -2196,6 +2300,7 @@ fn main() {
                         refresh_tray_menu(app);
                     }
                     "shortcuts" => off_main(app, trigger_shortcuts),
+                    "prompts" => off_main(app, trigger_prompts),
                     "group" => off_main(app, trigger_group),
                     "peek" => off_main(app, trigger_peek),
                     "finish" => off_main(app, trigger_finish),
@@ -2282,18 +2387,25 @@ mod tests {
 
     #[test]
     fn built_in_prompts_switch_between_folder_and_zip() {
-        let cli = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", false, Target::Cli);
+        let cli = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", false, Target::Cli, &Prompts::default());
         assert!(cli.starts_with("Work through the QA bundle at C:/b. "));
-        let chat = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", true, Target::Chat);
+        let chat = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", true, Target::Chat, &Prompts::default());
         assert!(chat.starts_with("Work through the QA bundle in the attached ZIP. Unzip it first. "));
         assert!(!chat.contains("C:/b"));
         assert!(chat.ends_with("match them in anything you produce."));
-        let doc = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Markdown, "", false, Target::Chat);
+        let doc = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Markdown, "", false, Target::Chat, &Prompts::default());
         assert!(doc.starts_with("Using the QA bundle in the attached ZIP. Unzip it first. write a step-by-step"));
         assert!(doc.contains("process.md"));
-        let page = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Html, "", false, Target::Cli);
+        let page = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Html, "", false, Target::Cli, &Prompts::default());
         assert!(page.contains("process.html"));
         assert!(page.contains("one step per screenshot"));
         assert!(!page.contains("<video>"));
+        // An override wins, and its placeholders are filled.
+        let mine = Prompts { fix: "Fix {name} at {location}.".into(), ..Default::default() };
+        let cli = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", false, Target::Cli, &mine);
+        assert_eq!(cli, "Fix n at the QA bundle at C:/b.");
+        let p = Prompts { quick_entry: "See {path}: {note}".into(), ..Default::default() };
+        assert_eq!(quick_entry(std::path::Path::new("C:/q/01.png"), " clipped ", &p), "See C:/q/01.png: clipped");
+        assert_eq!(quick_entry(std::path::Path::new("C:/q/01.png"), "", &Prompts::default()), "C:/q/01.png");
     }
 }

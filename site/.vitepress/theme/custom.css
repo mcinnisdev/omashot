@@ -971,3 +971,11 @@
     color: var(--vp-c-text-3);
   }
 }
+
+/* One menu on phones: the sidebar lives inside the hamburger's screen (see
+   MobileSidebar.vue), so the separate "Menu" bar goes. */
+@media (max-width: 959px) {
+  .VPLocalNav {
+    display: none;
+  }
+}

@@ -23,6 +23,10 @@ Just keep going: `Ctrl+Shift+1`, note, `Enter`, again. Each shot joins the open 
 
 Closing matters: the next quick shot starts a fresh folder, so an agent is never pointed at shots you have already dealt with. **New batch** in the note box moves the shot you are noting into a fresh folder without closing the old one.
 
+## Your own wording
+
+**Customize prompts…** in the tray (or **Hand off → Customize prompts…** in the bundle window) lets you rewrite what goes on the clipboard: the single-shot line, the batch preamble, and the bundle prompts. Words in braces such as `{path}` and `{note}` are filled in. Reset puts a default back.
+
 ## When to use a bundle instead
 
 Use quick shots for one-off fixes and short sessions. Use a [bundle](/docs/qacut) when there are enough shots across enough pages that an agent needs groups and master notes to keep them straight, when you want auto-capture to record a process, or when the hand-off should carry a purpose-specific prompt and your brand kit.

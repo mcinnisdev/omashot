@@ -66,6 +66,18 @@
           placeholder="Your own instructions for the agent. {root} becomes the bundle folder path and {name} the bundle name. Saved to ~/QACut/custom-prompt.txt and reused for every bundle."
         ></textarea>
       </div>
+      <div class="prompts" id="prompts" hidden>
+        <div class="panel-head">
+          <span>Customize prompts</span>
+          <button class="quiet" id="prompts-close">Close</button>
+        </div>
+        <p class="hint">What QACut puts on your clipboard. Edit any of these; the words in braces are filled in. Reset puts the default back.</p>
+        <div id="prompt-rows"></div>
+        <div class="row">
+          <button class="btn primary" id="prompts-save">Save</button>
+          <button class="quiet" id="prompts-reset">Reset all to defaults</button>
+        </div>
+      </div>
       <div class="shortcuts" id="shortcuts" hidden>
         <div class="panel-head">
           <span>Keyboard shortcuts</span>

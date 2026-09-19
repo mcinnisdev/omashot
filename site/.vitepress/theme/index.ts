@@ -2,6 +2,7 @@ import DefaultTheme from "vitepress/theme";
 import { h } from "vue";
 import MobileSidebar from "./MobileSidebar.vue";
 import "./custom.css";
+import "./landing.css";
 
 export default {
   extends: DefaultTheme,

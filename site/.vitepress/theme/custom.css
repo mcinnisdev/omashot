@@ -7,6 +7,40 @@
   --vp-c-brand-3: #ff5b5b;
   --vp-c-brand-soft: rgba(255, 91, 91, 0.14);
   --vp-nav-logo-height: 32px;
+
+  /* Design tokens. Every landing rule uses these; new sections use nothing
+     else, so the page keeps one rhythm. */
+  --qc-s-1: 4px;
+  --qc-s-2: 8px;
+  --qc-s-3: 12px;
+  --qc-s-4: 16px;
+  --qc-s-5: 24px;
+  --qc-s-6: 32px;
+  --qc-s-7: 48px;
+  --qc-s-8: 64px;
+  --qc-s-9: 96px;
+  --qc-s-10: 128px;
+  --qc-section-y: var(--qc-s-9);
+  --qc-section-gap: var(--qc-s-6);
+  --qc-card-pad: var(--qc-s-6);
+  --qc-card-pad-sm: var(--qc-s-5);
+  --qc-card-gap: 20px;
+  --qc-radius: 16px;
+  --qc-radius-sm: 10px;
+  --qc-radius-xs: 7px;
+  --qc-max: 1120px;
+  --qc-lead-max: 640px;
+  --qc-fs-eyebrow: 12px;
+  --qc-fs-small: 14px;
+  --qc-fs-body: 16px;
+  --qc-fs-lead: 18px;
+  --qc-fs-h3: 18px;
+  --qc-fs-h3-card: 24px;
+  --qc-fs-h2: clamp(28px, 3.6vw, 40px);
+  --qc-fs-h1: clamp(40px, 5.6vw, 64px);
+  --qc-lh-tight: 1.1;
+  --qc-lh-body: 1.6;
+
   --qc-ink: #0e1114;
   --qc-panel: #171c21;
   --qc-line: #262d34;
@@ -873,6 +907,9 @@
 /* ------------------------------------------------------------ mobile */
 
 @media (max-width: 860px) {
+  :root {
+    --qc-section-y: var(--qc-s-7);
+  }
   .qc-hero,
   .qc-split,
   .qc-bento,

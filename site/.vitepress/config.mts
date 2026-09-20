@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 const SITE_URL = "https://omashot.com";
 const SITE_DESCRIPTION =
-  "Screenshots an AI agent can act on. Screen recordings people will actually watch. Free and open source for Windows.";
+  "Shoot the screen, note it, hand it off. Screenshots an AI agent can act on, built for Omarchy. Free and open source.";
 
 // The docs are written with Omashot itself: process docs exported from the
 // studio land under docs/ as markdown with their images and clips beside
@@ -48,7 +48,7 @@ export default defineConfig({
     );
   },
   themeConfig: {
-    siteTitle: '<span class="qa">QA</span>Cut',
+    siteTitle: "Omashot",
     logo: "/logo.png",
     nav: [
       { text: "Docs", link: "/docs/getting-started" },
@@ -56,7 +56,7 @@ export default defineConfig({
         text: "Use cases",
         items: [
           {
-            text: "Omashot Basic",
+            text: "Shots",
             items: [
               { text: "Copy and paste a screenshot", link: "/use-cases/copy-and-paste" },
               { text: "Mark up a screenshot and paste it", link: "/use-cases/mark-up-and-paste" },
@@ -64,7 +64,7 @@ export default defineConfig({
             ],
           },
           {
-            text: "Omashot Bundles",
+            text: "Briefs",
             items: [
               { text: "Organize screenshots into a document", link: "/use-cases/organize-and-export" },
               { text: "Auto-capture a process", link: "/use-cases/automated-process-capture" },
@@ -73,7 +73,7 @@ export default defineConfig({
             ],
           },
           {
-            text: "Omashot Studio",
+            text: "Recordings",
             items: [
               { text: "Polished screen recordings", link: "/use-cases/polished-screen-recordings" },
               { text: "Record with narration", link: "/use-cases/record-with-microphone" },
@@ -86,14 +86,13 @@ export default defineConfig({
       },
       { text: "Changelog", link: "/changelog" },
       { text: "Feedback", link: "/feedback" },
-      { text: "Download", link: "https://github.com/mcinnisdev/omashot/releases/latest" },
       { text: "GitHub", link: "https://github.com/mcinnisdev/omashot" },
     ],
     sidebar: {
       "/use-cases/": [
         { text: "All use cases", link: "/use-cases/" },
         {
-          text: "Omashot Basic",
+          text: "Shots",
           items: [
             { text: "Overview", link: "/use-cases/quick-shots" },
             { text: "Copy and paste a screenshot", link: "/use-cases/copy-and-paste" },
@@ -102,7 +101,7 @@ export default defineConfig({
           ],
         },
         {
-          text: "Omashot Bundles",
+          text: "Briefs",
           items: [
             { text: "Overview", link: "/use-cases/bundles" },
             { text: "Organize and export a document", link: "/use-cases/organize-and-export" },
@@ -112,7 +111,7 @@ export default defineConfig({
           ],
         },
         {
-          text: "Omashot Studio",
+          text: "Recordings",
           items: [
             { text: "Overview", link: "/use-cases/studio" },
             { text: "Polished screen recordings", link: "/use-cases/polished-screen-recordings" },
@@ -132,18 +131,18 @@ export default defineConfig({
           ],
         },
         {
-          text: "Omashot Basic",
+          text: "Shots",
           items: [{ text: "Quick shots", link: "/docs/quick" }],
         },
         {
-          text: "Omashot Bundles",
+          text: "Briefs",
           items: [
             { text: "Bundles for agents", link: "/docs/omashot" },
             { text: "Brand kit", link: "/docs/brand-kit" },
           ],
         },
         {
-          text: "Omashot Studio",
+          text: "Recordings",
           items: [{ text: "Polished screen recordings", link: "/docs/studio" }],
         },
       ],

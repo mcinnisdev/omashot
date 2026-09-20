@@ -1,0 +1,349 @@
+/* Omashot's landing sections.
+ *
+ * The page it replaced was built around a mock Windows window; these are the
+ * blocks that took its place. Everything here uses the --qc-* tokens the rest
+ * of the site already defines, so there is one spacing and type scale.
+ */
+
+/* ------------------------------------------------------ the artifact */
+
+/* The hero's right-hand side is the product: a brief.md an agent reads top
+   to bottom. Showing the file beats describing it. */
+.qc-artifact {
+  border: 1px solid var(--qc-line);
+  border-radius: var(--qc-radius);
+  background: var(--qc-ink);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.qc-artifact-head {
+  display: flex;
+  align-items: center;
+  gap: var(--qc-s-2);
+  padding: var(--qc-s-3) var(--qc-s-4);
+  border-bottom: 1px solid var(--qc-line);
+  background: var(--qc-panel);
+  font-family: var(--vp-font-family-mono);
+  font-size: var(--qc-fs-small);
+  color: var(--qc-muted);
+}
+
+.qc-artifact-head .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--vp-c-brand-1);
+}
+
+/* The brief is a real fenced block, so VitePress highlights it and the
+   markdown is the markdown, not a hand-coloured impression of it. */
+.qc-artifact div[class*="language-"] {
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.qc-artifact div[class*="language-"] pre {
+  padding: var(--qc-s-5);
+  background: transparent;
+}
+
+.qc-artifact div[class*="language-"] code {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* The language tag and copy button belong on a docs page, not in a hero. */
+.qc-artifact div[class*="language-"] .lang,
+.qc-artifact div[class*="language-"] .copy {
+  display: none;
+}
+
+/* ----------------------------------------------------------- bands */
+
+.qc-band {
+  margin-top: var(--qc-section-y);
+}
+
+.qc-lede {
+  max-width: var(--qc-lead-max);
+  font-size: var(--qc-fs-lead);
+  line-height: var(--qc-lh-body);
+  color: var(--vp-c-text-2);
+}
+
+.qc-foot {
+  max-width: var(--qc-lead-max);
+  margin-top: var(--qc-s-5);
+  font-size: var(--qc-fs-small);
+  line-height: var(--qc-lh-body);
+  color: var(--qc-muted);
+}
+
+/* ------------------------------------------------------- vocabulary */
+
+/* A definition list, laid out as two columns on anything wide enough. The
+   words are the model, so they get to look like a reference rather than
+   marketing. */
+.qc-words dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--qc-s-3) var(--qc-s-5);
+  margin: var(--qc-s-6) 0 0;
+  align-items: baseline;
+}
+
+.qc-words dt {
+  font-family: var(--vp-font-family-mono);
+  font-size: var(--qc-fs-body);
+  color: var(--vp-c-brand-1);
+  white-space: nowrap;
+}
+
+.qc-words dd {
+  margin: 0;
+  color: var(--vp-c-text-2);
+  line-height: var(--qc-lh-body);
+}
+
+/* ------------------------------------------------------------ themes */
+
+.qc-themes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--qc-s-4);
+}
+
+.qc-theme {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--qc-s-4);
+  border: 1px solid var(--qc-line);
+  border-radius: var(--qc-radius-sm);
+  aspect-ratio: 3 / 4;
+  justify-content: flex-end;
+}
+
+.qc-theme i {
+  display: block;
+  height: 8px;
+  border-radius: 2px;
+}
+.qc-theme i:first-child {
+  height: 22px;
+}
+.qc-theme i:last-child {
+  width: 55%;
+}
+
+/* Three real Omarchy themes, so the point lands: the app is whatever the
+   desktop is. Tokyo Night, Solitude, Rose Pine. */
+.qc-theme.t1 {
+  background: #1a1b26;
+}
+.qc-theme.t1 i {
+  background: #292e42;
+}
+.qc-theme.t1 i:first-child {
+  background: #7aa2f7;
+}
+
+.qc-theme.t2 {
+  background: #101315;
+}
+.qc-theme.t2 i {
+  background: #232a2d;
+}
+.qc-theme.t2 i:first-child {
+  background: #798186;
+}
+
+.qc-theme.t3 {
+  background: #191724;
+}
+.qc-theme.t3 i {
+  background: #26233a;
+}
+.qc-theme.t3 i:first-child {
+  background: #ebbcba;
+}
+
+/* --------------------------------------------------------- the bar */
+
+.qc-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--qc-s-4);
+  padding: var(--qc-s-3) var(--qc-s-5);
+  border: 1px solid var(--qc-line);
+  border-radius: var(--qc-radius-sm);
+  background: var(--qc-ink);
+  font-size: 15px;
+  color: var(--qc-muted);
+}
+
+/* The other widgets are just shapes: a bar full of real icons would need a
+   Nerd Font the visitor does not have, and empty boxes make the point worse
+   than no icons at all. Ours is the actual mark. */
+.qc-bar .w {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--qc-line);
+}
+
+.qc-bar .mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--qc-radius-xs);
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 13px;
+}
+
+.qc-bar .mark img {
+  display: block;
+}
+
+.qc-bar-note {
+  margin-top: var(--qc-s-3);
+  text-align: right;
+  font-size: var(--qc-fs-small);
+  color: var(--qc-muted);
+}
+
+/* ----------------------------------------------------------- keys */
+
+.qc-keys {
+  margin-top: var(--qc-s-6);
+  overflow-x: auto;
+}
+
+.qc-keys table {
+  width: 100%;
+  border-collapse: collapse;
+  display: table;
+}
+
+.qc-keys tr {
+  border-bottom: 1px solid var(--qc-line-soft, var(--qc-line));
+}
+.qc-keys tr:last-child {
+  border-bottom: 0;
+}
+
+.qc-keys td {
+  padding: var(--qc-s-3) var(--qc-s-4) var(--qc-s-3) 0;
+  vertical-align: middle;
+  border: 0;
+}
+
+.qc-keys td:first-child {
+  white-space: nowrap;
+}
+.qc-keys td:nth-child(2) {
+  font-family: var(--vp-font-family-mono);
+  font-size: var(--qc-fs-small);
+  color: var(--vp-c-brand-1);
+  white-space: nowrap;
+}
+.qc-keys td:last-child {
+  color: var(--vp-c-text-2);
+  padding-right: 0;
+}
+
+.qc-keys kbd {
+  display: inline-block;
+  margin-right: 3px;
+  padding: 2px 6px;
+  border: 1px solid var(--qc-line);
+  border-radius: var(--qc-radius-xs);
+  background: var(--qc-panel);
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  color: var(--vp-c-text-2);
+}
+
+/* ---------------------------------------------------------- status */
+
+/* Three columns, colour-coded, because "half there" is the honest answer for
+   one of them and burying that would be worse than not saying it. */
+.qc-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--qc-card-gap);
+  margin-top: var(--qc-s-6);
+}
+
+.qc-status-grid > div {
+  padding: var(--qc-card-pad-sm);
+  border: 1px solid var(--qc-line);
+  border-radius: var(--qc-radius-sm);
+  border-top-width: 2px;
+}
+
+.qc-status-grid h3 {
+  margin: 0 0 var(--qc-s-3);
+  font-size: var(--qc-fs-h3);
+  border: 0;
+  padding: 0;
+}
+
+.qc-status-grid p {
+  margin: 0;
+  font-size: var(--qc-fs-small);
+  line-height: var(--qc-lh-body);
+  color: var(--vp-c-text-2);
+}
+
+.qc-status-grid .ok {
+  border-top-color: #5bd08a;
+}
+.qc-status-grid .part {
+  border-top-color: var(--vp-c-brand-1);
+}
+.qc-status-grid .no {
+  border-top-color: var(--qc-muted);
+}
+
+/* ------------------------------------------------------------ end */
+
+.qc-end .qc-actions {
+  margin-top: var(--qc-s-6);
+}
+
+.qc-install div[class*="language-"] {
+  margin-top: var(--qc-s-6);
+}
+
+/* ----------------------------------------------------------- phone */
+
+@media (max-width: 860px) {
+  .qc-words dl {
+    grid-template-columns: 1fr;
+    gap: var(--qc-s-1) 0;
+  }
+  .qc-words dd {
+    margin-bottom: var(--qc-s-4);
+  }
+  .qc-artifact code {
+    font-size: 12px;
+  }
+}
+
+/* Spotlight copy: two paragraphs need to read as two paragraphs. */
+.qc-spot-copy p + p {
+  margin-top: var(--qc-s-4);
+}
+
+/* Bands can carry more than one lede paragraph; they should not run together. */
+.qc-band p + p,
+.qc-band .qc-lede + .qc-lede {
+  margin-top: var(--qc-s-4);
+}

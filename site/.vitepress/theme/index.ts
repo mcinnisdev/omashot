@@ -5,6 +5,7 @@ import Footer from "./Footer.vue";
 import "./custom.css";
 import "./landing.css";
 import "./usecases.css";
+import "./omashot.css";
 
 export default {
   extends: DefaultTheme,

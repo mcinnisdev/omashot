@@ -1,7 +1,7 @@
 // The prompt library: a window for every text Omashot puts on the clipboard
 // and for the prompts the user adds. Built-ins can be rewritten and reset;
-// the user's own have a name and a kind (quick shot or bundle) and are
-// picked from the quick shot window or the bundle window's purpose menu.
+// the user's own have a name and a kind (shot or brief) and are
+// picked from the shot window or the brief window's purpose menu.
 // Nothing is written until Save; the preview fills the placeholders with
 // sample values so the shape can be checked before it is used.
 import { invoke } from "@tauri-apps/api/core";
@@ -47,13 +47,13 @@ const SAMPLE: Record<string, string> = {
 const BUILTINS: BuiltinInfo[] = [
   {
     key: "quick_entry",
-    name: "Quick shot: one shot",
-    about: "What Ctrl+Enter copies for a single quick shot.",
+    name: "Shot: one",
+    about: "What Ctrl+Enter copies for a single shot.",
     placeholders: [["{path}", "the screenshot's path"], ["{note}", "your note"]],
   },
   {
     key: "quick_batch",
-    name: "Quick shot: a batch",
+    name: "Shot: several loose",
     about: "What Ctrl+Enter copies when the batch has more than one shot.",
     placeholders: [["{count}", "how many"], ["{dir}", "the batch folder"], ["{entries}", "one 'one shot' entry per shot"]],
   },
@@ -89,7 +89,7 @@ const KIND_PLACEHOLDERS: Record<"quick" | "bundle", [string, string][]> = {
 };
 
 const KIND_ABOUT: Record<"quick" | "bundle", string> = {
-  quick: "Picked from \"Hand off as\" in the quick shot window. Wraps the shots you hand off.",
+  quick: "Picked from \"Hand off as\" in the shot window. Wraps the shots you hand off.",
   bundle: "Picked from the purpose menu in the brief window. The whole instruction for the brief.",
 };
 

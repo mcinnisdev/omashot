@@ -11,7 +11,6 @@ const columns = [
   {
     title: "Product",
     links: [
-      { text: "Download", href: "https://github.com/mcinnisdev/omashot/releases/latest" },
       { text: "Changelog", href: "/changelog" },
       { text: "Keyboard shortcuts", href: "/docs/shortcuts" },
       { text: "Prompt library", href: "/docs/prompts" },
@@ -21,9 +20,9 @@ const columns = [
     title: "Learn",
     links: [
       { text: "Getting started", href: "/docs/getting-started" },
-      { text: "Omashot Basic", href: "/use-cases/quick-shots" },
-      { text: "Omashot Bundles", href: "/use-cases/bundles" },
-      { text: "Omashot Studio", href: "/use-cases/studio" },
+      { text: "Shots", href: "/use-cases/quick-shots" },
+      { text: "Briefs", href: "/use-cases/bundles" },
+      { text: "Recordings", href: "/use-cases/studio" },
     ],
   },
   {
@@ -45,7 +44,7 @@ const external = (href: string) => /^https?:/.test(href);
       <div class="qc-footer-brand">
         <a href="/" class="qc-footer-logo" aria-label="Omashot home">
           <img src="/logo.png" alt="" width="256" height="256" />
-          <span><span class="qa">QA</span>Cut</span>
+          <span>Omashot</span>
         </a>
         <p class="qc-footer-tag">Screen capture that hands off.</p>
         <p class="qc-footer-legal">Free and open source under the MIT License.<br />© 2026 Nick McInnis.</p>

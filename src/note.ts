@@ -61,8 +61,8 @@ async function boot() {
     // folder under Quick/. Enter saves the note and keeps the batch open,
     // so the flow is shoot, note, Enter, repeat. Ctrl+Enter (or Finish
     // batch) copies every shot's path and note and closes the batch, so
-    // the next quick shot starts a fresh folder.
-    label.textContent = "Quick shot";
+    // the next shot starts a fresh folder.
+    label.textContent = "Shot";
     sep.hidden = true;
     groupTitle.hidden = true;
     shotTitle.hidden = true;
@@ -136,7 +136,7 @@ function keyLabel(spec: string) {
 let quickKey = "Ctrl+Shift+1";
 
 function showBatch(n: number) {
-  label.textContent = n > 1 ? `Quick shot ${String(n).padStart(2, "0")} in this batch` : "Quick shot";
+  label.textContent = n > 1 ? `Loose shot ${String(n).padStart(2, "0")}` : "Shot";
   newBatch.hidden = n < 2;
   keysHint.innerHTML =
     "<kbd>Enter</kbd> save <kbd>Ctrl</kbd>+<kbd>Enter</kbd> finish and hand off" + (n > 1 ? ` (${n})` : "");
@@ -189,7 +189,7 @@ function keys(e: KeyboardEvent) {
   }
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
-    // Quick shots: plain Enter keeps the batch open; Ctrl+Enter finishes it.
+    // Loose shots: plain Enter keeps them open; Ctrl+Enter copies and clears.
     void commit(isQuick && !(e.ctrlKey || e.metaKey));
     return;
   }

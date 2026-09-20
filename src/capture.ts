@@ -45,8 +45,8 @@ const HINTS = {
   shot: "<b>Drag</b> to select the region <kbd>Esc</kbd> cancel",
   record:
     mode === "studio"
-      ? "<b>Drag</b> the region for the Studio recording <kbd>Esc</kbd> cancel"
-      : "<b>Drag</b> the region to auto-capture <kbd>Esc</kbd> cancel",
+      ? "<b>Drag</b> the region to record <kbd>Esc</kbd> cancel"
+      : "<b>Drag</b> the region to trail <kbd>Esc</kbd> cancel",
   adjust:
     "<b>Drag</b> the box or its edges to adjust <kbd>Enter</kbd> record <kbd>Esc</kbd> cancel",
 };

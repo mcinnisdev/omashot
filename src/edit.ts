@@ -51,7 +51,7 @@ const reviewGroup = params.get("group");
 const reviewShot = params.get("shot");
 const review = reviewGroup !== null && reviewShot !== null;
 
-// Quick mode: a quick shot opens here instead of a note box. Marks are
+// Quick mode: a loose shot opens here instead of a note box. Marks are
 // written before anything is copied, so what goes to the agent or the
 // clipboard is the marked-up image.
 const quick = params.get("quick") === "1";
@@ -378,7 +378,7 @@ async function save() {
 async function cancel() {
   if (done) return;
   if (quick) {
-    // Esc on a quick shot keeps it, like the note box did, with the marks
+    // Esc on a loose shot keeps it, like the note box did, with the marks
     // made so far and no note.
     void quickSave(false);
     return;
@@ -436,7 +436,7 @@ function keyLabel(spec: string) {
 let quickKey = "Ctrl+Shift+1";
 
 function showQuickBatch(n: number) {
-  quickCount.textContent = n > 1 ? `Quick shot ${String(n).padStart(2, "0")} in this batch` : "Quick shot";
+  quickCount.textContent = n > 1 ? `Loose shot ${String(n).padStart(2, "0")}` : "Shot";
   quickNewBtn.hidden = n < 2;
   quickFinishBtn.textContent = n > 1 ? `Finish and hand off (${n})` : "Finish and hand off";
   quickHint.textContent =
@@ -789,7 +789,7 @@ function report(where: string, err: unknown) {
 async function boot() {
   if (quick) {
     quickSide.hidden = false;
-    title.textContent = "Quick shot";
+    title.textContent = "Shot";
     (document.getElementById("save") as HTMLButtonElement).hidden = true;
     (document.getElementById("cancel") as HTMLButtonElement).hidden = true;
     footKeys.innerHTML =

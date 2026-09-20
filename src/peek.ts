@@ -44,7 +44,7 @@ interface Hotkeys {
 
 const HOTKEY_LABELS: [keyof Hotkeys, string][] = [
   ["quick", "Quick shot"],
-  ["quick_finish", "Finish quick batch and copy paths"],
+  ["quick_finish", "Copy the loose shots"],
   ["capture", "Capture"],
   ["record", "Auto-capture start / stop"],
   ["group", "New section"],

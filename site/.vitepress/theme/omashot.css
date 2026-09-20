@@ -347,3 +347,13 @@
 .qc-band .qc-lede + .qc-lede {
   margin-top: var(--qc-s-4);
 }
+
+/* Chords are several <kbd> in a row; without a gap they read as one word.
+   The landing page table sets its own, so this covers prose and docs. */
+.vp-doc kbd + kbd {
+  margin-left: 3px;
+}
+.vp-doc kbd {
+  font-size: 12px;
+  padding: 2px 6px;
+}

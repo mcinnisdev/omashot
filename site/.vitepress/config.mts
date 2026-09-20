@@ -56,29 +56,19 @@ export default defineConfig({
         text: "Use cases",
         items: [
           {
-            text: "Shots",
+            text: "For an agent",
             items: [
-              { text: "Copy and paste a screenshot", link: "/use-cases/copy-and-paste" },
-              { text: "Mark up a screenshot and paste it", link: "/use-cases/mark-up-and-paste" },
-              { text: "Send screenshots to an AI agent", link: "/use-cases/agent-feedback-loops" },
+              { text: "A fix list", link: "/use-cases/fix-list" },
+              { text: "A process, trailed", link: "/use-cases/trail-a-process" },
+              { text: "One thing, right now", link: "/use-cases/one-shot" },
             ],
           },
           {
-            text: "Briefs",
+            text: "For a person",
             items: [
-              { text: "Organize screenshots into a document", link: "/use-cases/organize-and-export" },
-              { text: "Auto-capture a process", link: "/use-cases/automated-process-capture" },
-              { text: "Hand a bundle to an agent with your brand kit", link: "/use-cases/agent-with-brand-kit" },
-              { text: "A task list of UI fixes for an agent", link: "/use-cases/task-list-for-agents" },
-            ],
-          },
-          {
-            text: "Recordings",
-            items: [
-              { text: "Polished screen recordings", link: "/use-cases/polished-screen-recordings" },
-              { text: "Record with narration", link: "/use-cases/record-with-microphone" },
-              { text: "Add your camera", link: "/use-cases/record-with-camera" },
-              { text: "Brand a recording", link: "/use-cases/record-with-brand" },
+              { text: "Which button do you mean", link: "/use-cases/answer-a-question" },
+              { text: "A document that writes itself", link: "/use-cases/write-the-doc" },
+              { text: "A walkthrough", link: "/use-cases/a-walkthrough" },
             ],
           },
           { text: "All use cases", link: "/use-cases/" },
@@ -92,32 +82,19 @@ export default defineConfig({
       "/use-cases/": [
         { text: "All use cases", link: "/use-cases/" },
         {
-          text: "Shots",
+          text: "For an agent",
           items: [
-            { text: "Overview", link: "/use-cases/quick-shots" },
-            { text: "Copy and paste a screenshot", link: "/use-cases/copy-and-paste" },
-            { text: "Mark up and paste", link: "/use-cases/mark-up-and-paste" },
-            { text: "Send to an AI agent", link: "/use-cases/agent-feedback-loops" },
+            { text: "A fix list", link: "/use-cases/fix-list" },
+            { text: "A process, trailed", link: "/use-cases/trail-a-process" },
+            { text: "One thing, right now", link: "/use-cases/one-shot" },
           ],
         },
         {
-          text: "Briefs",
+          text: "For a person",
           items: [
-            { text: "Overview", link: "/use-cases/bundles" },
-            { text: "Organize and export a document", link: "/use-cases/organize-and-export" },
-            { text: "Auto-capture a process", link: "/use-cases/automated-process-capture" },
-            { text: "Agent with your brand kit", link: "/use-cases/agent-with-brand-kit" },
-            { text: "Task list for an agent", link: "/use-cases/task-list-for-agents" },
-          ],
-        },
-        {
-          text: "Recordings",
-          items: [
-            { text: "Overview", link: "/use-cases/studio" },
-            { text: "Polished screen recordings", link: "/use-cases/polished-screen-recordings" },
-            { text: "Record with narration", link: "/use-cases/record-with-microphone" },
-            { text: "Add your camera", link: "/use-cases/record-with-camera" },
-            { text: "Brand a recording", link: "/use-cases/record-with-brand" },
+            { text: "Which button do you mean", link: "/use-cases/answer-a-question" },
+            { text: "A document that writes itself", link: "/use-cases/write-the-doc" },
+            { text: "A walkthrough", link: "/use-cases/a-walkthrough" },
           ],
         },
       ],
@@ -126,24 +103,23 @@ export default defineConfig({
           text: "Start here",
           items: [
             { text: "Getting started", link: "/docs/getting-started" },
-            { text: "Keyboard shortcuts", link: "/docs/shortcuts" },
-            { text: "Prompt library", link: "/docs/prompts" },
+            { text: "The keys", link: "/docs/keys" },
           ],
         },
         {
-          text: "Shots",
-          items: [{ text: "Quick shots", link: "/docs/quick" }],
+          text: "Capturing",
+          items: [
+            { text: "Shots", link: "/docs/shots" },
+            { text: "Briefs", link: "/docs/briefs" },
+            { text: "Recordings", link: "/docs/recordings" },
+          ],
         },
         {
-          text: "Briefs",
+          text: "Handing off",
           items: [
-            { text: "Bundles for agents", link: "/docs/omashot" },
+            { text: "Prompts", link: "/docs/prompts" },
             { text: "Brand kit", link: "/docs/brand-kit" },
           ],
-        },
-        {
-          text: "Recordings",
-          items: [{ text: "Polished screen recordings", link: "/docs/studio" }],
         },
       ],
     },

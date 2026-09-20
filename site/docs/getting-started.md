@@ -1,62 +1,112 @@
 ---
-description: "Install Omashot on Windows, find it in the tray, and take your first bundle: hotkey, region, note, group, hand off. Free and open source, no account needed."
+description: "Install Omashot on Omarchy, wire it into your keys, bar and theme, and take your first shot and first brief. Free and open source, no account needed."
 ---
 
 # Getting started
 
-Omashot lives in the system tray. There is no window to open first: press a hotkey, drag a region, do the thing.
+Omashot has no window to open first. Press a key, drag a region, type what is
+wrong. It appears in your bar only while it is holding something.
 
 ## Install
 
-Download the installer from the [latest release](https://github.com/mcinnisdev/omashot/releases/latest) and run it. Windows 10 (2004 or later) or Windows 11, 64-bit.
+Not in the AUR yet. You need Node 22 or newer, a Rust toolchain and the
+[Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
 
-The installers are not code-signed yet, so SmartScreen will warn on first run. Choose **More info**, then **Run anyway**.
+```bash
+git clone https://github.com/mcinnisdev/omashot
+cd omashot
+npm install
+npm run tauri build
+```
 
-After install, look for the coral scissors in the tray. Left-click it for the menu.
+Then two installers, which do separate jobs:
 
-## Three tools, one tray
+```bash
+./scripts/install-local.sh    # binary, launcher and icons into ~/.local
+./omarchy/install.sh          # theme, keys, menu, window rules, bar widget
+```
 
-The menu has three sections.
+`scripts/install-local.sh` puts `omashot` on your PATH. `omarchy/install.sh`
+wires it into the desktop: a theme template, the key bindings, the menu
+entries, a window rule and the bar widget. It is additive and idempotent — run
+it again after an update and it fills in only what is missing, skips anything
+you have edited yourself, and `--uninstall` takes it back out.
 
-**Omashot Basic** is the quick lane: one screenshot, one note, pasted straight into an agent. Read [Quick shots](/docs/quick).
+Reload Hyprland (<kbd>Super</kbd><kbd>Escape</kbd>) to pick up the keys.
 
-**Omashot Bundles** is the structured lane: screenshots, auto-captured sequences, notes and groups, bundled into a folder for an AI agent to work from. Read [Bundles for agents](/docs/omashot).
+::: tip Not on Omarchy?
+The app runs on any Wayland compositor. Only the wiring is Omarchy-specific:
+without `omarchy-capture-region` it falls back to plain `slurp`, and you bind
+the keys yourself. `omarchy/install.sh` will tell you it is not for you and
+stop rather than half-configure something.
+:::
 
-**Omashot Studio** is for people: a screen recording edited into something polished, with zooms, a camera bubble and narration, exported as a video. Read [Polished screen recordings](/docs/studio).
+## Your first shot
 
-Both put their files under `~/Omashot/`. Everything is plain files you can open, move or delete.
+Press <kbd>Super</kbd><kbd>Alt</kbd><kbd>Q</kbd>. The screen freezes and you
+drag a region — the same picker Omarchy uses for screenshots, so it snaps to
+windows and monitors and the keyboard works the way it does everywhere else.
 
-## Your first bundle
+The shot opens with the markup tools and a note box beside it. Type what is
+wrong and press <kbd>Enter</kbd>.
 
-1. Press `Ctrl+Shift+2`. The screen freezes. Drag a region.
-2. Type what is wrong, or what this is, and press `Enter`. Press `Esc` to keep the shot with no note.
-3. Repeat. Press `Ctrl+Shift+G` when you move to a new page or area, and give the group you just finished a master note.
-4. Press `Ctrl+Shift+Enter` to write the bundle. The folder path is on your clipboard and the bundle window opens showing the result.
-
-<figure class="qc-shot narrow">
-<img src="/media/docs/getting-started-note.png" alt="The note box after a first capture." loading="lazy" />
-<figcaption>The note box after a first capture.</figcaption>
-</figure>
-
-Point an agent at the folder, or use **Copy agent prompt** in the bundle window for a ready-made instruction. The bundle is finished; your next capture starts a new one.
-
-For a one-off, skip the bundle: `Ctrl+Shift+1` takes a quick shot, and `Ctrl+Enter` on its note copies the screenshot's path and the note, ready to paste. Plain `Enter` saves and lets you take more before you send them together.
-
-## Your first Studio recording
-
-1. Press `Ctrl+Shift+R`, drag the region to record, adjust its edges, and press **Record**. A three-second countdown lets you get in place.
-2. Do the thing. Press `Ctrl+Space` to zoom in where the cursor is, and again to zoom out.
-3. Press `Ctrl+Shift+R` to stop. The studio opens on the recording.
-4. Trim, adjust the zooms, add a title, and press **Export…**.
-
-Turn on the microphone and camera toggles in the tray's Studio section first if you want narration and a camera bubble.
-
-## Where things go
+Take a few more. When you are done, **Finish and hand off** puts the lot on
+your clipboard, ready to paste into an agent:
 
 ```
-~/Omashot/
-  2026-09-17_143022-settings-review/   a bundle
-  Studio/2026-09-18_125833-onedrive/   a studio recording
-  brand/                                your logo, colours and voice notes
-  settings.json                         shortcuts and toggles
+/home/you/Omashot/Quick/2026-09-19_101512/01.png
+The save button is clipped at 125% scaling.
+
+/home/you/Omashot/Quick/2026-09-19_101512/02.png
+Same at 150%. The footer overlaps the form.
 ```
+
+Those are **loose shots**: shots outside any brief. Copying them clears them,
+so the next one starts fresh and an agent is never pointed at work you have
+already dealt with.
+
+## Your first brief
+
+A brief is the thing you hand over: a folder of shots in reading order with a
+`brief.md` written for whoever gets it.
+
+1. <kbd>Super</kbd><kbd>Alt</kbd><kbd>A</kbd> adds a shot to the brief instead
+   of leaving it loose. Note it and press <kbd>Enter</kbd>.
+2. <kbd>Super</kbd><kbd>Alt</kbd><kbd>N</kbd> closes the current **section** and
+   starts the next. A section is one page, one screen, one step.
+3. <kbd>Super</kbd><kbd>Alt</kbd><kbd>B</kbd> opens the brief to review,
+   reorder, rename and re-note anything.
+4. <kbd>Super</kbd><kbd>Alt</kbd><kbd>D</kbd> is done: it writes the brief out
+   and copies its path.
+
+What lands on disk:
+
+```
+~/Omashot/2026-09-19_143022-settings-review/
+  brief.md               everything in reading order, images linked relatively
+  manifest.json          the same data, structured
+  01-settings-page/      01.png 02.png 03.png
+  02-billing/            01.png
+```
+
+Point an agent at the folder and it reads `brief.md` top to bottom, opens the
+images beside it, and knows which section each note belongs to.
+
+Set `$OMASHOT_DIR` if you want that folder somewhere other than `~/Omashot`.
+
+## Where it lives
+
+In your bar, but only while it is holding something — a brief and its shot
+count, loose shots waiting to be copied, or a live trail or recording you can
+stop with a click. Idle, it shows nothing.
+
+Everything is also in the Omarchy menu
+(<kbd>Super</kbd><kbd>Alt</kbd><kbd>Space</kbd>) under **Omashot**, and
+`omashot help` lists every verb.
+
+## Next
+
+- [The keys](/docs/keys) — all of them, and the ones inside each window
+- [Shots](/docs/shots) — loose shots and markup
+- [Briefs](/docs/briefs) — sections, trails and handing off
+- [Prompts](/docs/prompts) — what gets copied, and how to change it

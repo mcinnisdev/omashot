@@ -11,7 +11,7 @@ Omashot is built in the open, and most of what has changed so far started as som
 <div class="qc-feedback">
 <a href="https://github.com/mcinnisdev/omashot/issues/new?template=bug_report.yml" target="_blank" rel="noreferrer"><strong>Report a bug</strong><span>Something broke, looks wrong, or does not do what the docs say. Opens a short form on GitHub.</span></a>
 <a href="https://github.com/mcinnisdev/omashot/issues/new?template=feature_request.yml" target="_blank" rel="noreferrer"><strong>Request a feature</strong><span>Something you wish Omashot did, or did differently. Tell us the problem first; the fix can come later.</span></a>
-<a href="mailto:hello@omashot.com"><strong>Say hello</strong><span>Questions, thanks, a story about what you used it for, or anything that does not belong in a public issue.</span></a>
+<a href="mailto:nick@omashot.com"><strong>Say hello</strong><span>Questions, thanks, a story about what you used it for, or anything that does not belong in a public issue.</span></a>
 </div>
 
 ## What helps

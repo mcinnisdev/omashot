@@ -12,17 +12,17 @@ const columns = [
     title: "Product",
     links: [
       { text: "Changelog", href: "/changelog" },
-      { text: "Keyboard shortcuts", href: "/docs/shortcuts" },
-      { text: "Prompt library", href: "/docs/prompts" },
+      { text: "The keys", href: "/docs/keys" },
+      { text: "Prompts", href: "/docs/prompts" },
     ],
   },
   {
     title: "Learn",
     links: [
       { text: "Getting started", href: "/docs/getting-started" },
-      { text: "Shots", href: "/use-cases/quick-shots" },
-      { text: "Briefs", href: "/use-cases/bundles" },
-      { text: "Recordings", href: "/use-cases/studio" },
+      { text: "Shots", href: "/docs/shots" },
+      { text: "Briefs", href: "/docs/briefs" },
+      { text: "Recordings", href: "/docs/recordings" },
     ],
   },
   {
@@ -30,7 +30,7 @@ const columns = [
     links: [
       { text: "GitHub", href: "https://github.com/mcinnisdev/omashot" },
       { text: "Report a bug / Request a feature", href: "/feedback" },
-      { text: "hello@omashot.com", href: "mailto:hello@omashot.com" },
+      { text: "nick@omashot.com", href: "mailto:nick@omashot.com" },
     ],
   },
 ];

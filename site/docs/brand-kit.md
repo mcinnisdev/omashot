@@ -1,34 +1,43 @@
 ---
-description: "Put a logo, colours and voice notes in ~/Omashot/brand and Omashot carries them into every bundle an AI agent writes from and every video the studio exports."
+description: "Put a logo, colours and voice notes in ~/Omashot/brand and Omashot carries them into every brief an agent writes from and every recording it exports."
 ---
 
 # Brand kit
 
-Anything an agent writes from a bundle, and anything the studio renders, can carry your brand.
+Anything an agent writes from a brief, and anything a recording renders, can
+carry your brand.
 
 ## The folder
 
-Put whatever describes the business in `~/Omashot/brand/`: a logo, colour swatches, fonts, a style guide, a document whose voice to imitate. Subfolders are fine. The bundle window's **Brand kit…** panel opens the folder and takes voice notes: tone, audience, terminology, things never to say. Notes are saved as `brand/brand.md`.
+Put whatever describes the business in `~/Omashot/brand/`: a logo, colour
+swatches, fonts, a style guide, a document whose voice to imitate. Subfolders
+are fine.
 
-## In bundles
+The brief's **Brand kit…** panel opens the folder and takes voice notes —
+tone, audience, terminology, things never to say. Notes are saved as
+`brand/brand.md`.
 
-When a bundle is written, the folder is copied into it as `brand/`, so the bundle stays self-contained, and the markdown file gets a **Brand kit** section near the top with your notes inlined and the files listed. The built-in prompts tell the agent to match it. Untick **Include in this bundle** for a bundle where it does not apply.
+## In a brief
 
-<figure class="qc-shot">
-<img src="/media/docs/brand-panel.png" alt="The Brand kit panel in the bundle window: the file count, the include toggle and the voice notes." loading="lazy" />
-<figcaption>The Brand kit panel in the bundle window: the file count, the include toggle and the voice notes.</figcaption>
-</figure>
+When a brief is written out, the folder is copied into it as `brand/`, so the
+brief stays self-contained, and `brief.md` gets a **Brand kit** section near
+the top with your notes inlined and the files listed. The built-in prompts
+tell the agent to match it.
 
-## In the studio
+Untick **Include in this brief** for one where it does not apply.
 
-The **Branding** section of the inspector places a title and subtitle in the padding above or below the frame, and a logo from the brand folder in a corner of it. Both render in the preview and the export.
+## In a recording
 
-## A good brand.md
+The **Branding** section of the inspector puts a title and subtitle in the
+padding above or below the frame, and a logo from the brand folder in a
+corner of it. Both render in the preview and in the export.
 
-Short and concrete beats long and vague. What worked for us:
+## Writing a good brand.md
 
-- who you are and who reads what you write, in three sentences,
-- voice rules as bullets: person, tone, sentence length,
-- words to use and words to avoid,
-- how a process document should be shaped,
-- colours as a table with their roles, the typeface, and logo rules.
+Short and concrete beats long and vague:
+
+- who you are and who reads what you write, in three sentences
+- voice rules as bullets: person, tone, sentence length
+- words to use, and words to avoid
+- how a process document should be shaped
+- colours as a table with their roles, the typeface, and logo rules

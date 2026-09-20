@@ -50,7 +50,7 @@ async function boot() {
     sep.hidden = true;
     shotTitle.hidden = true;
     groupHint.hidden = false;
-    note.placeholder = "Master note, e.g. problems on the settings page";
+    note.placeholder = "Section note, e.g. problems on the settings page";
     secondary.textContent = "Cancel";
   } else if (isRecording) {
     label.textContent = "Auto-capture";
@@ -94,15 +94,15 @@ async function boot() {
   if (!g) return;
 
   groupTitle.value = g.title;
-  groupTitle.placeholder = `Group ${g.index}`;
+  groupTitle.placeholder = `Section ${g.index}`;
   shotTitle.placeholder = `${isRecording ? "Recording" : "Shot"} ${g.shots.length}`;
 
   if (isGroup) {
-    const name = g.title.trim() || `Group ${g.index}`;
+    const name = g.title.trim() || `Section ${g.index}`;
     groupHint.textContent =
       g.shots.length === 0
         ? `${name} has no shots yet. Enter saves its name and note; captures keep landing here.`
-        : `Add a master note for ${name} (optional). Enter saves it and starts the next group. To add more shots to this group later, press Capture here in the bundle window.`;
+        : `Add a section note for ${name} (optional). Enter saves it and starts the next section. To add more shots to this section later, press Capture here in the brief window.`;
   }
 }
 

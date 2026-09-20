@@ -548,7 +548,7 @@ async function loadEntries() {
   entries = [];
   if (!session) return;
   for (const g of session.groups) {
-    const name = g.title.trim() || `Group ${g.index}`;
+    const name = g.title.trim() || `Section ${g.index}`;
     g.shots.forEach((s, i) => {
       if (s.kind === "recording") return;
       entries.push({ group: g.index, groupName: name, index: i + 1, total: g.shots.length, shot: s });
@@ -591,7 +591,7 @@ async function showCurrent() {
   }
   path = e.shot.abs_path;
   title.textContent = `${e.groupName}: shot ${e.index}`;
-  countEl.textContent = `${at + 1} of ${entries.length} in the bundle · ${e.groupName}, ${e.index} of ${e.total}`;
+  countEl.textContent = `${at + 1} of ${entries.length} in the brief · ${e.groupName}, ${e.index} of ${e.total}`;
   momentEl.textContent = e.shot.moment ? `auto · ${frameLabel(e.shot.moment)}` : "";
   shotTitle.value = e.shot.title;
   shotTitle.placeholder = `Shot ${e.index}`;

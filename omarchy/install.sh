@@ -112,14 +112,17 @@ install_plugin() {
     say "bar widget -> $dest"
   fi
 
-  # Enabling adds it to the bar's layout in shell.json. Already-enabled is
-  # not an error worth stopping the install over.
-  if omarchy plugin list --json 2>/dev/null | grep -q '"omashot"'; then
-    if omarchy plugin enable omashot right >/dev/null 2>&1; then
-      say "bar widget enabled on the right"
-    else
-      say "bar widget installed; enable it with: omarchy plugin enable omashot"
-    fi
+  # The shell has to notice the new folder before it can be switched on, and
+  # it has not necessarily rescanned in the moment since we wrote it.
+  omarchy-shell shell rescanPlugins >/dev/null 2>&1 || true
+
+  # Enabling adds it to the bar's layout in shell.json. Not gated on the
+  # plugin already being listed: on a fresh install it will not be, and a
+  # check that races the rescan is how this silently did nothing before.
+  if omarchy plugin enable omashot right >/dev/null 2>&1; then
+    say "bar widget on the right of the bar"
+  else
+    say "bar widget installed; switch it on with: omarchy plugin enable omashot right"
   fi
 }
 

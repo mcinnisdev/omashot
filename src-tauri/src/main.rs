@@ -80,7 +80,7 @@ struct Inner {
     /// here, reopens this one.
     finished: bool,
     /// True when the session has changed since it was last written out, so
-    /// "New bundle" knows whether there is anything to save first.
+    /// "New brief" knows whether there is anything to save first.
     dirty: bool,
     last_export: Option<Export>,
 }
@@ -238,12 +238,12 @@ impl Prompts {
             .into(),
             deliverable_markdown: concat!(
                 "Write the steps in second person and embed each image where it belongs ",
-                "using its relative path. Save the result as process.md inside the bundle ",
+                "using its relative path. Save the result as process.md inside the brief ",
                 "folder and keep the file names, so the document works next to its images."
             )
             .into(),
             deliverable_html: concat!(
-                "Deliver one self-contained web page, process.html, saved inside the bundle ",
+                "Deliver one self-contained web page, process.html, saved inside the brief ",
                 "folder: inline CSS, images by relative path, one step per screenshot with ",
                 "the image under its step. Write in second person and keep the file names."
             )
@@ -327,8 +327,8 @@ fn agent_prompt(
     }
     let p = prompts.resolved();
     let location = match target {
-        Target::Cli => format!("the QA bundle at {root}"),
-        Target::Chat => "the QA bundle in the attached ZIP. Unzip it first".to_string(),
+        Target::Cli => format!("the Brief at {root}"),
+        Target::Chat => "the Brief in the attached ZIP. Unzip it first".to_string(),
     };
     let deliverable = match doc_format {
         DocFormat::Markdown => p.deliverable_markdown,
@@ -556,7 +556,7 @@ fn open_overlay(app: &AppHandle, mode: &str) {
         if mode == "shot" || mode == "record" {
             if inner.finished {
                 if let Err(e) = stash_session(app, &mut inner) {
-                    eprintln!("omashot: could not put the finished bundle away: {e}");
+                    eprintln!("omashot: could not put the finished brief away: {e}");
                     return;
                 }
             }
@@ -688,20 +688,20 @@ fn finish_recording(app: &AppHandle) {
 
     let _ = app.emit("session-changed", ());
     if let Err(e) = overlay::open_peek(app, None) {
-        eprintln!("omashot: could not open bundle window: {e}");
+        eprintln!("omashot: could not open brief window: {e}");
     }
 }
 
 fn trigger_group(app: &AppHandle) {
     overlay::close_peek(app);
     if let Err(e) = overlay::open_note(app, "group", None) {
-        eprintln!("omashot: could not open group prompt: {e}");
+        eprintln!("omashot: could not open section prompt: {e}");
     }
 }
 
 fn trigger_peek(app: &AppHandle) {
     if let Err(e) = overlay::toggle_peek(app) {
-        eprintln!("omashot: could not open bundle view: {e}");
+        eprintln!("omashot: could not open brief view: {e}");
     }
 }
 
@@ -885,14 +885,14 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let acc = |s: &str| if s.trim().is_empty() { None } else { Some(s.trim().to_string()) };
 
     let head_omashot = MenuItem::with_id(app, "h1", "Omashot Basic", false, None::<&str>)?;
-    let head_docs = MenuItem::with_id(app, "h4", "Omashot Bundles", false, None::<&str>)?;
+    let head_docs = MenuItem::with_id(app, "h4", "Omashot Briefs", false, None::<&str>)?;
     let quick_i = MenuItem::with_id(app, "quick", "Quick shot", true, acc(&hk.quick))?;
     let quick_finish_i =
         MenuItem::with_id(app, "quick_finish", "Finish quick batch and copy paths", true, acc(&hk.quick_finish))?;
     let capture_i = MenuItem::with_id(app, "capture", "Capture", true, acc(&hk.capture))?;
     let record_i = MenuItem::with_id(app, "record", "Auto-capture start / stop", true, acc(&hk.record))?;
-    let group_i = MenuItem::with_id(app, "group", "New group", true, acc(&hk.group))?;
-    let peek_i = MenuItem::with_id(app, "peek", "View / edit bundle", true, acc(&hk.peek))?;
+    let group_i = MenuItem::with_id(app, "group", "New section", true, acc(&hk.group))?;
+    let peek_i = MenuItem::with_id(app, "peek", "View / edit brief", true, acc(&hk.peek))?;
     let finish_i = MenuItem::with_id(app, "finish", "Finish and copy path", true, acc(&hk.finish))?;
     let folder_i = MenuItem::with_id(app, "folder", "Open Omashot folder", true, None::<&str>)?;
 
@@ -955,7 +955,7 @@ async fn open_prompt_library(app: AppHandle) -> Result<(), String> {
 
 fn trigger_shortcuts(app: &AppHandle) {
     if let Err(e) = overlay::open_peek(app, Some("shortcuts")) {
-        eprintln!("omashot: could not open bundle window: {e}");
+        eprintln!("omashot: could not open brief window: {e}");
     }
 }
 
@@ -1711,7 +1711,7 @@ fn set_current_group(app: AppHandle, state: State<Shared>, group: usize) -> Resu
         let mut inner = state.lock().unwrap();
         let session = inner.session.as_mut().ok_or("nothing captured yet")?;
         if !session.set_current(group) {
-            return Err("no such group".into());
+            return Err("no such section".into());
         }
         inner.finished = false;
     }
@@ -1840,7 +1840,7 @@ fn move_shot(
         let mut inner = state.lock().unwrap();
         let session = inner.session.as_mut().ok_or("nothing captured yet")?;
         if !session.move_shot(group, &shot, to_group, to_index) {
-            return Err("no such shot or group".into());
+            return Err("no such shot or section".into());
         }
         inner.dirty = true;
         inner.finished = false;
@@ -2625,13 +2625,13 @@ mod tests {
     #[test]
     fn built_in_prompts_switch_between_folder_and_zip() {
         let cli = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", false, Target::Cli, &Prompts::default());
-        assert!(cli.starts_with("Work through the QA bundle at C:/b. "));
+        assert!(cli.starts_with("Work through the Brief at C:/b. "));
         let chat = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", true, Target::Chat, &Prompts::default());
-        assert!(chat.starts_with("Work through the QA bundle in the attached ZIP. Unzip it first. "));
+        assert!(chat.starts_with("Work through the Brief in the attached ZIP. Unzip it first. "));
         assert!(!chat.contains("C:/b"));
         assert!(chat.ends_with("match them in anything you produce."));
         let doc = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Markdown, "", false, Target::Chat, &Prompts::default());
-        assert!(doc.starts_with("Using the QA bundle in the attached ZIP. Unzip it first. write a step-by-step"));
+        assert!(doc.starts_with("Using the Brief in the attached ZIP. Unzip it first. write a step-by-step"));
         assert!(doc.contains("process.md"));
         let page = agent_prompt("C:/b", "n", Purpose::Document, DocFormat::Html, "", false, Target::Cli, &Prompts::default());
         assert!(page.contains("process.html"));
@@ -2640,7 +2640,7 @@ mod tests {
         // An override wins, and its placeholders are filled.
         let mine = Prompts { fix: "Fix {name} at {location}.".into(), ..Default::default() };
         let cli = agent_prompt("C:/b", "n", Purpose::Fix, DocFormat::Markdown, "", false, Target::Cli, &mine);
-        assert_eq!(cli, "Fix n at the QA bundle at C:/b.");
+        assert_eq!(cli, "Fix n at the Brief at C:/b.");
         let p = Prompts { quick_entry: "See {path}: {note}".into(), ..Default::default() };
         assert_eq!(quick_entry(std::path::Path::new("C:/q/01.png"), " clipped ", &p), "See C:/q/01.png: clipped");
         assert_eq!(quick_entry(std::path::Path::new("C:/q/01.png"), "", &Prompts::default()), "C:/q/01.png");

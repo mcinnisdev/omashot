@@ -143,7 +143,7 @@ pub fn open_peek(app: &AppHandle, focus: Option<&str>) -> Result<()> {
         None => "peek.html".to_string(),
     };
     let win = builder(app, PEEK, WebviewUrl::App(url.into()))
-        .title("Omashot bundle")
+        .title("Omashot brief")
         .inner_size(900.0, 640.0)
         .min_inner_size(620.0, 420.0)
         .decorations(false)
@@ -283,7 +283,7 @@ pub fn open_quick_editor(app: &AppHandle, path: &str, img_w: u32, img_h: u32) ->
     let h = (img_h as f64 + 118.0).clamp(520.0, 940.0);
     let url = format!("edit.html?quick=1&path={}", urlencode(path));
     let win = builder(app, EDIT, WebviewUrl::App(url.into()))
-        .title("Omashot quick shot")
+        .title("Omashot shot")
         .inner_size(w, h)
         .min_inner_size(760.0, 420.0)
         .decorations(false)
@@ -377,7 +377,7 @@ pub fn open_studio(app: &AppHandle, project_dir: Option<&str>) -> Result<()> {
         None => "studio.html".to_string(),
     };
     let win = builder(app, STUDIO, WebviewUrl::App(url.into()))
-        .title("Omashot Studio")
+        .title("Omashot recordings")
         .inner_size(1360.0, 860.0)
         .min_inner_size(960.0, 600.0)
         .decorations(false)

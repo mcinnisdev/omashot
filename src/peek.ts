@@ -47,8 +47,8 @@ const HOTKEY_LABELS: [keyof Hotkeys, string][] = [
   ["quick_finish", "Finish quick batch and copy paths"],
   ["capture", "Capture"],
   ["record", "Auto-capture start / stop"],
-  ["group", "New group"],
-  ["peek", "View / edit bundle"],
+  ["group", "New section"],
+  ["peek", "View / edit brief"],
   ["finish", "Finish and copy path"],
   ["studio", "Studio: record start / stop"],
   ["zoom", "Studio: zoom start / end (only active while recording)"],
@@ -128,7 +128,7 @@ function windowKeys(): [string, [string, string][]][] {
       ],
     ],
     [
-      "Note box (bundle capture)",
+      "Note box (brief capture)",
       [
         ["Enter", "save"],
         ["Shift+Enter", "new line"],
@@ -334,7 +334,7 @@ async function render() {
 
   const shots = session?.groups.reduce((n, g) => n + g.shots.length, 0) ?? 0;
   const used = session?.groups.filter((g) => g.shots.length > 0).length ?? 0;
-  count.textContent = session ? `${shots} in ${used || 1} groups` : "";
+  count.textContent = session ? `${shots} in ${used || 1} sections` : "";
 
   if (state.last_export) {
     showExported(state.last_export, state.dirty, state.finished);
@@ -346,8 +346,8 @@ async function render() {
     const empty = document.createElement("div");
     empty.className = "empty";
     empty.textContent = session
-      ? `Nothing captured yet. Name the bundle and its first group above if you like, then press ${keyLabel(hk.capture)}, drag a region, type what is wrong, and hit Enter.`
-      : `Nothing captured yet. Press ${keyLabel(hk.capture)}, drag a region, type what is wrong, and hit Enter. Shots land in the current group until you start a new one.`;
+      ? `Nothing captured yet. Name the brief and its first section above if you like, then press ${keyLabel(hk.capture)}, drag a region, type what is wrong, and hit Enter.`
+      : `Nothing captured yet. Press ${keyLabel(hk.capture)}, drag a region, type what is wrong, and hit Enter. Shots land in the current section until you start a new one.`;
     body.append(empty);
     if (!session) return;
   }
@@ -387,8 +387,8 @@ async function render() {
 
     const nameInput = document.createElement("input");
     nameInput.value = g.title;
-    nameInput.placeholder = `Group ${g.index}`;
-    nameInput.setAttribute("aria-label", `Name for group ${g.index}`);
+    nameInput.placeholder = `Section ${g.index}`;
+    nameInput.setAttribute("aria-label", `Name for section ${g.index}`);
 
     // Where the next capture lands. Clicking an earlier group points new
     // shots back at it.
@@ -411,8 +411,8 @@ async function render() {
     const master = document.createElement("textarea");
     master.className = "master";
     master.value = g.master_note;
-    master.placeholder = "Master note for this group";
-    master.setAttribute("aria-label", `Master note for group ${g.index}`);
+    master.placeholder = "Section note for this section";
+    master.setAttribute("aria-label", `Section note for section ${g.index}`);
 
     const saveGroup = () =>
       void invoke("set_group_note", {
@@ -610,8 +610,8 @@ function showExported(result: Export, dirty: boolean, finished: boolean) {
   exportedLabel.textContent = dirty
     ? "Changed since it was last written to"
     : finished
-      ? "Finished. The next capture starts a new bundle; Capture here on a group adds to this one. Written to"
-      : "Bundle written to";
+      ? "Finished. The next capture starts a new brief; Capture here on a section adds to this one. Written to"
+      : "Brief written to";
   exportedPath.textContent = result.root;
 }
 
@@ -622,7 +622,7 @@ const doneText: Record<Action, string> = {
   prompt: "Agent prompt copied",
   markdown: "Markdown copied",
   open: "Folder opened",
-  zip: "ZIP saved beside the bundle and chat prompt copied",
+  zip: "ZIP saved beside the brief and chat prompt copied",
   chatprompt: "Chat prompt copied",
 };
 
@@ -737,7 +737,7 @@ async function showBundles() {
   if (list.length === 0) {
     const none = document.createElement("div");
     none.className = "empty";
-    none.textContent = "No bundles yet.";
+    none.textContent = "No briefs yet.";
     bundlesList.append(none);
   }
   for (const b of list) {
@@ -752,7 +752,7 @@ async function showBundles() {
     const meta = document.createElement("span");
     meta.className = "bundle-meta";
     const when = b.started_at.slice(0, 16).replace("T", " ");
-    meta.textContent = `${when}  ${b.shots} shot${b.shots === 1 ? "" : "s"} in ${b.groups} group${b.groups === 1 ? "" : "s"}`;
+    meta.textContent = `${when}  ${b.shots} shot${b.shots === 1 ? "" : "s"} in ${b.groups} section${b.groups === 1 ? "" : "s"}`;
 
     const open = document.createElement("button");
     open.className = "btn";
@@ -791,29 +791,29 @@ interface Menu {
 
 const menus: Menu[] = [
   {
-    title: "Bundle",
+    title: "Brief",
     items: () => [
-      { label: "New bundle", run: () => call("new_bundle", undefined, "Started a new bundle") },
-      { label: "Open bundle…", run: showBundles },
-      { label: "Rename bundle", run: () => bundleName.focus() },
+      { label: "New brief", run: () => call("new_bundle", undefined, "Started a new brief") },
+      { label: "Open a brief…", run: showBundles },
+      { label: "Rename this brief", run: () => bundleName.focus() },
       "-",
-      { label: "Finish and copy path", keys: keyLabel(hk.finish), run: () => run("path") },
-      { label: "Open bundle folder", run: () => run("open") },
+      { label: "Done: write it out and copy the path", keys: keyLabel(hk.finish), run: () => run("path") },
+      { label: "Open the brief's folder", run: () => run("open") },
       "-",
       { label: "Close window", keys: "Esc", run: () => getCurrentWindow().close() },
     ],
   },
   {
-    title: "Capture",
+    title: "Shoot",
     items: () => [
-      { label: "Quick shot", keys: keyLabel(hk.quick), run: () => call("start_quick") },
-      { label: "Finish quick batch and copy paths", keys: keyLabel(hk.quick_finish), run: () => call("quick_finish", undefined, "Quick batch copied") },
+      { label: "Take a shot", keys: keyLabel(hk.quick), run: () => call("start_quick") },
+      { label: "Copy the loose shots", keys: keyLabel(hk.quick_finish), run: () => call("quick_finish", undefined, "Loose shots copied") },
       "-",
-      { label: "Capture", keys: keyLabel(hk.capture), run: () => call("start_capture") },
-      { label: "Auto-capture start / stop", keys: keyLabel(hk.record), run: () => call("start_record") },
-      { label: "New group", keys: keyLabel(hk.group), run: () => call("start_group") },
+      { label: "Add to the brief", keys: keyLabel(hk.capture), run: () => call("start_capture") },
+      { label: "Trail what I do, start / stop", keys: keyLabel(hk.record), run: () => call("start_record") },
+      { label: "Next section", keys: keyLabel(hk.group), run: () => call("start_group") },
       "-",
-      { label: "Studio recording", keys: keyLabel(hk.studio), run: () => call("start_studio_from_menu") },
+      { label: "Record the screen, start / stop", keys: keyLabel(hk.studio), run: () => call("start_studio_from_menu") },
     ],
   },
   {
@@ -837,7 +837,7 @@ const menus: Menu[] = [
   {
     title: "Help",
     items: () => [
-      { label: "Show bundle window", keys: keyLabel(hk.peek), run: () => toast("You are looking at it") },
+      { label: "Open the brief", keys: keyLabel(hk.peek), run: () => toast("You are looking at it") },
       { label: "Keyboard shortcuts…", run: showShortcuts },
       { label: "Open Omashot folder", run: () => call("open_base_folder") },
       "-",

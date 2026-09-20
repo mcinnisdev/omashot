@@ -151,10 +151,10 @@ pub fn write_zip(session: &Session) -> Result<PathBuf> {
     let folder = root
         .file_name()
         .map(|n| n.to_string_lossy().to_string())
-        .ok_or_else(|| anyhow::anyhow!("bundle folder has no name"))?;
+        .ok_or_else(|| anyhow::anyhow!("brief folder has no name"))?;
     let parent = root
         .parent()
-        .ok_or_else(|| anyhow::anyhow!("bundle folder has no parent"))?;
+        .ok_or_else(|| anyhow::anyhow!("brief folder has no parent"))?;
     let zip_path = parent.join(format!("{folder}.zip"));
 
     let file = std::fs::File::create(&zip_path)?;
@@ -250,12 +250,12 @@ fn move_shot_files(shot: &mut crate::model::Shot, dest: &Path) -> std::io::Resul
 pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
     let mut md = String::new();
 
-    let _ = writeln!(md, "# QA bundle: {}", session.title());
+    let _ = writeln!(md, "# Brief: {}", session.title());
     let _ = writeln!(md);
     let groups: Vec<_> = session.groups.iter().filter(|g| !g.is_empty()).collect();
     let _ = writeln!(
         md,
-        "{} screenshot{} across {} group{}, captured {}. Image paths are relative to this file.",
+        "{} screenshot{} across {} section{}, captured {}. Image paths are relative to this file.",
         session.shot_count(),
         if session.shot_count() == 1 { "" } else { "s" },
         groups.len(),
@@ -264,8 +264,8 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
     );
     let _ = writeln!(md);
     md.push_str(concat!(
-        "How to read this: each group is one page or area of the product. ",
-        "The quoted text under a group heading is the reviewer's note for the whole group. ",
+        "How to read this: each section is one page or area of the product. ",
+        "The quoted text under a section heading is the reviewer's note for the whole section. ",
         "Each numbered item is a screenshot of one region, followed by the reviewer's note ",
         "on what is wrong there. Open the image before acting on the note. ",
         "A screenshot marked auto-captured is one of a sequence taken while the reviewer ",
@@ -310,7 +310,7 @@ pub fn render_markdown(session: &Session, brand: Option<&BrandKit>) -> String {
 
         if g.shots.is_empty() {
             let _ = writeln!(md);
-            let _ = writeln!(md, "_No screenshots in this group._");
+            let _ = writeln!(md, "_No screenshots in this section._");
             continue;
         }
 
@@ -710,9 +710,9 @@ mod tests {
         });
 
         let md = render_markdown(&s, None);
-        assert!(md.starts_with("# QA bundle: Settings review\n"));
+        assert!(md.starts_with("# Brief: Settings review\n"));
         assert!(!md.contains("## Brand kit"));
-        assert!(md.contains("How to read this: each group is one page or area of the product. The quoted"));
+        assert!(md.contains("How to read this: each section is one page or area of the product. The quoted"));
         assert!(!md.contains("  "), "no double spaces from string continuation");
         assert!(md.contains("## 1. Settings page"));
         assert!(md.contains("### 1.1 Save button"));

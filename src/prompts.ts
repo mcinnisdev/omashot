@@ -38,7 +38,7 @@ const SAMPLE: Record<string, string> = {
     "C:\\Users\\nick\\Omashot\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.\n\nC:\\Users\\nick\\Omashot\\Quick\\2026-09-19_101512\\02.png\nThis toggle never saves.",
   "{shots}":
     "C:\\Users\\nick\\Omashot\\Quick\\2026-09-19_101512\\01.png\nThe save button is clipped at 125% scaling.",
-  "{location}": "the QA bundle at C:\\Users\\nick\\Omashot\\2026-09-19_143022-settings-review",
+  "{location}": "the QA brief at C:\\Users\\nick\\Omashot\\2026-09-19_143022-settings-review",
   "{root}": "C:\\Users\\nick\\Omashot\\2026-09-19_143022-settings-review",
   "{name}": "Settings review",
   "{deliverable}": "(the Markdown or web page deliverable text)",
@@ -59,15 +59,15 @@ const BUILTINS: BuiltinInfo[] = [
   },
   {
     key: "fix",
-    name: "Bundle: Fix issues",
-    about: "The agent prompt for a bundle whose purpose is Fix issues.",
-    placeholders: [["{location}", "the folder path, or 'the attached ZIP'"], ["{root}", "the folder path"], ["{name}", "the bundle name"]],
+    name: "Brief: Fix issues",
+    about: "The agent prompt for a brief whose purpose is Fix issues.",
+    placeholders: [["{location}", "the folder path, or 'the attached ZIP'"], ["{root}", "the folder path"], ["{name}", "the brief name"]],
   },
   {
     key: "document",
-    name: "Bundle: Write process doc",
-    about: "The agent prompt for a bundle whose purpose is Write process doc.",
-    placeholders: [["{location}", "the folder path, or 'the attached ZIP'"], ["{deliverable}", "the Markdown or web page text below"], ["{root}", "the folder path"], ["{name}", "the bundle name"]],
+    name: "Brief: Write process doc",
+    about: "The agent prompt for a brief whose purpose is Write process doc.",
+    placeholders: [["{location}", "the folder path, or 'the attached ZIP'"], ["{deliverable}", "the Markdown or web page text below"], ["{root}", "the folder path"], ["{name}", "the brief name"]],
   },
   {
     key: "deliverable_markdown",
@@ -85,12 +85,12 @@ const BUILTINS: BuiltinInfo[] = [
 
 const KIND_PLACEHOLDERS: Record<"quick" | "bundle", [string, string][]> = {
   quick: [["{shots}", "the shots' paths and notes; left out, they are appended"]],
-  bundle: [["{root}", "the folder path; left out, it is appended"], ["{name}", "the bundle name"]],
+  bundle: [["{root}", "the folder path; left out, it is appended"], ["{name}", "the brief name"]],
 };
 
 const KIND_ABOUT: Record<"quick" | "bundle", string> = {
   quick: "Picked from \"Hand off as\" in the quick shot window. Wraps the shots you hand off.",
-  bundle: "Picked from the purpose menu in the bundle window. The whole instruction for the bundle.",
+  bundle: "Picked from the purpose menu in the brief window. The whole instruction for the brief.",
 };
 
 type Selection = { type: "builtin"; key: BuiltinKey } | { type: "custom"; id: string };
@@ -329,7 +329,7 @@ duplicateBtn.addEventListener("click", () => {
   const sel = selected;
   if (sel.type !== "builtin") return;
   const info = BUILTINS.find((b) => b.key === sel.key)!;
-  addPrompt({ name: `My ${info.name.replace("Bundle: ", "").toLowerCase()}`, kind: "bundle", template: template.value });
+  addPrompt({ name: `My ${info.name.replace("Brief: ", "").toLowerCase()}`, kind: "bundle", template: template.value });
 });
 deleteBtn.addEventListener("click", () => void deletePrompt());
 (document.getElementById("add") as HTMLButtonElement).addEventListener("click", () => addPrompt());

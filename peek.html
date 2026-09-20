@@ -2,15 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Bundle</title>
+    <title>Brief</title>
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body class="peek">
     <div class="peek-wrap">
       <!-- Menu bar. Every command lives here with its shortcut; the rows
-           below carry only the bundle's name and the one primary action. -->
+           below carry only the brief's name and the one primary action. -->
       <div class="peek-head" data-tauri-drag-region>
-        <nav class="menubar" id="menubar" aria-label="Bundle menu"></nav>
+        <nav class="menubar" id="menubar" aria-label="Brief menu"></nav>
         <span class="spacer" data-tauri-drag-region></span>
         <span class="count" id="count" data-tauri-drag-region></span>
         <button class="icon-btn" id="close" title="Close (Esc)" aria-label="Close">
@@ -21,11 +21,11 @@
         <input
           class="bundle-name"
           id="bundle-name"
-          placeholder="Name this bundle"
-          aria-label="Bundle name"
+          placeholder="Name this brief"
+          aria-label="Brief name"
         />
         <div class="segmented">
-          <select id="purpose" aria-label="What this bundle is for">
+          <select id="purpose" aria-label="What this brief is for">
             <option value="fix">Fix issues</option>
             <option value="document">Write process doc</option>
             <option value="custom">Custom prompt</option>
@@ -36,11 +36,11 @@
           </select>
           <button class="btn primary" id="copy-prompt">Copy agent prompt</button>
         </div>
-        <button class="btn" id="export-doc" title="Write a finished process document from this bundle, no agent needed">Export doc</button>
+        <button class="btn" id="export-doc" title="Write a finished process document from this brief, no agent needed">Export doc</button>
       </div>
       <div class="bundles" id="bundles" hidden>
         <div class="panel-head">
-          <span>Open a bundle</span>
+          <span>Open a brief</span>
           <button class="quiet" id="bundles-close">Close</button>
         </div>
         <div class="bundles-list" id="bundles-list"></div>
@@ -49,7 +49,7 @@
         <div class="brand-row">
           <label class="check">
             <input type="checkbox" id="brand-include" />
-            Include in this bundle
+            Include in this brief
           </label>
           <span class="brand-files" id="brand-files"></span>
           <button class="btn" id="brand-open">Open brand folder</button>
@@ -57,13 +57,13 @@
         </div>
         <textarea
           id="brand-notes"
-          placeholder="Voice and style notes for the agent: tone, audience, words to use and avoid, how the business refers to itself. Drop logos, colours, fonts and style guides into the brand folder; everything there is copied into the bundle."
+          placeholder="Voice and style notes for the agent: tone, audience, words to use and avoid, how the business refers to itself. Drop logos, colours, fonts and style guides into the brand folder; everything there is copied into the brief."
         ></textarea>
       </div>
       <div class="custom" id="custom" hidden>
         <textarea
           id="custom-prompt"
-          placeholder="Your own instructions for the agent. {root} becomes the bundle folder path and {name} the bundle name. Saved to ~/Omashot/custom-prompt.txt and reused for every bundle."
+          placeholder="Your own instructions for the agent. {root} becomes the brief folder path and {name} the brief name. Saved to ~/Omashot/custom-prompt.txt and reused for every brief."
         ></textarea>
       </div>
       <div class="shortcuts" id="shortcuts" hidden>
@@ -81,7 +81,7 @@
         <div class="shortcut-ref" id="shortcut-ref"></div>
       </div>
       <div class="exported" id="exported">
-        <span id="exported-label">Bundle written to</span>
+        <span id="exported-label">Brief written to</span>
         <code id="exported-path"></code>
       </div>
       <div class="peek-body" id="body"></div>

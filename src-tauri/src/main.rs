@@ -2197,6 +2197,9 @@ async fn save_quick(
     note: String,
     all: bool,
     prompt: Option<String>,
+    // The shot with the note printed under it. Present when this hand-off is
+    // for a person; absent when it is for an agent.
+    png_base64: Option<String>,
 ) -> Result<String, String> {
     let path = state.lock().unwrap().quick_pending.take();
     let Some(path) = path else {
@@ -2221,7 +2224,7 @@ async fn save_quick(
     ));
     std::fs::write(&index, body).map_err(|e| e.to_string())?;
 
-    let text = if all {
+    let text = if all && png_base64.is_none() {
         // Handing the batch off closes it: the next quick shot starts a
         // fresh folder.
         state.lock().unwrap().quick_batch = None;
@@ -2236,9 +2239,81 @@ async fn save_quick(
         Some(p) => format!("{}\n\n{}", p.template.trim(), text),
         None => text,
     };
-    app.clipboard().write_text(text.clone()).map_err(|e| e.to_string())?;
-    overlay::close_note(&app);
-    Ok(text)
+    // With a picture this is a hand-off to a person: the image with the note
+    // under it, and nothing else. Without one it is the agent hand-off: the
+    // path and note as text.
+    match png_base64 {
+        Some(b) => {
+            use base64::Engine as _;
+            let png = base64::engine::general_purpose::STANDARD
+                .decode(b)
+                .map_err(|e| e.to_string())?;
+            set_clipboard(&app, "", Some(&png))?;
+            overlay::close_note(&app);
+            Ok(String::new())
+        }
+        None => {
+            set_clipboard(&app, &text, None)?;
+            overlay::close_note(&app);
+            Ok(text)
+        }
+    }
+}
+
+/// Puts one thing on the clipboard: text, or a PNG.
+///
+/// One thing, never both. A chat pastes text in preference to an image when
+/// both are there, so a hand-off carrying the picture *and* the path arrives
+/// as the path — which is the wrong half for the person you sent it to.
+/// Which one goes on is the caller's decision, and it is the whole point of
+/// having two keys.
+#[cfg(target_os = "linux")]
+fn set_clipboard(app: &AppHandle, text: &str, png: Option<&[u8]>) -> Result<(), String> {
+    let Some(png) = png else {
+        return app.clipboard().write_text(text).map_err(|e| e.to_string());
+    };
+
+    // On Wayland a selection is served by the process that owns it, for as
+    // long as it owns it. `wl-copy` forks a process whose whole job is to go
+    // on answering for that data, which is sturdier than holding it inside an
+    // app whose windows come and go -- and it is what the rest of Omarchy
+    // uses. The in-process path stays as the fallback.
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+
+    let spawned = Command::new("wl-copy")
+        .args(["--type", "image/png"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn();
+
+    if let Ok(mut child) = spawned {
+        if let Some(mut stdin) = child.stdin.take() {
+            let wrote = stdin.write_all(png).is_ok();
+            drop(stdin);
+            // wl-copy detaches once it owns the selection, so this returns
+            // rather than waiting for the clipboard to be given up.
+            let _ = child.wait();
+            if wrote {
+                return Ok(());
+            }
+        }
+    }
+
+    let image = tauri::image::Image::from_bytes(png).map_err(|e| e.to_string())?;
+    app.clipboard().write_image(&image).map_err(|e| e.to_string())
+}
+
+#[cfg(not(target_os = "linux"))]
+fn set_clipboard(app: &AppHandle, text: &str, png: Option<&[u8]>) -> Result<(), String> {
+    match png {
+        Some(png) => {
+            let image = tauri::image::Image::from_bytes(png).map_err(|e| e.to_string())?;
+            app.clipboard().write_image(&image).map_err(|e| e.to_string())
+        }
+        None => app.clipboard().write_text(text).map_err(|e| e.to_string()),
+    }
 }
 
 /// Throws away the quick shot the note box was attached to.

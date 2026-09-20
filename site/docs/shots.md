@@ -23,10 +23,39 @@ The shot opens large with the markup tools and a note box beside it.
 
 Type what is wrong and press <kbd>Enter</kbd>. Take another. Keep going.
 
-## Hand them off
+## Two keys, because there are two audiences
 
-**Finish and hand off** (<kbd>Ctrl</kbd><kbd>Enter</kbd>) copies every loose
-shot with its note, ready to paste:
+A chat pastes text in preference to an image when both are on the clipboard.
+So a hand-off carrying the picture *and* the path arrives as the path — the
+wrong half for the person you sent it to. Omashot puts **one** thing on the
+clipboard, and the key you press says which.
+
+| Key | Goes to | Gets |
+| --- | --- | --- |
+| <kbd>Enter</kbd> | a person | The picture, with your note printed under it |
+| <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>A</kbd> | an agent | The path and note as text |
+| <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>C</kbd> | a person | The picture on its own, no note |
+
+<kbd>Enter</kbd> keeps your loose shots open, so you can carry on. The agent
+chord takes all of them and clears them.
+
+## For a person: the note goes in the picture
+
+<kbd>Enter</kbd> copies the marked-up shot with your note printed in a band
+underneath it. The canvas is *extended* — the band is added below, so it never
+covers a pixel of what you captured.
+
+The band takes the shot's tone, read off its bottom edge: a dark screenshot
+gets a dark band with light text, a light one gets white with dark text. It
+should read as part of the picture rather than a label stapled to it.
+
+Paste it into a chat, an email or a ticket and the sentence travels with the
+screenshot, to somebody who will never see your filesystem.
+
+## For an agent: the path and the note
+
+<kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>A</kbd> — the **A** is for agent — copies
+every loose shot with its note, ready to paste:
 
 ```
 /home/you/Omashot/Quick/2026-09-19_101512/01.png
@@ -40,12 +69,11 @@ That clears them. The next shot starts a new folder, so an agent is never
 pointed at work you have already dealt with. From a terminal, `omashot copy`
 does the same thing.
 
-## Or hand one to a person
+## The picture on its own
 
-**Copy image** (<kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>C</kbd>) puts the
-marked-up PNG on the clipboard as an image rather than a path. That is the
-fastest answer to "which button do you mean?" — paste it straight into a
-chat, an email or a ticket.
+**Copy image** (<kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>C</kbd>) is the marked-up
+shot with no band under it, for when the note was for you rather than for
+them — or when an arrow is the whole message.
 
 ## Marking up
 

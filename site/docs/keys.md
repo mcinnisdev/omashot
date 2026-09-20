@@ -64,10 +64,14 @@ nothing.
 
 | Key | Does |
 | --- | --- |
-| <kbd>Enter</kbd> | Save |
+| <kbd>Enter</kbd> | Copy the picture with the note under it, for a person |
+| <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>A</kbd> | Hand the path and note to an agent as text, and clear the loose shots |
 | <kbd>Shift</kbd><kbd>Enter</kbd> | New line |
-| <kbd>Ctrl</kbd><kbd>Enter</kbd> | Finish the loose shots, copying every path and note |
 | <kbd>Esc</kbd> | Keep the shot with no note; cancel a section wrap-up |
+
+The **A** is for agent. Everything else goes to a person — see
+[shots](/docs/shots#two-keys-because-there-are-two-audiences) for why it is
+one or the other and never both.
 
 ## In the markup editor
 
@@ -78,7 +82,7 @@ nothing.
 | <kbd>Delete</kbd> | Remove the selected mark |
 | <kbd>Ctrl</kbd><kbd>Z</kbd> | Undo |
 | <kbd>Ctrl</kbd><kbd>S</kbd> | Save |
-| <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>C</kbd> | Copy the marked-up image |
+| <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>C</kbd> | Copy the marked-up image on its own, with no note under it |
 | <kbd>Esc</kbd> | Cancel |
 
 Blur really removes pixels rather than covering them, so a blurred shot is

@@ -37,14 +37,14 @@
             <span class="edit-count" id="quick-count">Shot</span>
             <span class="edit-hint" id="quick-hint"></span>
           </div>
-          <select class="field" id="quick-prompt" aria-label="Prompt to wrap the hand-off in" hidden></select>
-          <textarea class="field" id="quick-note" placeholder="What should the agent do with this?" aria-label="Note"></textarea>
+          <select class="field" id="quick-prompt" aria-label="Prompt to wrap the agent hand-off in" hidden></select>
+          <textarea class="field" id="quick-note" placeholder="What is wrong, or what should happen?" aria-label="Note"></textarea>
           <div class="edit-side-actions">
-            <button class="btn primary" id="quick-save" title="Save the note, copy this shot's path and note (Enter)">Save + copy path</button>
-            <button class="btn" id="quick-copy-image" title="Copy the marked-up image to the clipboard (Ctrl+Shift+C)">Copy image</button>
+            <button class="btn primary" id="quick-save" title="Copy the picture with your note printed under it, for a person (Enter)">Copy for a person</button>
+            <button class="btn" id="quick-copy-image" title="Copy the marked-up image on its own, with no note under it (Ctrl+Shift+C)">Copy image</button>
           </div>
           <div class="edit-side-actions">
-            <button class="btn" id="quick-finish" title="Copy every shot in the batch with its note and close the batch (Ctrl+Enter)">Finish and hand off</button>
+            <button class="btn" id="quick-finish" title="Copy the paths and notes as text for an agent, and clear the loose shots (Ctrl+Shift+A)">Hand off to agent</button>
           </div>
           <div class="edit-side-nav">
             <button class="linkish" id="quick-new-batch" hidden title="Move this shot into a fresh batch">New batch</button>

@@ -16,10 +16,26 @@ This is the case with no agent in it at all.
    they are looking at.
 2. <kbd>A</kbd> for the arrow, point it at the thing. <kbd>H</kbd> to
    highlight, <kbd>S</kbd> for numbered steps if it takes more than one.
-3. <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>C</kbd> — **Copy image**.
+3. Type the one sentence that goes with it, and press <kbd>Enter</kbd>.
 
-The marked-up PNG is on your clipboard as an image, not a path. Paste it into
-the chat you are already in.
+The marked-up picture is on your clipboard **with your sentence printed in a
+band under it**. Paste it into the chat you are already in: the words travel
+with the screenshot, to somebody who will never see your filesystem.
+
+The band is added below the shot rather than over it, and takes the shot's
+tone — dark screenshot, dark band; light screenshot, white band — so it reads
+as part of the picture.
+
+If the arrow is the whole message, <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>C</kbd>
+copies the picture on its own.
+
+::: tip One thing on the clipboard, never two
+A chat pastes text in preference to an image when both are there, so a
+hand-off carrying the picture *and* the path arrives as the path. Omashot
+puts one thing on the clipboard and the key decides which:
+<kbd>Enter</kbd> for a person, <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>A</kbd> for
+an agent.
+:::
 
 ## Blur, when it is someone else's screen
 

@@ -323,6 +323,88 @@ window.addEventListener("mouseup", () => {
   }
 });
 
+async function toBase64(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(bin);
+}
+
+/// Breaks `text` into lines that fit `max` pixels in the context's font.
+function wrapLines(ctx: CanvasRenderingContext2D, text: string, max: number): string[] {
+  const lines: string[] = [];
+  for (const para of text.split(/\r?\n/)) {
+    let line = "";
+    for (const word of para.split(/\s+/).filter(Boolean)) {
+      const next = line ? `${line} ${word}` : word;
+      if (line && ctx.measureText(next).width > max) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = next;
+      }
+    }
+    lines.push(line);
+  }
+  return lines;
+}
+
+/// Whether the last few rows of the drawn shot are mostly dark.
+function isDarkAlongBottom(ctx: CanvasRenderingContext2D, w: number, h: number): boolean {
+  const rows = Math.min(12, h);
+  const px = ctx.getImageData(0, h - rows, w, rows).data;
+  let sum = 0;
+  let n = 0;
+  for (let i = 0; i < px.length; i += 16) {
+    sum += px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114;
+    n++;
+  }
+  return n > 0 && sum / n < 110;
+}
+
+/// The marked-up shot with the note printed in a band under it, as PNG
+/// base64. The canvas is extended rather than drawn over, so the band never
+/// covers a pixel of what you captured. No note, no band.
+async function captionedPng(note: string): Promise<string> {
+  const text = note.trim();
+  const w = canvas.width;
+  const h = canvas.height;
+  const font = Math.max(14, Math.min(28, Math.round(w / 40)));
+  const pad = Math.round(font * 1.1);
+  const lh = Math.round(font * 1.45);
+  const out = document.createElement("canvas");
+  const ctx = out.getContext("2d");
+  if (!ctx) throw new Error("no canvas");
+  // The reader's system font, not Omashot's: this picture is going to
+  // somebody else's chat, where it should look like a screenshot with a
+  // sentence under it rather than like a screenshot of an app.
+  const family = `${font}px system-ui, "Inter", "DejaVu Sans", sans-serif`;
+  ctx.font = family;
+  const lines = text ? wrapLines(ctx, text, w - pad * 2) : [];
+  const band = lines.length ? pad * 2 + lines.length * lh - Math.round(lh - font) : 0;
+  out.width = w;
+  out.height = h + band;
+  ctx.drawImage(canvas, 0, 0);
+  if (band) {
+    // The band takes the shot's tone, read off its bottom edge, so it reads
+    // as part of the picture rather than a label stuck under it.
+    const dark = isDarkAlongBottom(ctx, w, h);
+    ctx.fillStyle = dark ? "#1b1f24" : "#ffffff";
+    ctx.fillRect(0, h, w, band);
+    ctx.fillStyle = dark ? "#343b44" : "#d0d7de";
+    ctx.fillRect(0, h, w, 1);
+    ctx.fillStyle = dark ? "#e6e9ec" : "#1f2328";
+    ctx.font = family;
+    ctx.textBaseline = "top";
+    lines.forEach((l, i) => ctx.fillText(l, pad, h + pad + i * lh));
+  }
+  const blob = await new Promise<Blob | null>((res) => out.toBlob(res, "image/png"));
+  if (!blob) throw new Error("empty image");
+  return toBase64(blob);
+}
+
 /// Writes the composite and the marks for the image on screen. In review
 /// mode this runs whenever you move to another shot, so only a changed
 /// image is rewritten.
@@ -341,15 +423,11 @@ async function writeMarks(): Promise<boolean> {
     report("export", "empty image");
     return false;
   }
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  let bin = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  }
+  const pngBase64 = await toBase64(blob);
   try {
     await invoke("save_markup", {
       path,
-      pngBase64: btoa(bin),
+      pngBase64,
       marks: JSON.stringify(marks),
     });
   } catch (err) {
@@ -411,12 +489,12 @@ async function loadQuickPrompts() {
     quickPrompt.replaceChildren();
     const none = document.createElement("option");
     none.value = "";
-    none.textContent = "Hand off as: path and note";
+    none.textContent = "Agent hand-off: path and note";
     quickPrompt.append(none);
     for (const p of mine) {
       const o = document.createElement("option");
       o.value = p.id;
-      o.textContent = `Hand off as: ${p.name || "Untitled prompt"}`;
+      o.textContent = `Agent hand-off: ${p.name || "Untitled prompt"}`;
       quickPrompt.append(o);
     }
     quickPrompt.hidden = false;
@@ -434,15 +512,17 @@ function keyLabel(spec: string) {
 }
 
 let quickKey = "Ctrl+Shift+1";
+let quickBatch = 1;
 
 function showQuickBatch(n: number) {
+  quickBatch = n;
   quickCount.textContent = n > 1 ? `Loose shot ${String(n).padStart(2, "0")}` : "Shot";
   quickNewBtn.hidden = n < 2;
-  quickFinishBtn.textContent = n > 1 ? `Finish and hand off (${n})` : "Finish and hand off";
+  quickFinishBtn.textContent = n > 1 ? `Hand off to agent (${n})` : "Hand off to agent";
   quickHint.textContent =
     n > 1
-      ? `Enter saves this note and keeps the batch open. Ctrl+Enter copies all ${n} shots with their notes and closes the batch. Copy image puts this marked-up screenshot on the clipboard for a person.`
-      : `Enter saves the note; take more with ${quickKey}. Ctrl+Enter copies the path and note for an agent. Copy image puts the marked-up screenshot on the clipboard for a person.`;
+      ? `Enter copies this picture with its note under it, for a person, and keeps the rest open. Ctrl+Shift+A hands all ${n} shots to an agent as text and clears them. Copy image is the picture alone.`
+      : `Enter copies the picture with your note under it, for a chat, an email or a ticket. Ctrl+Shift+A hands the path and note to an agent instead. Take more with ${quickKey}. Copy image is the picture alone.`;
 }
 
 function status(text: string) {
@@ -452,9 +532,17 @@ function status(text: string) {
   }, 2500);
 }
 
-/// Saves the note and this shot's marks, copies (this shot, or the whole
-/// batch with `all`) and closes.
-async function quickSave(all: boolean) {
+/// Saves the note and this shot's marks, copies, and closes.
+///
+/// For a person (`agent` false) the clipboard gets the picture with the note
+/// printed under it, and the loose shots stay open. For an agent it gets the
+/// path and note as text -- all of them when there is more than one -- and
+/// they are cleared.
+///
+/// Only ever one of the two, because a chat pastes text in preference to an
+/// image when both are on the clipboard, and would show the path to someone
+/// who wanted the picture.
+async function quickSave(agent: boolean) {
   if (done) return;
   done = true;
   try {
@@ -462,7 +550,9 @@ async function quickSave(all: boolean) {
       done = false;
       return;
     }
-    await invoke("save_quick", { note: quickNote.value, all, prompt: quickPrompt.value || null });
+    const pngBase64 = agent ? null : await captionedPng(quickNote.value);
+    const all = agent && quickBatch > 1;
+    await invoke("save_quick", { note: quickNote.value, all, prompt: quickPrompt.value || null, pngBase64 });
   } catch (err) {
     done = false;
     report("quick save", err);
@@ -665,11 +755,15 @@ window.addEventListener("keydown", (e) => {
     void quickCopyImage();
     return;
   }
-  if (quick && e.key === "Enter" && !e.shiftKey) {
-    // Same keys as the note box: Enter saves and keeps the batch open,
-    // Ctrl+Enter finishes and hands off, Shift+Enter is a new line.
+  if (quick && (e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "a") {
+    // The agent chord: the A says so. Everything else goes to a person.
     e.preventDefault();
-    void quickSave(e.ctrlKey || e.metaKey);
+    void quickSave(true);
+    return;
+  }
+  if (quick && e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    void quickSave(false);
     return;
   }
   if (inField) {
@@ -793,7 +887,7 @@ async function boot() {
     (document.getElementById("save") as HTMLButtonElement).hidden = true;
     (document.getElementById("cancel") as HTMLButtonElement).hidden = true;
     footKeys.innerHTML =
-      "<kbd>Enter</kbd> save + copy path <kbd>Ctrl</kbd>+<kbd>Enter</kbd> finish and hand off <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> copy image <kbd>Esc</kbd> keep, no note";
+      "<kbd>Enter</kbd> copy for a person <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> hand off to agent <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> copy image <kbd>Esc</kbd> keep, no note";
     try {
       const hk = await invoke<{ quick: string }>("get_hotkeys");
       if (hk.quick) quickKey = keyLabel(hk.quick);
